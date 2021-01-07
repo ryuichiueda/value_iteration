@@ -1,15 +1,18 @@
+#include <gtest/gtest.h>
 #include <ros/ros.h>
-#include "nav_msgs/GetMap.h"
-#include "nav_msgs/OccupancyGrid.h"
 #include "ValueIterator.h"
-#include <iostream>
-#include <vector>
-using namespace std;
 
-
-int main(int argc, char **argv)
+// Declare a test
+TEST(ValueIteratorTest, testCase1)
 {
-	ros::init(argc,argv,"vi_node");
+	EXPECT_EQ(1,1);
+}
+
+
+// Run all the tests that were declared with TEST()
+int main(int argc, char **argv){
+	testing::InitGoogleTest(&argc, argv);
+	ros::init(argc,argv,"tester");
 	ros::NodeHandle n;
 
 	while(!ros::service::waitForService("/static_map", ros::Duration(3.0))){
@@ -26,10 +29,7 @@ int main(int argc, char **argv)
 	}
 
 	ValueIterator value_iterator(res.map);
-
 	value_iterator.outputPbmMap();
 
-	//ros::spin();
-
-	return 0;
+	return RUN_ALL_TESTS();
 }
