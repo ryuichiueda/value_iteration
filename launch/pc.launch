@@ -3,5 +3,5 @@
   <node pkg="rviz" type="rviz" name="rviz" args="-d $(find value_iteration)/config/conf.rviz"/>
   <arg name="map_file" default="$(find value_iteration)/maps/ueda_room.yaml"/>
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" output="screen"/>
-  <node pkg="value_iteration" name="vi_node" type="vi_node" output="screen" />
+  <node pkg="value_iteration" name="vi_node" type="vi_node" output="screen" required="true" />
 </launch>
