@@ -31,6 +31,10 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
+	for(int y=0;y<res.map.info.height;y++)
+		for(int x=0;x<res.map.info.width;x++)
+			ROS_INFO("CELL %d %d %d", x, y, res.map.data[y*res.map.info.width + x]);
+
 	spin();
 
 	return 0;
