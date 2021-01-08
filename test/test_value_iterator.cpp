@@ -1,6 +1,7 @@
-#include <gtest/gtest.h>
 #include <ros/ros.h>
 #include "ValueIterator.h"
+
+#include <gtest/gtest.h>
 
 // Declare a test
 TEST(ValueIteratorTest, testCase1)
