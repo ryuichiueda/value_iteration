@@ -18,8 +18,9 @@ public:
 
 class ValueIterator{
 private: 
-	vector<State> states;
-	unsigned int width, height;
+	vector<State> _states;
+	unsigned int _width, _height;
+	double _cell_size;
 public: 
 	ValueIterator(nav_msgs::OccupancyGrid &map);
 	void outputPbmMap(void);

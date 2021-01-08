@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 
 	value_iterator.outputPbmMap();
 
-	//ros::spin();
+	ros::spin();
 
 	return 0;
 }
