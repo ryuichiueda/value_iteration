@@ -10,17 +10,17 @@ using namespace std;
 
 class State{
 public: 
-	State(int x, int y, int map_value);
+	State(int x, int y, int theta, int map_value);
 
-	unsigned int ix, iy;
-	bool free;
+	unsigned int _ix, _iy, _it;
+	bool _free;
 };
 
 class ValueIterator{
 private: 
 	vector<State> _states;
-	unsigned int _width, _height;
-	double _cell_size;
+	double _cell_x_width, _cell_y_width, _cell_t_width;
+	int _cell_x_num, _cell_y_num, _cell_t_num;
 public: 
 	ValueIterator(nav_msgs::OccupancyGrid &map);
 	void outputPbmMap(void);
