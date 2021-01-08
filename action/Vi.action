@@ -1,0 +1,6 @@
+geometry_msgs/Vector3 goal_pos
+geometry_msgs/Vector3 goal_width
+---
+bool finished
+---
+uint32 current_sweep_time
