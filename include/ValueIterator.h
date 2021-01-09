@@ -12,6 +12,7 @@ class State{
 public: 
 	State(int x, int y, int theta, int map_value);
 
+	double _value;
 	unsigned int _ix, _iy, _it;
 	bool _free;
 	bool _final_state;

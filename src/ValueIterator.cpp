@@ -5,6 +5,7 @@ State::State(int x, int y, int theta, int map_value)
 {
 	_ix = x;
 	_iy = y;
+	_value = 100.0;
 	_free = (map_value == 0);
 	_final_state = false;
 }
