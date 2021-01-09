@@ -6,6 +6,7 @@ State::State(int x, int y, int theta, int map_value)
 	_ix = x;
 	_iy = y;
 	_free = (map_value == 0);
+	_final_state = false;
 }
 
 /* ROSの地図をもらって各セルの情報からStateのオブジェクトを作ってstatesというベクトルに突っ込む */
@@ -18,6 +19,10 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 	_cell_x_width = map.info.resolution;
 	_cell_y_width = map.info.resolution;
 	_cell_t_width = 360/_cell_t_num;
+
+	_final_state_x = 0.0;
+	_final_state_y = 0.0;
+	_final_state_width = 1.0;
 
 	for(int y=0; y<_cell_y_num; y++)
 		for(int x=0; x<_cell_x_num; x++)
