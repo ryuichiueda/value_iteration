@@ -5,7 +5,7 @@
 #include "nav_msgs/GetMap.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "ValueIterator.h"
-#include "ViServer.h"
+#include "ViActionServer.h"
 #include <iostream>
 #include <vector>
 using namespace std;
@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 	}
 
 	ValueIterator value_iterator(res.map);
-	ViServer vi_server(n, value_iterator);
+	ViActionServer vi_server(n, value_iterator);
 //	value_iterator.outputPbmMap();
 
 	ros::spin();

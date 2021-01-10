@@ -1,16 +1,16 @@
-#include "ViServer.h"
+#include "ViActionServer.h"
 using namespace std;
 
-ViServer::ViServer(ros::NodeHandle &h, ValueIterator &vi) 
-	: as(h, "vi_controller", boost::bind(&ViServer::executeVi, this, _1), false),
+ViActionServer::ViActionServer(ros::NodeHandle &h, ValueIterator &vi) 
+	: as(h, "vi_controller", boost::bind(&ViActionServer::executeVi, this, _1), false),
 	  _vi(vi)
 {
 	as.start();
-	ROS_INFO("ViServer started");
+	ROS_INFO("ViActionServer started");
 }
 
 
-void ViServer::executeVi(const value_iteration::ViGoalConstPtr &goal)
+void ViActionServer::executeVi(const value_iteration::ViGoalConstPtr &goal)
 {
 	for(int i=0;i<=10;i++){
 		sleep(1);
