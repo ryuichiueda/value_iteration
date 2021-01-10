@@ -126,6 +126,7 @@ include_directories(include ${catkin_INCLUDE_DIRS} )
 
 ## Declare a C++ library
 add_library(ValueIterator src/ValueIterator.cpp)
+add_library(ViServer src/ViServer.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -143,6 +144,7 @@ add_dependencies(vi_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_T
 ## Specify libraries to link a library or executable target against
 target_link_libraries(vi_node ${catkin_LIBRARIES})
 target_link_libraries(vi_node ValueIterator ${catkin_LIBRARIES})
+target_link_libraries(vi_node ViServer ${catkin_LIBRARIES})
 
 #############
 ## Install ##
