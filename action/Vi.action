@@ -4,3 +4,6 @@ geometry_msgs/Vector3 goal_width
 bool finished
 ---
 uint32 current_sweep_time
+uint32 map_width
+uint32 map_height
+float32[] values
