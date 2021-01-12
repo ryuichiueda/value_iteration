@@ -188,8 +188,14 @@ target_link_libraries(vi_node ValueIterator ${catkin_LIBRARIES})
 #catkin_add_gtest(${PROJECT_NAME}-test test/utest_launch.test test/test_value_iterator.cpp src/ValueIterator.cpp)
 find_package(rostest REQUIRED)
 catkin_add_gtest(test_value_iterator test/utest_launch.test test/test_value_iterator.cpp src/ValueIterator.cpp)
+
+## Declare a C++ library
+add_library(Valueiterator_GoogleTest test/Valueiterator_GoogleTest.cpp)
+
 #target_link_libraries(${PROJECT_NAME}-test ${catkin_LIBRARIES})
 target_link_libraries(test_value_iterator ${catkin_LIBRARIES})
+target_link_libraries(test_value_iterator Valueiterator_GoogleTest ${catkin_LIBRARIES})
+
 #if(TARGET ${PROJECT_NAME}-test)
 # target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 #endif()
