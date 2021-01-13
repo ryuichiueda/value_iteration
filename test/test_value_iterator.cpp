@@ -1,16 +1,6 @@
-#include <ros/ros.h>
 #include "ValueIterator.h"
+#include "include/Valueiterator_GoogleTest.h"
 
-#include <gtest/gtest.h>
-
-// Declare a test
-TEST(ValueIteratorTest, testCase1)
-{
-	EXPECT_EQ(1,1);
-}
-
-
-// Run all the tests that were declared with TEST()
 int main(int argc, char **argv){
 	testing::InitGoogleTest(&argc, argv);
 	ros::init(argc,argv,"tester");
@@ -33,4 +23,20 @@ int main(int argc, char **argv){
 	value_iterator.outputPbmMap();
 
 	return RUN_ALL_TESTS();
+}
+
+/*
+/	outputPbmMap()のテスト
+*/
+TEST_F(gtest_diff, gtest_file_diff2)
+{
+	gtest_diff *test;
+
+	string file_path1, file_path2;
+	file_path1 = _map_path;
+	file_path2 = "/tmp/a.pbm";
+
+	gtest_file_diff2(file_path1, file_path2);
+    
+	ASSERT_TRUE(_return);
 }
