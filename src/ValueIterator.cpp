@@ -10,6 +10,17 @@ State::State(int x, int y, int theta, int map_value)
 	_final_state = false;
 }
 
+Action::Action(string name, double fw, double rot)
+{
+	_name = name;
+
+	_delta_fw = fw;
+	_delta_rot = rot;
+
+	_delta_fw_stdev = fabs(fw)*0.1;
+	_delta_rot_stdev = fabs(rot)*0.1;
+}
+
 /* ROSの地図をもらって各セルの情報からStateのオブジェクトを作ってstatesというベクトルに突っ込む */
 ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 {
@@ -34,6 +45,15 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 				_states.push_back(State(x, y, t, map.data[y*_cell_x_num + x]));
 
 	setFinalState();
+	setAction();
+}
+
+/* デフォルトのアクションの設定 */
+void ValueIterator::setAction(void)
+{
+	_actions.push_back(Action("forward",0.3,0.0));
+	_actions.push_back(Action("right",0.0,-10.0));
+	_actions.push_back(Action("left",0.0,10.0));
 }
 
 /* statesのセルの情報をPBMとして出力（デバッグ用） */
