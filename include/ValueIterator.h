@@ -37,7 +37,7 @@ public:
 	double _delta_fw_stdev;
 	double _delta_rot_stdev;
 
-	vector<StateTransitionXY> _state_transition_xy;
+	vector<StateTransitionXY> *_state_transition_xy;
 	vector<StateTransitionTheta> _state_transition_theta;
 
 	Action(string name, double fw, double rot);

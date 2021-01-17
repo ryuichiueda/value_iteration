@@ -66,6 +66,11 @@ void ValueIterator::setStateTransition(void)
 
 void ValueIterator::setStateTransition(Action &a)
 {
+	const int x_step = 1000;
+	const int y_step = 1000;
+	const int t_step = 1000;
+
+	
 }
 
 
