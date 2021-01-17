@@ -46,15 +46,28 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 
 	setFinalState();
 	setAction();
+	setStateTransition();
 }
 
 /* デフォルトのアクションの設定 */
 void ValueIterator::setAction(void)
 {
-	_actions.push_back(Action("forward",0.3,0.0));
-	_actions.push_back(Action("right",0.0,-10.0));
-	_actions.push_back(Action("left",0.0,10.0));
+	_actions.push_back(Action("forward", 0.3, 0.0));
+	_actions.push_back(Action("right", 0.0, -10.0));
+	_actions.push_back(Action("left", 0.0, 10.0));
 }
+
+void ValueIterator::setStateTransition(void)
+{
+	for(auto &a : _actions){
+		setStateTransition(a);
+	}
+}
+
+void ValueIterator::setStateTransition(Action &a)
+{
+}
+
 
 /* statesのセルの情報をPBMとして出力（デバッグ用） */
 void ValueIterator::outputPbmMap(void){

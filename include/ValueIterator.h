@@ -18,6 +18,16 @@ public:
 	State(int x, int y, int theta, int map_value);
 };
 
+struct StateTransitionXY{
+	int dix, diy;
+	double prob;
+};
+
+struct StateTransitionTheta{
+	int dt;
+	double prob;
+};
+
 class Action{
 public:
 	string _name;
@@ -26,6 +36,9 @@ public:
 
 	double _delta_fw_stdev;
 	double _delta_rot_stdev;
+
+	vector<StateTransitionXY> _state_transition_xy;
+	vector<StateTransitionTheta> _state_transition_theta;
 
 	Action(string name, double fw, double rot);
 };
@@ -41,12 +54,15 @@ private:
 	int _center_state_ix, _center_state_iy;
 
 	double _final_state_x, _final_state_y, _final_state_width;
+
+	void setAction(void);
+	void setFinalState(void);
+	void setStateTransition(void);
+	void setStateTransition(Action &a);
 public: 
 	ValueIterator(nav_msgs::OccupancyGrid &map);
 
-	void setAction(void);
 	void outputPbmMap(void);
-	void setFinalState(void);
 	void outputValuePgmMap(void);
 };
 
