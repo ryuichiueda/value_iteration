@@ -53,6 +53,9 @@ private:
 
 	double _final_state_x, _final_state_y, _final_state_width;
 
+	void accurateStateTransition(Action &a, double from_x, double from_y, double from_t, double &to_x, double &to_y, double &to_t);
+	void toCellPos(double x, double y, double t, int &ix, int &iy, int &it);
+
 	void setAction(void);
 	void setFinalState(void);
 	void setStateTransition(void);

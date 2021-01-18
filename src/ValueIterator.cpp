@@ -82,38 +82,46 @@ void ValueIterator::setAction(void)
 
 void ValueIterator::setStateTransition(void)
 {
-	vector<thread> ths;
-
 	vector<StateTransition> theta_state_transitions;
-	for(auto &a : _actions){
-		for(int t=0; t<_cell_t_num; t++){
-			//cout << a._name << " " << t << endl;
+	for(auto &a : _actions)
+		for(int t=0; t<_cell_t_num; t++)
 			a._state_transitions.push_back(theta_state_transitions);
-			//setStateTransition(a, t);
-		}
-	}
 
-
-	for(int t=0; t<_cell_t_num; t++){
+	vector<thread> ths;
+	for(int t=0; t<_cell_t_num; t++)
 		ths.push_back(thread(&ValueIterator::setStateTransitionWorker, this, t));
-	}
 
 	for(auto &th : ths)
 		th.join();
-}/
+}
+
+void ValueIterator::toCellPos(double x, double y, double t, int &ix, int &iy, int &it)
+{
+	ix = (int)floor(fabs(x) / _cell_x_width);
+	if(x < 0.0)
+		ix = -ix-1;
+	iy = (int)floor(fabs(y) / _cell_y_width);
+	if(y < 0.0)
+		iy = -iy-1;
+
+	it = (int)floor(t / _cell_t_width);
+}
+
 
 void ValueIterator::setStateTransitionWorker(int it)
 {
-	const int x_step = 100;
-	const int y_step = 100;
-	const int t_step = 100;
-	const double prob_quota = 1.0/(x_step*y_step*t_step);
-
-	double theta_origin = it*_cell_t_width;
-
-	for(auto &a : _actions){
+	for(auto &a : _actions)
 		setStateTransition(a, it);
-	}
+}
+
+void ValueIterator::accurateStateTransition(Action &a, double from_x, double from_y, double from_t, double &to_x, double &to_y, double &to_t)
+{
+	double ang = from_t / 180 * 3.141592;
+	to_x = from_x + a._delta_fw*cos(ang);
+	to_y = from_y + a._delta_fw*sin(ang);
+	to_t = from_t + a._delta_rot;
+	while(to_t < 0.0)
+		to_t += 360.0;
 }
 
 void ValueIterator::setStateTransition(Action &a, int it)
@@ -125,8 +133,6 @@ void ValueIterator::setStateTransition(Action &a, int it)
 
 	double theta_origin = it*_cell_t_width;
 
-
-	//XY平面での遷移（thetaごと）
 	for(int y=0; y<y_step; y++){
 		for(int x=0; x<x_step; x++){
 			for(int t=0; t<t_step; t++){
@@ -134,34 +140,19 @@ void ValueIterator::setStateTransition(Action &a, int it)
 				double ox = x*_cell_x_width/x_step;
 				double oy = y*_cell_y_width/y_step;
 				double ot = t*_cell_t_width/t_step + theta_origin;
-				double ot_rad = ot * 3.141592/180;
 
 				//遷移後の姿勢
-				double dx = ox + a._delta_fw*cos(ot_rad);
-				double dy = oy + a._delta_fw*sin(ot_rad);
-				double dt = ot + a._delta_rot;
-				while(dt < 0.0)
-					dt += 360.0;
-
-				//遷移後の離散状態
-				//int dix = ((int)floor(fabs(dx) / _cell_x_width))*(dx < 0.0 ? -1 : 1);
-				//int diy = ((int)floor(fabs(dy) / _cell_y_width))*(dy < 0.0 ? -1 : 1);
-				int dix = (int)floor(fabs(dx) / _cell_x_width);
-				if(dx < 0.0)
-					dix = -dix-1;
-				int diy = (int)floor(fabs(dy) / _cell_y_width);
-				if(dy < 0.0)
-					diy = -diy-1;
-
-				int dit = (int)floor(dt / _cell_t_width);
-
-				//cout << dix << " " << dx << " " << _cell_x_width << endl;
+				double dx, dy, dt;
+				accurateStateTransition(a, ox, oy, ot, dx, dy, dt);
+				int dix, diy, dit;
+				toCellPos(dx, dy, dt, dix, diy, dit); 
 
 				bool exist = false;
 				for(auto &s : a._state_transitions[it]){
 					if(s._dix == dix and s._diy == diy and s._dit == dit){
 						s._prob += prob_quota;
 						exist = true;
+						break;
 					}
 				}
 				if(not exist)
