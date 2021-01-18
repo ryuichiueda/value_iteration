@@ -6,7 +6,8 @@ State::State(int x, int y, int theta, int map_value)
 {
 	_ix = x;
 	_iy = y;
-	_value = -100.0;
+	_it = theta;
+	_value = -10000.0;
 	_free = (map_value == 0);
 	_final_state = false;
 }
@@ -52,17 +53,21 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 
 	_final_state_x = 0.0;
 	_final_state_y = 0.0;
-	_final_state_width = 1.0;
+	_final_state_width = 0.5;
 
 	for(int y=0; y<_cell_y_num; y++)
 		for(int x=0; x<_cell_x_num; x++)
 			for(int t=0; t<_cell_t_num; t++)
 				_states.push_back(State(x, y, t, map.data[y*_cell_x_num + x]));
 
-	setFinalState();
+	setStateValues();
+
+	outputValuePgmMap();
+
 	setAction();
 	setStateTransition();
 
+/*
 	for(auto &a : _actions){
 		for(int t=0; t<_cell_t_num; t++){
 			auto ss = a._state_transitions[t];
@@ -70,6 +75,14 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 				cout << a._name << "\ttheta:" << t << "\t" << s.to_string() << endl;
 		}
 	}
+*/
+
+	for(int i=0;i<10;i++){
+		cout << "sweep " << i << endl;
+		valueIteration();
+		outputValuePgmMap();
+	}
+
 }
 
 /* デフォルトのアクションの設定 */
@@ -162,6 +175,54 @@ void ValueIterator::setStateTransition(Action &a, int it)
 	}
 }
 
+
+void ValueIterator::valueIteration(void)
+{
+	for(auto &s : _states){
+		if((not s._free) or s._final_state)
+			continue;
+
+		double max_value = -100000000.0;
+		for(auto a : _actions){
+			double q = actionValue(s, a);
+			if(q > max_value)
+				max_value = q;
+		}
+
+		s._value = max_value;
+		//cout << s._ix << "\t" << s._iy << "\t" << s._it << "\t" << s._value << endl;
+	}
+}
+
+int ValueIterator::toIndex(int ix, int iy, int it)
+{
+	return it + ix*_cell_t_num + iy*(_cell_t_num*_cell_x_num);
+}
+
+double ValueIterator::actionValue(State &s, Action &a)
+{
+	double value = 0.0;
+	for(auto &tran : a._state_transitions[s._it]){
+		int ix = s._ix + tran._dix;
+		if(ix < 0 or ix >= _cell_x_num)
+			return -10000000.0;
+
+		int iy = s._iy + tran._diy;
+		if(iy < 0 or iy >= _cell_y_num)
+			return -10000000.0;
+
+		int it = (s._it + tran._dit + _cell_t_num)%_cell_t_num;
+
+		auto &after_s = _states[toIndex(ix, iy, it)];
+		if(not after_s._free)
+			return -10000000.0;
+
+		value += after_s._value * tran._prob;
+	}
+
+	return value - 1.0;
+}
+
 /* statesのセルの情報をPBMとして出力（デバッグ用） */
 void ValueIterator::outputPbmMap(void){
 	ofstream ofs("/tmp/a.pbm");
@@ -177,7 +238,7 @@ void ValueIterator::outputPbmMap(void){
 	ofs << flush;
 }
 
-void ValueIterator::setFinalState(void)
+void ValueIterator::setStateValues(void)
 {
 	for(auto &s : _states){
 		double x0 = (s._ix - _center_state_ix)*_cell_x_width;
@@ -188,29 +249,35 @@ void ValueIterator::setFinalState(void)
 		s._final_state = fabs(x0 - _final_state_x) < _final_state_width
 			       && fabs(y0 - _final_state_y) < _final_state_width
 			       && fabs(x1 - _final_state_y) < _final_state_width 
-			       && fabs(y1 - _final_state_y) < _final_state_width;
+			       && fabs(y1 - _final_state_y) < _final_state_width
+			       && s._free;
+	}
 
+	for(auto &s : _states){
 		if(s._final_state)
 			s._value = 0.0;
+		else if(s._free)
+			s._value = -100.0;
+		else
+			s._value = -10000.0;
+
 	}
 }
 
 void ValueIterator::outputValuePgmMap(void)
 {
-	double min_value = 0.0;
-	for(auto &s : _states){
-		if(min_value > s._value)
-			min_value = s._value;
-	}
-
 	for(int t=0; t<_cell_t_num; t++){
 		ofstream ofs("/tmp/value_t=" + to_string(t) + ".pgm");
-	
+
 		ofs << "P2" << endl;
 		ofs << _cell_x_num << " " << _cell_y_num << " 255" << endl;
 		int i = t;
 		while(i<_states.size()){
-			ofs << 255 - int(_states[i]._value/min_value*255) << " ";
+			if(_states[i]._free)
+				ofs << 255 - (int)fabs(_states[i]._value) << " ";
+			else
+				ofs << 0 << " ";
+
 			i += _cell_t_num;
 		}
 	

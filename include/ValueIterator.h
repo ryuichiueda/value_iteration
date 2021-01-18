@@ -57,10 +57,15 @@ private:
 	void toCellPos(double x, double y, double t, int &ix, int &iy, int &it);
 
 	void setAction(void);
-	void setFinalState(void);
+	void setStateValues(void);
 	void setStateTransition(void);
 	void setStateTransition(Action &a, int it);
 	void setStateTransitionWorker(int it);
+
+	void valueIteration(void);
+	double actionValue(State &s, Action &a);
+
+	int toIndex(int ix, int iy, int it);
 public: 
 	ValueIterator(nav_msgs::OccupancyGrid &map);
 
