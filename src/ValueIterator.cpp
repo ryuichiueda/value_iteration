@@ -7,7 +7,7 @@ State::State(int x, int y, int theta, int map_value)
 	_ix = x;
 	_iy = y;
 	_it = theta;
-	_value = -10000.0;
+	_value = ValueIterator::_value_min;
 	_free = (map_value == 0);
 	_final_state = false;
 }
@@ -68,8 +68,10 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 	setStateTransition();
 
 
+	_delta = fabs(_value_min);
+
 	vector<thread> ths;
-	for(int t=0; t<10; t++)
+	for(int t=0; t<12; t++)
 		ths.push_back(thread(&ValueIterator::valueIterationWorker, this));
 
 	for(auto &th : ths)
@@ -169,78 +171,48 @@ void ValueIterator::setStateTransition(Action &a, int it)
 	}
 }
 
-void ValueIterator::valueIteration(State &s)
+double ValueIterator::valueIteration(State &s)
 {
 	if((not s._free) or s._final_state)
-		return;
+		return 0.0;
 
-	double max_value = -100000000.0;
+	double max_value = ValueIterator::_value_min*10;
 	for(auto a : _actions){
 		double q = actionValue(s, a);
 		if(q > max_value)
 			max_value = q;
 	}
 
+	if(max_value < ValueIterator::_value_min)
+		max_value = ValueIterator::_value_min;
+
+	double delta = fabs(max_value - s._value);
 	s._value = max_value;
+
+	return delta;
 }
 
 void ValueIterator::valueIterationWorker(void)
 {
-	int start = rand()%_states.size();
-	for(int i=start; i<_states.size(); i++){
-		valueIteration(_states[i]);
-		/*
-		auto &s = _states[i];
-
-		if((not s._free) or s._final_state)
-			continue;
-
-		double max_value = -100000000.0;
-		for(auto a : _actions){
-			double q = actionValue(s, a);
-			if(q > max_value)
-				max_value = q;
+	while(_delta > 0.1){
+		double max_delta = 0.0;
+	
+		int start = rand()%_states.size();
+		for(int i=start; i<_states.size(); i++){
+			double delta = valueIteration(_states[i]);
+			max_delta = (max_delta > delta) ? max_delta : delta;
 		}
-
-		s._value = max_value;
-		*/
-	}
-	outputValuePgmMap();
-
-	for(int i=0; i<start; i++){
-		valueIteration(_states[i]);
-		/*
-		auto &s = _states[i];
-
-		if((not s._free) or s._final_state)
-			continue;
-
-		double max_value = -100000000.0;
-		for(auto a : _actions){
-			double q = actionValue(s, a);
-			if(q > max_value)
-				max_value = q;
+		
+		outputValuePgmMap();
+	
+		for(int i=0; i<start; i++){
+			double delta = valueIteration(_states[i]);
+			max_delta = (max_delta > delta) ? max_delta : delta;
 		}
-
-		s._value = max_value;
-		*/
+	
+		_delta = max_delta;
+		cout << "delta: " << _delta << endl;
 	}
-
-	/*
-	for(auto &s : _states){
-		if((not s._free) or s._final_state)
-			continue;
-
-		double max_value = -100000000.0;
-		for(auto a : _actions){
-			double q = actionValue(s, a);
-			if(q > max_value)
-				max_value = q;
-		}
-
-		s._value = max_value;
-	}
-	*/
 }
 
 int ValueIterator::toIndex(int ix, int iy, int it)
@@ -305,11 +277,8 @@ void ValueIterator::setStateValues(void)
 	for(auto &s : _states){
 		if(s._final_state)
 			s._value = 0.0;
-		else if(s._free)
-			s._value = -100.0;
 		else
-			s._value = -10000.0;
-
+			s._value = _value_min;
 	}
 }
 
@@ -322,7 +291,7 @@ void ValueIterator::outputValuePgmMap(void)
 		ofs << _cell_x_num << " " << _cell_y_num << " 255" << endl;
 		int i = t;
 		while(i<_states.size()){
-			if(_states[i]._free)
+			if(_states[i]._free and _states[i]._value >= -255.0)
 				ofs << 255 - (int)fabs(_states[i]._value) << " ";
 			else
 				ofs << 0 << " ";

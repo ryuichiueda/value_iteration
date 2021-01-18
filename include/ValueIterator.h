@@ -48,10 +48,9 @@ private:
 
 	double _cell_x_width, _cell_y_width, _cell_t_width;
 	int _cell_x_num, _cell_y_num, _cell_t_num;
-
 	int _center_state_ix, _center_state_iy;
-
 	double _final_state_x, _final_state_y, _final_state_width;
+	double _delta;
 
 	void accurateStateTransition(Action &a, double from_x, double from_y, double from_t, double &to_x, double &to_y, double &to_t);
 	void toCellPos(double x, double y, double t, int &ix, int &iy, int &it);
@@ -63,7 +62,7 @@ private:
 	void setStateTransitionWorker(int it);
 
 	void valueIterationWorker(void);
-	void valueIteration(State &s);
+	double valueIteration(State &s);
 	double actionValue(State &s, Action &a);
 
 	int toIndex(int ix, int iy, int it);
@@ -72,6 +71,10 @@ public:
 
 	void outputPbmMap(void);
 	void outputValuePgmMap(void);
+
+	const static double _value_min;
 };
 
+
+const double ValueIterator::_value_min = -100000000.0;
 #endif
