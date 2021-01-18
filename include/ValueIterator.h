@@ -62,7 +62,8 @@ private:
 	void setStateTransition(Action &a, int it);
 	void setStateTransitionWorker(int it);
 
-	void valueIteration(void);
+	void valueIterationWorker(void);
+	void valueIteration(State &s);
 	double actionValue(State &s, Action &a);
 
 	int toIndex(int ix, int iy, int it);

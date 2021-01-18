@@ -67,22 +67,16 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 	setAction();
 	setStateTransition();
 
-/*
-	for(auto &a : _actions){
-		for(int t=0; t<_cell_t_num; t++){
-			auto ss = a._state_transitions[t];
-			for(auto s : ss)
-				cout << a._name << "\ttheta:" << t << "\t" << s.to_string() << endl;
-		}
-	}
-*/
 
-	for(int i=0;i<10;i++){
-		cout << "sweep " << i << endl;
-		valueIteration();
-		outputValuePgmMap();
-	}
+	vector<thread> ths;
+	for(int t=0; t<10; t++)
+		ths.push_back(thread(&ValueIterator::valueIterationWorker, this));
 
+	for(auto &th : ths)
+		th.join();
+
+	outputValuePgmMap();
+	exit(0);
 }
 
 /* デフォルトのアクションの設定 */
@@ -175,9 +169,64 @@ void ValueIterator::setStateTransition(Action &a, int it)
 	}
 }
 
-
-void ValueIterator::valueIteration(void)
+void ValueIterator::valueIteration(State &s)
 {
+	if((not s._free) or s._final_state)
+		return;
+
+	double max_value = -100000000.0;
+	for(auto a : _actions){
+		double q = actionValue(s, a);
+		if(q > max_value)
+			max_value = q;
+	}
+
+	s._value = max_value;
+}
+
+void ValueIterator::valueIterationWorker(void)
+{
+	int start = rand()%_states.size();
+	for(int i=start; i<_states.size(); i++){
+		valueIteration(_states[i]);
+		/*
+		auto &s = _states[i];
+
+		if((not s._free) or s._final_state)
+			continue;
+
+		double max_value = -100000000.0;
+		for(auto a : _actions){
+			double q = actionValue(s, a);
+			if(q > max_value)
+				max_value = q;
+		}
+
+		s._value = max_value;
+		*/
+	}
+	outputValuePgmMap();
+
+	for(int i=0; i<start; i++){
+		valueIteration(_states[i]);
+		/*
+		auto &s = _states[i];
+
+		if((not s._free) or s._final_state)
+			continue;
+
+		double max_value = -100000000.0;
+		for(auto a : _actions){
+			double q = actionValue(s, a);
+			if(q > max_value)
+				max_value = q;
+		}
+
+		s._value = max_value;
+		*/
+	}
+
+	/*
 	for(auto &s : _states){
 		if((not s._free) or s._final_state)
 			continue;
@@ -190,8 +239,8 @@ void ValueIterator::valueIteration(void)
 		}
 
 		s._value = max_value;
-		//cout << s._ix << "\t" << s._iy << "\t" << s._it << "\t" << s._value << endl;
 	}
+	*/
 }
 
 int ValueIterator::toIndex(int ix, int iy, int it)
