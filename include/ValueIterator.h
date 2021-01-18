@@ -18,14 +18,13 @@ public:
 	State(int x, int y, int theta, int map_value);
 };
 
-struct StateTransitionXY{
-	int dix, diy;
-	double prob;
-};
+class StateTransition{
+public:
+	int _dix, _diy, _dit;
+	double _prob;
 
-struct StateTransitionTheta{
-	int dt;
-	double prob;
+	StateTransition(int dix, int diy, int dit, double prob);
+	string to_string(void);
 };
 
 class Action{
@@ -34,11 +33,10 @@ public:
 	double _delta_fw;  //forward traveling distance[m]
 	double _delta_rot;  //rotation[deg]
 
-	double _delta_fw_stdev;
-	double _delta_rot_stdev;
+//	double _delta_fw_stdev;
+//	double _delta_rot_stdev;
 
-	vector<StateTransitionXY> *_state_transition_xy;
-	vector<StateTransitionTheta> _state_transition_theta;
+	vector< vector<StateTransition> > _state_transitions; //thetaごとに状態遷移先のリストを保存
 
 	Action(string name, double fw, double rot);
 };
@@ -58,7 +56,7 @@ private:
 	void setAction(void);
 	void setFinalState(void);
 	void setStateTransition(void);
-	void setStateTransition(Action &a);
+	void setStateTransition(Action &a, int it);
 public: 
 	ValueIterator(nav_msgs::OccupancyGrid &map);
 

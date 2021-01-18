@@ -17,8 +17,22 @@ Action::Action(string name, double fw, double rot)
 	_delta_fw = fw;
 	_delta_rot = rot;
 
-	_delta_fw_stdev = fabs(fw)*0.1;
-	_delta_rot_stdev = fabs(rot)*0.1;
+	//_delta_fw_stdev = fabs(fw)*0.1;
+	//_delta_rot_stdev = fabs(rot)*0.1;
+}
+
+StateTransition::StateTransition(int dix, int diy, int dit, double prob)
+{
+	_dix = dix;
+	_diy = diy;
+	_dit = dit;
+	_prob = prob;
+}
+
+string StateTransition::to_string(void)
+{
+	return "dix:" + std::to_string(_dix) + " diy:" + std::to_string(_diy) 
+		+ " dit:" + std::to_string(_dit) + " prob:" + std::to_string(_prob);
 }
 
 /* ROSの地図をもらって各セルの情報からStateのオブジェクトを作ってstatesというベクトルに突っ込む */
@@ -26,7 +40,7 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 {
 	_cell_x_num = map.info.width;
 	_cell_y_num = map.info.height;
-	_cell_t_num = 72;
+	_cell_t_num = 60; //6[deg]刻みでとりあえず固定
 
 	_cell_x_width = map.info.resolution;
 	_cell_y_width = map.info.resolution;
@@ -47,32 +61,91 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 	setFinalState();
 	setAction();
 	setStateTransition();
+
+	/*
+	for(auto &a : _actions){
+		for(int t=0; t<_cell_t_num; t++){
+			auto ss = a._state_transitions[t];
+			for(auto s : ss)
+				cout << a._name << "\ttheta:" << t << "\t" << s.to_string() << endl;
+		}
+	}
+	*/
 }
 
 /* デフォルトのアクションの設定 */
 void ValueIterator::setAction(void)
 {
-	_actions.push_back(Action("forward", 0.3, 0.0));
+	_actions.push_back(Action("forward", 0.1, 0.0));
 	_actions.push_back(Action("right", 0.0, -10.0));
 	_actions.push_back(Action("left", 0.0, 10.0));
 }
 
 void ValueIterator::setStateTransition(void)
 {
-	for(auto &a : _actions){
-		setStateTransition(a);
+	vector<StateTransition> theta_state_transitions;
+	for(auto &a : _actions)
+		for(int t=0; t<_cell_t_num; t++){
+			//cout << a._name << " " << t << endl;
+			a._state_transitions.push_back(theta_state_transitions);
+			setStateTransition(a, t);
+		}
+}
+
+void ValueIterator::setStateTransition(Action &a, int it)
+{
+	const int x_step = 100;
+	const int y_step = 100;
+	const int t_step = 100;
+	const double prob_quota = 1.0/(x_step*y_step*t_step);
+
+	double theta_origin = it*_cell_t_width;
+
+
+	//XY平面での遷移（thetaごと）
+	for(int y=0; y<y_step; y++){
+		for(int x=0; x<x_step; x++){
+			for(int t=0; t<t_step; t++){
+				//遷移前の姿勢
+				double ox = x*_cell_x_width/x_step;
+				double oy = y*_cell_y_width/y_step;
+				double ot = t*_cell_t_width/t_step + theta_origin;
+				double ot_rad = ot * 3.141592/180;
+
+				//遷移後の姿勢
+				double dx = ox + a._delta_fw*cos(ot_rad);
+				double dy = oy + a._delta_fw*sin(ot_rad);
+				double dt = ot + a._delta_rot;
+				while(dt < 0.0)
+					dt += 360.0;
+
+				//遷移後の離散状態
+				//int dix = ((int)floor(fabs(dx) / _cell_x_width))*(dx < 0.0 ? -1 : 1);
+				//int diy = ((int)floor(fabs(dy) / _cell_y_width))*(dy < 0.0 ? -1 : 1);
+				int dix = (int)floor(fabs(dx) / _cell_x_width);
+				if(dx < 0.0)
+					dix = -dix-1;
+				int diy = (int)floor(fabs(dy) / _cell_y_width);
+				if(dy < 0.0)
+					diy = -diy-1;
+
+				int dit = (int)floor(dt / _cell_t_width);
+
+				//cout << dix << " " << dx << " " << _cell_x_width << endl;
+
+				bool exist = false;
+				for(auto &s : a._state_transitions[it]){
+					if(s._dix == dix and s._diy == diy and s._dit == dit){
+						s._prob += prob_quota;
+						exist = true;
+					}
+				}
+				if(not exist)
+					a._state_transitions[it].push_back(StateTransition(dix, diy, dit, prob_quota));
+			}
+		}
 	}
 }
-
-void ValueIterator::setStateTransition(Action &a)
-{
-	const int x_step = 1000;
-	const int y_step = 1000;
-	const int t_step = 1000;
-
-	
-}
-
 
 /* statesのセルの情報をPBMとして出力（デバッグ用） */
 void ValueIterator::outputPbmMap(void){
