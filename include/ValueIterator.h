@@ -57,6 +57,7 @@ private:
 	void setFinalState(void);
 	void setStateTransition(void);
 	void setStateTransition(Action &a, int it);
+	void setStateTransitionWorker(int it);
 public: 
 	ValueIterator(nav_msgs::OccupancyGrid &map);
 

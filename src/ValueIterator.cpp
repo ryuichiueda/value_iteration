@@ -1,4 +1,5 @@
 #include "ValueIterator.h"
+#include <thread>
 using namespace std;
 
 State::State(int x, int y, int theta, int map_value)
@@ -62,7 +63,6 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 	setAction();
 	setStateTransition();
 
-	/*
 	for(auto &a : _actions){
 		for(int t=0; t<_cell_t_num; t++){
 			auto ss = a._state_transitions[t];
@@ -70,7 +70,6 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 				cout << a._name << "\ttheta:" << t << "\t" << s.to_string() << endl;
 		}
 	}
-	*/
 }
 
 /* デフォルトのアクションの設定 */
@@ -83,13 +82,38 @@ void ValueIterator::setAction(void)
 
 void ValueIterator::setStateTransition(void)
 {
+	vector<thread> ths;
+
 	vector<StateTransition> theta_state_transitions;
-	for(auto &a : _actions)
+	for(auto &a : _actions){
 		for(int t=0; t<_cell_t_num; t++){
 			//cout << a._name << " " << t << endl;
 			a._state_transitions.push_back(theta_state_transitions);
-			setStateTransition(a, t);
+			//setStateTransition(a, t);
 		}
+	}
+
+
+	for(int t=0; t<_cell_t_num; t++){
+		ths.push_back(thread(&ValueIterator::setStateTransitionWorker, this, t));
+	}
+
+	for(auto &th : ths)
+		th.join();
+}/
+
+void ValueIterator::setStateTransitionWorker(int it)
+{
+	const int x_step = 100;
+	const int y_step = 100;
+	const int t_step = 100;
+	const double prob_quota = 1.0/(x_step*y_step*t_step);
+
+	double theta_origin = it*_cell_t_width;
+
+	for(auto &a : _actions){
+		setStateTransition(a, it);
+	}
 }
 
 void ValueIterator::setStateTransition(Action &a, int it)
