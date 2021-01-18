@@ -1,0 +1,7 @@
+image: ueda_room_small.pgm
+resolution: 0.060000
+origin: [-9.9990, -9.9990, 0.000000]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196
+
