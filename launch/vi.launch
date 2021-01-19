@@ -4,5 +4,5 @@
   <arg name="map_file" default="$(find value_iteration)/maps/ueda_room_small.yaml"/>
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" output="screen" />
   <node pkg="value_iteration" name="vi_node" type="vi_node" output="screen" required="true" />
-  <node pkg="value_iteration" name="vi_control_center" type="vi_control_center.py" output="screen" required="true" /> 
+  <node pkg="value_iteration" name="vi_control" type="vi_control.py" output="screen" required="true" /> 
 </launch>

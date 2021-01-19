@@ -70,6 +70,7 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 
 	_delta = fabs(_value_min);
 
+	/*
 	vector<thread> ths;
 	for(int t=0; t<12; t++)
 		ths.push_back(thread(&ValueIterator::valueIterationWorker, this));
@@ -79,6 +80,7 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 
 	outputValuePgmMap();
 	exit(0);
+	*/
 }
 
 /* デフォルトのアクションの設定 */
@@ -192,9 +194,10 @@ double ValueIterator::valueIteration(State &s)
 	return delta;
 }
 
-void ValueIterator::valueIterationWorker(void)
+void ValueIterator::valueIterationWorker(int times)
 {
-	while(_delta > 0.1){
+	cout << "address:" << &_states[0] << endl;
+	for(int j=0; j<times; j++){
 		double max_delta = 0.0;
 	
 		int start = rand()%_states.size();
@@ -212,6 +215,8 @@ void ValueIterator::valueIterationWorker(void)
 	
 		_delta = max_delta;
 		cout << "delta: " << _delta << endl;
+		if(_delta < 0.1)
+			break;
 	}
 }
 

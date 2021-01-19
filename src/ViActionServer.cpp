@@ -1,4 +1,5 @@
 #include "ViActionServer.h"
+#include <thread>
 using namespace std;
 
 ViActionServer::ViActionServer(ros::NodeHandle &h, ValueIterator &vi) 
@@ -12,13 +13,25 @@ ViActionServer::ViActionServer(ros::NodeHandle &h, ValueIterator &vi)
 
 void ViActionServer::executeVi(const value_iteration::ViGoalConstPtr &goal)
 {
-	for(int i=0;i<=10;i++){
+	vector<thread> ths;
+	for(int t=0; t<goal->threadnum; t++)
+		ths.push_back(thread(&ValueIterator::valueIterationWorker, &_vi, goal->sweepnum));
+
+	for(auto &th : ths){
+		th.join();
+	}
+
+		/*
+	outputValuePgmMap();
+	exit(0);
+
 		sleep(1);
-		ROS_INFO("send feedback");
+		ROS_INFO("%d, %d", sweepnum, threadnum);
 		value_iteration::ViFeedback vi_feedback;
 		vi_feedback.current_sweep_time = i;
 		as.publishFeedback(vi_feedback);
-	}
+	*/
+
 
 	value_iteration::ViResult vi_result;
 	vi_result.finished = false;

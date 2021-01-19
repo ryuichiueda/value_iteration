@@ -61,7 +61,6 @@ private:
 	void setStateTransition(Action &a, int it);
 	void setStateTransitionWorker(int it);
 
-	void valueIterationWorker(void);
 	double valueIteration(State &s);
 	double actionValue(State &s, Action &a);
 
@@ -72,9 +71,11 @@ public:
 	void outputPbmMap(void);
 	void outputValuePgmMap(void);
 
+	void valueIterationWorker(int times);
+
 	const static double _value_min;
 };
 
-
 const double ValueIterator::_value_min = -100000000.0;
+
 #endif
