@@ -8,6 +8,13 @@
 #include <fstream>
 using namespace std;
 
+class SweepWorkerStatus{
+public: 	
+	bool _finished;
+
+	SweepWorkerStatus();
+};
+
 class State{
 public: 
 	double _value;
@@ -72,7 +79,7 @@ public:
 	void outputValuePgmMap(void);
 
 	void valueIterationWorker(int times, int id);
-	map<int, bool> _finished; 
+	map<int, SweepWorkerStatus> _status; 
 
 	const static double _value_min;
 };

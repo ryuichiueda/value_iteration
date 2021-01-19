@@ -2,6 +2,11 @@
 #include <thread>
 using namespace std;
 
+SweepWorkerStatus::SweepWorkerStatus()
+{
+	_finished = false;
+}
+
 State::State(int x, int y, int theta, int map_value)
 {
 	_ix = x;
@@ -55,6 +60,8 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 	_final_state_y = 0.0;
 	_final_state_width = 0.5;
 
+	_delta = fabs(_value_min);
+
 	for(int y=0; y<_cell_y_num; y++)
 		for(int x=0; x<_cell_x_num; x++)
 			for(int t=0; t<_cell_t_num; t++)
@@ -66,21 +73,6 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 
 	setAction();
 	setStateTransition();
-
-
-	_delta = fabs(_value_min);
-
-	/*
-	vector<thread> ths;
-	for(int t=0; t<12; t++)
-		ths.push_back(thread(&ValueIterator::valueIterationWorker, this));
-
-	for(auto &th : ths)
-		th.join();
-
-	outputValuePgmMap();
-	exit(0);
-	*/
 }
 
 /* デフォルトのアクションの設定 */
@@ -196,7 +188,7 @@ double ValueIterator::valueIteration(State &s)
 
 void ValueIterator::valueIterationWorker(int times, int id)
 {
-	_finished.insert(make_pair(id, false));
+	_status.insert(make_pair(id, SweepWorkerStatus()));
 	cout << "address:" << &_states[0] << endl;
 
 	for(int j=0; j<times; j++){
@@ -221,7 +213,7 @@ void ValueIterator::valueIterationWorker(int times, int id)
 			break;
 	}
 
-	_finished[id] = true;
+	_status[id]._finished = true;
 }
 
 int ValueIterator::toIndex(int ix, int iy, int it)

@@ -19,7 +19,7 @@ void ViActionServer::executeVi(const value_iteration::ViGoalConstPtr &goal)
 		ths.push_back(thread(&ValueIterator::valueIterationWorker, &_vi, goal->sweepnum, t));
 
 	while(1){
-		sleep(10);
+		sleep(3);
 
 		value_iteration::ViFeedback vi_feedback;
 		vi_feedback.current_sweep_time = 3; //いまのところてきとう
@@ -27,8 +27,8 @@ void ViActionServer::executeVi(const value_iteration::ViGoalConstPtr &goal)
 
 		bool finish = true;
 		for(int t=0; t<goal->threadnum; t++){
-			ROS_INFO("thread%d: %d", t, _vi._finished[t]);
-			finish &= _vi._finished[t];
+			ROS_INFO("thread%d: %d", t, _vi._status[t]._finished);
+			finish &= _vi._status[t]._finished;
 		}
 		if(finish)
 			break;
