@@ -5,6 +5,7 @@ using namespace std;
 SweepWorkerStatus::SweepWorkerStatus()
 {
 	_finished = false;
+	_sweep_step = 0;
 }
 
 State::State(int x, int y, int theta, int map_value)
@@ -192,6 +193,8 @@ void ValueIterator::valueIterationWorker(int times, int id)
 	cout << "address:" << &_states[0] << endl;
 
 	for(int j=0; j<times; j++){
+		_status[id]._sweep_step = j+1;
+
 		double max_delta = 0.0;
 	
 		int start = rand()%_states.size();

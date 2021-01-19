@@ -11,6 +11,7 @@ using namespace std;
 class SweepWorkerStatus{
 public: 	
 	bool _finished;
+	int _sweep_step;
 
 	SweepWorkerStatus();
 };

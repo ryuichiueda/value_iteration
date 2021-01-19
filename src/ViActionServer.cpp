@@ -1,4 +1,5 @@
 #include "ViActionServer.h"
+#include <std_msgs/UInt32MultiArray.h>
 #include <thread>
 using namespace std;
 
@@ -20,26 +21,25 @@ void ViActionServer::executeVi(const value_iteration::ViGoalConstPtr &goal)
 
 	while(1){
 		sleep(3);
-
 		value_iteration::ViFeedback vi_feedback;
-		vi_feedback.current_sweep_time = 3; //いまのところてきとう
+
+		vi_feedback.current_sweep_times.data.resize(goal->threadnum);
+		for(int t=0; t<goal->threadnum; t++){
+			vi_feedback.current_sweep_times.data[t] = _vi._status[t]._sweep_step;
+		}
 		as.publishFeedback(vi_feedback);
 
 		bool finish = true;
-		for(int t=0; t<goal->threadnum; t++){
-			ROS_INFO("thread%d: %d", t, _vi._status[t]._finished);
+		for(int t=0; t<goal->threadnum; t++)
 			finish &= _vi._status[t]._finished;
-		}
 		if(finish)
 			break;
 	}
 
-	for(auto &th : ths){
+	for(auto &th : ths)
 		th.join();
-	}
-
 
 	value_iteration::ViResult vi_result;
-	vi_result.finished = false;
+	vi_result.finished = true;
 	as.setSucceeded(vi_result);
 }
