@@ -14,23 +14,29 @@ ViActionServer::ViActionServer(ros::NodeHandle &h, ValueIterator &vi)
 void ViActionServer::executeVi(const value_iteration::ViGoalConstPtr &goal)
 {
 	vector<thread> ths;
+	bool fin = false;
 	for(int t=0; t<goal->threadnum; t++)
-		ths.push_back(thread(&ValueIterator::valueIterationWorker, &_vi, goal->sweepnum));
+		ths.push_back(thread(&ValueIterator::valueIterationWorker, &_vi, goal->sweepnum, t));
+
+	while(1){
+		sleep(10);
+
+		value_iteration::ViFeedback vi_feedback;
+		vi_feedback.current_sweep_time = 3; //いまのところてきとう
+		as.publishFeedback(vi_feedback);
+
+		bool finish = true;
+		for(int t=0; t<goal->threadnum; t++){
+			ROS_INFO("thread%d: %d", t, _vi._finished[t]);
+			finish &= _vi._finished[t];
+		}
+		if(finish)
+			break;
+	}
 
 	for(auto &th : ths){
 		th.join();
 	}
-
-		/*
-	outputValuePgmMap();
-	exit(0);
-
-		sleep(1);
-		ROS_INFO("%d, %d", sweepnum, threadnum);
-		value_iteration::ViFeedback vi_feedback;
-		vi_feedback.current_sweep_time = i;
-		as.publishFeedback(vi_feedback);
-	*/
 
 
 	value_iteration::ViResult vi_result;

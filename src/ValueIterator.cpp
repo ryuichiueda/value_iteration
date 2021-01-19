@@ -194,9 +194,11 @@ double ValueIterator::valueIteration(State &s)
 	return delta;
 }
 
-void ValueIterator::valueIterationWorker(int times)
+void ValueIterator::valueIterationWorker(int times, int id)
 {
+	_finished.insert(make_pair(id, false));
 	cout << "address:" << &_states[0] << endl;
+
 	for(int j=0; j<times; j++){
 		double max_delta = 0.0;
 	
@@ -218,6 +220,8 @@ void ValueIterator::valueIterationWorker(int times)
 		if(_delta < 0.1)
 			break;
 	}
+
+	_finished[id] = true;
 }
 
 int ValueIterator::toIndex(int ix, int iy, int it)

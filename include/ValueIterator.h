@@ -71,7 +71,8 @@ public:
 	void outputPbmMap(void);
 	void outputValuePgmMap(void);
 
-	void valueIterationWorker(int times);
+	void valueIterationWorker(int times, int id);
+	map<int, bool> _finished; 
 
 	const static double _value_min;
 };
