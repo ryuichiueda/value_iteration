@@ -205,7 +205,8 @@ void ValueIterator::valueIterationWorker(int times, int id)
 		
 		outputValuePgmMap();
 	
-		for(int i=0; i<start; i++){
+		//for(int i=0; i<start; i++){
+		for(int i=start-1; i>=0; i--){
 			double delta = valueIteration(_states[i]);
 			max_delta = (max_delta > delta) ? max_delta : delta;
 		}

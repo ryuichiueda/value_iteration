@@ -14,11 +14,13 @@ ViActionServer::ViActionServer(ros::NodeHandle &h, ValueIterator &vi)
 
 void ViActionServer::executeVi(const value_iteration::ViGoalConstPtr &goal)
 {
-	vector<thread> ths;
-	bool fin = false;
-	for(int t=0; t<goal->threadnum; t++)
-		ths.push_back(thread(&ValueIterator::valueIterationWorker, &_vi, goal->sweepnum, t));
+	int sweepnum = goal->sweepnum > 0 ? goal->sweepnum : INT_MAX;
 
+	vector<thread> ths;
+	for(int t=0; t<goal->threadnum; t++)
+		ths.push_back(thread(&ValueIterator::valueIterationWorker, &_vi, sweepnum, t));
+
+	bool fin = false;
 	while(1){
 		sleep(3);
 		value_iteration::ViFeedback vi_feedback;
