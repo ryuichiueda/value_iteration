@@ -29,7 +29,7 @@ Action::Action(string name, double fw, double rot)
 	//_delta_rot_stdev = fabs(rot)*0.1;
 }
 
-StateTransition::StateTransition(int dix, int diy, int dit, double prob)
+StateTransition::StateTransition(int dix, int diy, int dit, int prob)
 {
 	_dix = dix;
 	_diy = diy;
@@ -133,7 +133,8 @@ void ValueIterator::setStateTransition(Action &a, int it)
 	const int x_step = 100;
 	const int y_step = 100;
 	const int t_step = 100;
-	const double prob_quota = 1.0/(x_step*y_step*t_step);
+	_prob_base = x_step*y_step*t_step;
+	//const double prob_quota = 1.0/(x_step*y_step*t_step);
 
 	double theta_origin = it*_cell_t_width;
 
@@ -154,13 +155,13 @@ void ValueIterator::setStateTransition(Action &a, int it)
 				bool exist = false;
 				for(auto &s : a._state_transitions[it]){
 					if(s._dix == dix and s._diy == diy and s._dit == dit){
-						s._prob += prob_quota;
+						s._prob++; //+= prob_quota;
 						exist = true;
 						break;
 					}
 				}
 				if(not exist)
-					a._state_transitions[it].push_back(StateTransition(dix, diy, dit, prob_quota));
+					a._state_transitions[it].push_back(StateTransition(dix, diy, dit, 1));
 			}
 		}
 	}
@@ -243,7 +244,7 @@ double ValueIterator::actionValue(State &s, Action &a)
 		if(not after_s._free)
 			return -10000000.0;
 
-		value += after_s._value * tran._prob;
+		value += (after_s._value * tran._prob)/_prob_base;
 	}
 
 	return value - 1.0;

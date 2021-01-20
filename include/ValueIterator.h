@@ -29,9 +29,9 @@ public:
 class StateTransition{
 public:
 	int _dix, _diy, _dit;
-	double _prob;
+	int _prob;
 
-	StateTransition(int dix, int diy, int dit, double prob);
+	StateTransition(int dix, int diy, int dit, int prob);
 	string to_string(void);
 };
 
@@ -59,6 +59,8 @@ private:
 	int _center_state_ix, _center_state_iy;
 	double _final_state_x, _final_state_y, _final_state_width;
 	double _delta;
+
+	int _prob_base;
 
 	void accurateStateTransition(Action &a, double from_x, double from_y, double from_t, double &to_x, double &to_y, double &to_t);
 	void toCellPos(double x, double y, double t, int &ix, int &iy, int &it);
