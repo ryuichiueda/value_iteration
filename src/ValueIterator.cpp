@@ -61,7 +61,7 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 	_final_state_y = 0.0;
 	_final_state_width = 0.5;
 
-	_delta = _max_cost;
+	//_delta = _max_cost;
 
 	for(int y=0; y<_cell_y_num; y++)
 		for(int x=0; x<_cell_x_num; x++)
@@ -148,7 +148,7 @@ void ValueIterator::setStateTransition(Action &a, int it)
 				bool exist = false;
 				for(auto &s : a._state_transitions[it]){
 					if(s._dix == dix and s._diy == diy and s._dit == dit){
-						s._prob++; //+= prob_quota;
+						s._prob++;
 						exist = true;
 						break;
 					}
@@ -160,25 +160,22 @@ void ValueIterator::setStateTransition(Action &a, int it)
 	}
 }
 
-double ValueIterator::valueIteration(State &s)
+uint64_t ValueIterator::valueIteration(State &s)
 {
 	if((not s._free) or s._final_state)
-		return 0.0;
+		return 0;
 
 	uint64_t min_cost = ValueIterator::_max_cost;
-	for(auto a : _actions){
-		uint64_t q = actionCost(s, a);
-		if(q < min_cost)
-			min_cost = q;
-	}
+	for(auto a : _actions)
+		min_cost = min(actionCost(s, a), min_cost);
 
-	if(min_cost > ValueIterator::_max_cost)
-		min_cost = ValueIterator::_max_cost;
+	//if(min_cost > ValueIterator::_max_cost)
+	//	min_cost = ValueIterator::_max_cost;
 
-	double delta = fabs(min_cost - (double)s._cost);
-	s._cost = (uint64_t)min_cost;
+	int64_t delta = min_cost - s._cost;
+	s._cost = min_cost;
 
-	return delta;
+	return delta > 0 ? delta : -delta;
 }
 
 void ValueIterator::valueIterationWorker(int times, int id)
@@ -186,24 +183,21 @@ void ValueIterator::valueIterationWorker(int times, int id)
 	_status.insert(make_pair(id, SweepWorkerStatus()));
 	cout << "address:" << &_states[0] << endl;
 
+	uint64_t delta = _max_cost;
 	for(int j=0; j<times; j++){
 		_status[id]._sweep_step = j+1;
 
-		double max_delta = 0.0;
+		uint64_t max_delta = 0;
 	
 		int start = rand()%_states.size();
-		for(int i=start; i<_states.size(); i++){
-			double delta = valueIteration(_states[i]);
-			max_delta = (max_delta > delta) ? max_delta : delta;
-		}
-		for(int i=start-1; i>=0; i--){
-			double delta = valueIteration(_states[i]);
-			max_delta = (max_delta > delta) ? max_delta : delta;
-		}
+		for(int i=start; i<_states.size(); i++)
+			max_delta = max(max_delta, valueIteration(_states[i]));
+		for(int i=start-1; i>=0; i--)
+			max_delta = max(max_delta, valueIteration(_states[i]));
 	
-		_delta = max_delta;
-		cout << "delta: " << _delta/_prob_base << endl;
-		if(_delta < (double)_prob_base/10)
+		delta = max_delta;
+		cout << "delta: " << (int)(delta >> _prob_base_bit) << endl;
+		if(delta < _prob_base/10)
 			break;
 	}
 
@@ -217,7 +211,7 @@ int ValueIterator::toIndex(int ix, int iy, int it)
 
 uint64_t ValueIterator::actionCost(State &s, Action &a)
 {
-	int64_t cost = 0;
+	uint64_t cost = 0;
 	for(auto &tran : a._state_transitions[s._it]){
 		int ix = s._ix + tran._dix;
 		if(ix < 0 or ix >= _cell_x_num)
@@ -233,7 +227,7 @@ uint64_t ValueIterator::actionCost(State &s, Action &a)
 		if(not after_s._free)
 			return _max_cost;
 
-		cost += after_s._cost/_prob_base * tran._prob;
+		cost += (after_s._cost>>_prob_base_bit) * tran._prob;
 	}
 
 	return cost + _prob_base;
@@ -286,7 +280,7 @@ void ValueIterator::outputValuePgmMap(void)
 		ofs << _cell_x_num << " " << _cell_y_num << " 255" << endl;
 		int i = t;
 		while(i<_states.size()){
-			uint64_t v = _states[i]._cost/_prob_base;
+			uint64_t v = _states[i]._cost >> _prob_base_bit;
 			if(_states[i]._free and v <= 255)
 				ofs << 255 - v << " ";
 			else
