@@ -169,7 +169,7 @@ double ValueIterator::valueIteration(State &s)
 
 	double max_value = ValueIterator::_value_min;
 	for(auto a : _actions){
-		double q = actionValue(s, a);
+		double q = actionValue(s, a)/_prob_base;
 		if(q > max_value)
 			max_value = q;
 	}
@@ -222,7 +222,7 @@ int ValueIterator::toIndex(int ix, int iy, int it)
 
 double ValueIterator::actionValue(State &s, Action &a)
 {
-	double value = 0.0;
+	int64_t value = 0;
 	for(auto &tran : a._state_transitions[s._it]){
 		int ix = s._ix + tran._dix;
 		if(ix < 0 or ix >= _cell_x_num)
@@ -238,11 +238,12 @@ double ValueIterator::actionValue(State &s, Action &a)
 		if(not after_s._free)
 			return _value_min;
 
-		//value += (after_s._value * tran._prob)/_prob_base;
-		value += ((double)(after_s._ivalue/_prob_base) * tran._prob)/_prob_base;
+		///value += (double)(after_s._ivalue/_prob_base) * tran._prob;
+		value += after_s._ivalue/_prob_base * tran._prob;
 	}
 
-	return value - 1.0;
+	//return value - 1.0;
+	return (double)(value - _prob_base);
 }
 
 /* statesのセルの情報をPBMとして出力（デバッグ用） */
