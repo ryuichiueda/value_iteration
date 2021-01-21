@@ -71,7 +71,6 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 	setStateValues();
 
 	outputValuePgmMap();
-
 	setAction();
 	setStateTransition();
 }
@@ -197,9 +196,6 @@ void ValueIterator::valueIterationWorker(int times, int id)
 			double delta = valueIteration(_states[i]);
 			max_delta = (max_delta > delta) ? max_delta : delta;
 		}
-		
-		outputValuePgmMap();
-	
 		for(int i=start-1; i>=0; i--){
 			double delta = valueIteration(_states[i]);
 			max_delta = (max_delta > delta) ? max_delta : delta;
@@ -293,8 +289,6 @@ void ValueIterator::outputValuePgmMap(void)
 			int64_t v = _states[i]._ivalue/_prob_base;
 			if(_states[i]._free and v >= -255.0)
 				ofs << 255 - v << " ";
-			//if(_states[i]._free and _states[i]._value >= -255.0)
-			//	ofs << 255 - (int)fabs(_states[i]._value) << " ";
 			else
 				ofs << 0 << " ";
 

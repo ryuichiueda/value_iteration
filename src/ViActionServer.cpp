@@ -36,10 +36,14 @@ void ViActionServer::executeVi(const value_iteration::ViGoalConstPtr &goal)
 			finish &= _vi._status[t]._finished;
 		if(finish)
 			break;
+
+		_vi.outputValuePgmMap();
 	}
 
 	for(auto &th : ths)
 		th.join();
+
+	_vi.outputValuePgmMap();
 
 	value_iteration::ViResult vi_result;
 	vi_result.finished = true;
