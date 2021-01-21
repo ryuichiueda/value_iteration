@@ -60,7 +60,8 @@ private:
 	double _final_state_x, _final_state_y, _final_state_width;
 	double _delta;
 
-	int _prob_base;
+	const static int _resolution_x, _resolution_y, _resolution_t;
+	const static int _prob_base;
 
 	void accurateStateTransition(Action &a, double from_x, double from_y, double from_t, double &to_x, double &to_y, double &to_t);
 	void toCellPos(double x, double y, double t, int &ix, int &iy, int &it);
@@ -87,6 +88,10 @@ public:
 	const static double _value_min;
 };
 
-const double ValueIterator::_value_min = -100000000.0;
+const double ValueIterator::_value_min = -1.0e+100;
+const int ValueIterator::_resolution_x = 100;
+const int ValueIterator::_resolution_y = 100;
+const int ValueIterator::_resolution_t = 100;
+const int ValueIterator::_prob_base = ValueIterator::_resolution_x*ValueIterator::_resolution_y*ValueIterator::_resolution_t;
 
 #endif

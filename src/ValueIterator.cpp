@@ -130,21 +130,15 @@ void ValueIterator::accurateStateTransition(Action &a, double from_x, double fro
 
 void ValueIterator::setStateTransition(Action &a, int it)
 {
-	const int x_step = 100;
-	const int y_step = 100;
-	const int t_step = 100;
-	_prob_base = x_step*y_step*t_step;
-	//const double prob_quota = 1.0/(x_step*y_step*t_step);
-
 	double theta_origin = it*_cell_t_width;
 
-	for(int y=0; y<y_step; y++){
-		for(int x=0; x<x_step; x++){
-			for(int t=0; t<t_step; t++){
+	for(int y=0; y<_resolution_y; y++){
+		for(int x=0; x<_resolution_x; x++){
+			for(int t=0; t<_resolution_t; t++){
 				//遷移前の姿勢
-				double ox = x*_cell_x_width/x_step;
-				double oy = y*_cell_y_width/y_step;
-				double ot = t*_cell_t_width/t_step + theta_origin;
+				double ox = x*_cell_x_width/_resolution_x;
+				double oy = y*_cell_y_width/_resolution_y;
+				double ot = t*_cell_t_width/_resolution_t + theta_origin;
 
 				//遷移後の姿勢
 				double dx, dy, dt;
