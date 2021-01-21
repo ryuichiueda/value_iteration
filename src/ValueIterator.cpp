@@ -13,7 +13,8 @@ State::State(int x, int y, int theta, int map_value)
 	_ix = x;
 	_iy = y;
 	_it = theta;
-	_ivalue = ValueIterator::_value_min;
+	//_ivalue = ValueIterator::_value_min;
+	_cost = -ValueIterator::_value_min;
 	_free = (map_value == 0);
 	_final_state = false;
 }
@@ -165,18 +166,20 @@ double ValueIterator::valueIteration(State &s)
 	if((not s._free) or s._final_state)
 		return 0.0;
 
-	double max_value = ValueIterator::_value_min;
+	double min_cost = -ValueIterator::_value_min;
 	for(auto a : _actions){
 		double q = actionValue(s, a)/_prob_base;
-		if(q > max_value)
-			max_value = q;
+		if(q < min_cost)
+			min_cost = q;
 	}
 
-	if(max_value < ValueIterator::_value_min)
-		max_value = ValueIterator::_value_min;
+	if(min_cost > -ValueIterator::_value_min)
+		min_cost = -ValueIterator::_value_min;
 
-	double delta = fabs(max_value*_prob_base - (double)(s._ivalue));
-	s._ivalue = (int64_t)(max_value*_prob_base);
+	//double delta = fabs(max_value*_prob_base - (double)(s._ivalue));
+	double delta = fabs(min_cost*_prob_base - (double)s._cost);
+	//s._ivalue = (int64_t)(max_value*_prob_base);
+	s._cost = (uint64_t)(min_cost*_prob_base);
 
 	return delta;
 }
@@ -221,22 +224,23 @@ int64_t ValueIterator::actionValue(State &s, Action &a)
 	for(auto &tran : a._state_transitions[s._it]){
 		int ix = s._ix + tran._dix;
 		if(ix < 0 or ix >= _cell_x_num)
-			return _value_min;
+			return -_value_min;
 
 		int iy = s._iy + tran._diy;
 		if(iy < 0 or iy >= _cell_y_num)
-			return _value_min;
+			return -_value_min;
 
 		int it = (s._it + tran._dit + _cell_t_num)%_cell_t_num;
 
 		auto &after_s = _states[toIndex(ix, iy, it)];
 		if(not after_s._free)
-			return _value_min;
+			return -_value_min;
 
-		value += after_s._ivalue/_prob_base * tran._prob;
+		//value += after_s._ivalue/_prob_base * tran._prob;
+		value += after_s._cost/_prob_base * tran._prob;
 	}
 
-	return value - _prob_base;
+	return value + _prob_base;
 }
 
 /* statesのセルの情報をPBMとして出力（デバッグ用） */
@@ -270,10 +274,14 @@ void ValueIterator::setStateValues(void)
 	}
 
 	for(auto &s : _states){
-		if(s._final_state)
-			s._ivalue = 0;
-		else
-			s._ivalue = _value_min;
+		if(s._final_state){
+			//s._ivalue = 0;
+			s._cost = 0;
+		}
+		else{
+			//s._ivalue = _value_min;
+			s._cost = -_value_min;
+		}
 	}
 }
 
@@ -286,8 +294,10 @@ void ValueIterator::outputValuePgmMap(void)
 		ofs << _cell_x_num << " " << _cell_y_num << " 255" << endl;
 		int i = t;
 		while(i<_states.size()){
-			int64_t v = _states[i]._ivalue/_prob_base;
-			if(_states[i]._free and v >= -255.0)
+			//int64_t v = _states[i]._ivalue/_prob_base;
+			uint64_t v = _states[i]._cost/_prob_base;
+			//if(_states[i]._free and v >= -255.0)
+			if(_states[i]._free and v <= 255)
 				ofs << 255 - v << " ";
 			else
 				ofs << 0 << " ";

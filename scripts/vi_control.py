@@ -26,8 +26,8 @@ if __name__ == '__main__':
     result = vi_client()
     print(result)
 
-    rate = rospy.Rate(1);
-    while not rospy.is_shutdown():
-        rate.sleep()
-
-    rospy.spin()
+#    rate = rospy.Rate(1);
+#    while not rospy.is_shutdown():
+#        rate.sleep()
+#
+#    rospy.spin()

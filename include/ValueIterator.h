@@ -18,8 +18,8 @@ public:
 
 class State{
 public: 
-//	double _value;
-	int64_t _ivalue;
+	//int64_t _ivalue;
+	uint64_t _cost;
 	int _ix, _iy, _it;
 	bool _free;
 	bool _final_state;
