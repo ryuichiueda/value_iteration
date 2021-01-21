@@ -13,8 +13,7 @@ State::State(int x, int y, int theta, int map_value)
 	_ix = x;
 	_iy = y;
 	_it = theta;
-	//_ivalue = ValueIterator::_value_min;
-	_cost = -ValueIterator::_value_min;
+	_cost = ValueIterator::_max_cost;
 	_free = (map_value == 0);
 	_final_state = false;
 }
@@ -62,7 +61,7 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 	_final_state_y = 0.0;
 	_final_state_width = 0.5;
 
-	_delta = fabs(_value_min);
+	_delta = _max_cost;
 
 	for(int y=0; y<_cell_y_num; y++)
 		for(int x=0; x<_cell_x_num; x++)
@@ -166,19 +165,17 @@ double ValueIterator::valueIteration(State &s)
 	if((not s._free) or s._final_state)
 		return 0.0;
 
-	double min_cost = -ValueIterator::_value_min;
+	double min_cost = ValueIterator::_max_cost;
 	for(auto a : _actions){
-		double q = actionValue(s, a)/_prob_base;
+		double q = actionCost(s, a)/_prob_base;
 		if(q < min_cost)
 			min_cost = q;
 	}
 
-	if(min_cost > -ValueIterator::_value_min)
-		min_cost = -ValueIterator::_value_min;
+	if(min_cost > ValueIterator::_max_cost)
+		min_cost = ValueIterator::_max_cost;
 
-	//double delta = fabs(max_value*_prob_base - (double)(s._ivalue));
 	double delta = fabs(min_cost*_prob_base - (double)s._cost);
-	//s._ivalue = (int64_t)(max_value*_prob_base);
 	s._cost = (uint64_t)(min_cost*_prob_base);
 
 	return delta;
@@ -218,25 +215,24 @@ int ValueIterator::toIndex(int ix, int iy, int it)
 	return it + ix*_cell_t_num + iy*(_cell_t_num*_cell_x_num);
 }
 
-int64_t ValueIterator::actionValue(State &s, Action &a)
+int64_t ValueIterator::actionCost(State &s, Action &a)
 {
 	int64_t value = 0;
 	for(auto &tran : a._state_transitions[s._it]){
 		int ix = s._ix + tran._dix;
 		if(ix < 0 or ix >= _cell_x_num)
-			return -_value_min;
+			return _max_cost;
 
 		int iy = s._iy + tran._diy;
 		if(iy < 0 or iy >= _cell_y_num)
-			return -_value_min;
+			return _max_cost;
 
 		int it = (s._it + tran._dit + _cell_t_num)%_cell_t_num;
 
 		auto &after_s = _states[toIndex(ix, iy, it)];
 		if(not after_s._free)
-			return -_value_min;
+			return _max_cost;
 
-		//value += after_s._ivalue/_prob_base * tran._prob;
 		value += after_s._cost/_prob_base * tran._prob;
 	}
 
@@ -274,14 +270,10 @@ void ValueIterator::setStateValues(void)
 	}
 
 	for(auto &s : _states){
-		if(s._final_state){
-			//s._ivalue = 0;
+		if(s._final_state)
 			s._cost = 0;
-		}
-		else{
-			//s._ivalue = _value_min;
-			s._cost = -_value_min;
-		}
+		else
+			s._cost = _max_cost;
 	}
 }
 
@@ -294,9 +286,7 @@ void ValueIterator::outputValuePgmMap(void)
 		ofs << _cell_x_num << " " << _cell_y_num << " 255" << endl;
 		int i = t;
 		while(i<_states.size()){
-			//int64_t v = _states[i]._ivalue/_prob_base;
 			uint64_t v = _states[i]._cost/_prob_base;
-			//if(_states[i]._free and v >= -255.0)
 			if(_states[i]._free and v <= 255)
 				ofs << 255 - v << " ";
 			else

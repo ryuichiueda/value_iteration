@@ -18,7 +18,6 @@ public:
 
 class State{
 public: 
-	//int64_t _ivalue;
 	uint64_t _cost;
 	int _ix, _iy, _it;
 	bool _free;
@@ -73,7 +72,7 @@ private:
 	void setStateTransitionWorker(int it);
 
 	double valueIteration(State &s);
-	int64_t actionValue(State &s, Action &a);
+	int64_t actionCost(State &s, Action &a);
 
 	int toIndex(int ix, int iy, int it);
 public: 
@@ -85,6 +84,7 @@ public:
 	void valueIterationWorker(int times, int id);
 	map<int, SweepWorkerStatus> _status; 
 
+	const static int64_t _max_cost;
 	const static int64_t _value_min;
 	const static int64_t _prob_base;
 };
@@ -93,6 +93,6 @@ const int ValueIterator::_resolution_x = 100;
 const int ValueIterator::_resolution_y = 100;
 const int ValueIterator::_resolution_t = 100;
 const int64_t ValueIterator::_prob_base = ValueIterator::_resolution_x*ValueIterator::_resolution_y*ValueIterator::_resolution_t;
-const int64_t ValueIterator::_value_min = -1000000000*ValueIterator::_prob_base;
+const int64_t ValueIterator::_max_cost = 1000000000*ValueIterator::_prob_base;
 
 #endif
