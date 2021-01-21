@@ -13,7 +13,8 @@ State::State(int x, int y, int theta, int map_value)
 	_ix = x;
 	_iy = y;
 	_it = theta;
-	_value = ValueIterator::_value_min;
+	//_value = ValueIterator::_value_min;
+	_ivalue = (int64_t)(ValueIterator::_value_min*ValueIterator::_prob_base);
 	_free = (map_value == 0);
 	_final_state = false;
 }
@@ -166,7 +167,7 @@ double ValueIterator::valueIteration(State &s)
 	if((not s._free) or s._final_state)
 		return 0.0;
 
-	double max_value = ValueIterator::_value_min*10;
+	double max_value = ValueIterator::_value_min;
 	for(auto a : _actions){
 		double q = actionValue(s, a);
 		if(q > max_value)
@@ -176,8 +177,8 @@ double ValueIterator::valueIteration(State &s)
 	if(max_value < ValueIterator::_value_min)
 		max_value = ValueIterator::_value_min;
 
-	double delta = fabs(max_value - s._value);
-	s._value = max_value;
+	double delta = fabs(max_value*_prob_base - (double)(s._ivalue));
+	s._ivalue = (int64_t)(max_value*_prob_base);
 
 	return delta;
 }
@@ -206,8 +207,8 @@ void ValueIterator::valueIterationWorker(int times, int id)
 		}
 	
 		_delta = max_delta;
-		cout << "delta: " << _delta << endl;
-		if(_delta < 0.1)
+		cout << "delta: " << _delta/_prob_base << endl;
+		if(_delta < (double)_prob_base/10)
 			break;
 	}
 
@@ -237,7 +238,8 @@ double ValueIterator::actionValue(State &s, Action &a)
 		if(not after_s._free)
 			return _value_min;
 
-		value += (after_s._value * tran._prob)/_prob_base;
+		//value += (after_s._value * tran._prob)/_prob_base;
+		value += ((double)(after_s._ivalue/_prob_base) * tran._prob)/_prob_base;
 	}
 
 	return value - 1.0;
@@ -274,10 +276,14 @@ void ValueIterator::setStateValues(void)
 	}
 
 	for(auto &s : _states){
-		if(s._final_state)
-			s._value = 0.0;
-		else
-			s._value = _value_min;
+		if(s._final_state){
+			//s._value = 0.0;
+			s._ivalue = 0;
+		}
+		else{
+			//s._value = _value_min;
+			s._ivalue = _value_min*_prob_base;
+		}
 	}
 }
 
@@ -290,8 +296,11 @@ void ValueIterator::outputValuePgmMap(void)
 		ofs << _cell_x_num << " " << _cell_y_num << " 255" << endl;
 		int i = t;
 		while(i<_states.size()){
-			if(_states[i]._free and _states[i]._value >= -255.0)
-				ofs << 255 - (int)fabs(_states[i]._value) << " ";
+			int64_t v = _states[i]._ivalue/_prob_base;
+			if(_states[i]._free and v >= -255.0)
+				ofs << 255 - v << " ";
+			//if(_states[i]._free and _states[i]._value >= -255.0)
+			//	ofs << 255 - (int)fabs(_states[i]._value) << " ";
 			else
 				ofs << 0 << " ";
 
