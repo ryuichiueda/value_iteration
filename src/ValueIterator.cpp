@@ -13,8 +13,7 @@ State::State(int x, int y, int theta, int map_value)
 	_ix = x;
 	_iy = y;
 	_it = theta;
-	//_value = ValueIterator::_value_min;
-	_ivalue = (int64_t)(ValueIterator::_value_min*ValueIterator::_prob_base);
+	_ivalue = ValueIterator::_value_min;
 	_free = (map_value == 0);
 	_final_state = false;
 }
@@ -220,7 +219,7 @@ int ValueIterator::toIndex(int ix, int iy, int it)
 	return it + ix*_cell_t_num + iy*(_cell_t_num*_cell_x_num);
 }
 
-double ValueIterator::actionValue(State &s, Action &a)
+int64_t ValueIterator::actionValue(State &s, Action &a)
 {
 	int64_t value = 0;
 	for(auto &tran : a._state_transitions[s._it]){
@@ -238,12 +237,10 @@ double ValueIterator::actionValue(State &s, Action &a)
 		if(not after_s._free)
 			return _value_min;
 
-		///value += (double)(after_s._ivalue/_prob_base) * tran._prob;
 		value += after_s._ivalue/_prob_base * tran._prob;
 	}
 
-	//return value - 1.0;
-	return (double)(value - _prob_base);
+	return value - _prob_base;
 }
 
 /* statesのセルの情報をPBMとして出力（デバッグ用） */
@@ -277,14 +274,10 @@ void ValueIterator::setStateValues(void)
 	}
 
 	for(auto &s : _states){
-		if(s._final_state){
-			//s._value = 0.0;
+		if(s._final_state)
 			s._ivalue = 0;
-		}
-		else{
-			//s._value = _value_min;
-			s._ivalue = _value_min*_prob_base;
-		}
+		else
+			s._ivalue = _value_min;
 	}
 }
 

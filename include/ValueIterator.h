@@ -73,7 +73,7 @@ private:
 	void setStateTransitionWorker(int it);
 
 	double valueIteration(State &s);
-	double actionValue(State &s, Action &a);
+	int64_t actionValue(State &s, Action &a);
 
 	int toIndex(int ix, int iy, int it);
 public: 
