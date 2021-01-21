@@ -135,9 +135,9 @@ void ValueIterator::setStateTransition(Action &a, int it)
 		for(int x=0; x<_resolution_x; x++){
 			for(int t=0; t<_resolution_t; t++){
 				//遷移前の姿勢
-				double ox = x*_cell_x_width/_resolution_x;
-				double oy = y*_cell_y_width/_resolution_y;
-				double ot = t*_cell_t_width/_resolution_t + theta_origin;
+				double ox = ((double)x+0.5)*_cell_x_width/_resolution_x;
+				double oy = ((double)y+0.5)*_cell_y_width/_resolution_y;
+				double ot = ((double)t+0.5)*_cell_t_width/_resolution_t + theta_origin;
 
 				//遷移後の姿勢
 				double dx, dy, dt;
