@@ -200,7 +200,6 @@ void ValueIterator::valueIterationWorker(int times, int id)
 		
 		outputValuePgmMap();
 	
-		//for(int i=0; i<start; i++){
 		for(int i=start-1; i>=0; i--){
 			double delta = valueIteration(_states[i]);
 			max_delta = (max_delta > delta) ? max_delta : delta;
@@ -226,17 +225,17 @@ double ValueIterator::actionValue(State &s, Action &a)
 	for(auto &tran : a._state_transitions[s._it]){
 		int ix = s._ix + tran._dix;
 		if(ix < 0 or ix >= _cell_x_num)
-			return -10000000.0;
+			return _value_min;
 
 		int iy = s._iy + tran._diy;
 		if(iy < 0 or iy >= _cell_y_num)
-			return -10000000.0;
+			return _value_min;
 
 		int it = (s._it + tran._dit + _cell_t_num)%_cell_t_num;
 
 		auto &after_s = _states[toIndex(ix, iy, it)];
 		if(not after_s._free)
-			return -10000000.0;
+			return _value_min;
 
 		value += (after_s._value * tran._prob)/_prob_base;
 	}
