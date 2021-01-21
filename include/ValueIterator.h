@@ -12,6 +12,7 @@ class SweepWorkerStatus{
 public: 	
 	bool _finished;
 	int _sweep_step;
+	double _delta;
 
 	SweepWorkerStatus();
 };

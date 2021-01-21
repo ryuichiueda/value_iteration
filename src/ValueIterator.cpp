@@ -6,6 +6,7 @@ SweepWorkerStatus::SweepWorkerStatus()
 {
 	_finished = false;
 	_sweep_step = 0;
+	_delta = ValueIterator::_max_cost;
 }
 
 State::State(int x, int y, int theta, int map_value)
@@ -169,9 +170,6 @@ uint64_t ValueIterator::valueIteration(State &s)
 	for(auto a : _actions)
 		min_cost = min(actionCost(s, a), min_cost);
 
-	//if(min_cost > ValueIterator::_max_cost)
-	//	min_cost = ValueIterator::_max_cost;
-
 	int64_t delta = min_cost - s._cost;
 	s._cost = min_cost;
 
@@ -183,7 +181,6 @@ void ValueIterator::valueIterationWorker(int times, int id)
 	_status.insert(make_pair(id, SweepWorkerStatus()));
 	cout << "address:" << &_states[0] << endl;
 
-	uint64_t delta = _max_cost;
 	for(int j=0; j<times; j++){
 		_status[id]._sweep_step = j+1;
 
@@ -195,9 +192,10 @@ void ValueIterator::valueIterationWorker(int times, int id)
 		for(int i=start-1; i>=0; i--)
 			max_delta = max(max_delta, valueIteration(_states[i]));
 	
-		delta = max_delta;
-		cout << "delta: " << (int)(delta >> _prob_base_bit) << endl;
-		if(delta < _prob_base/10)
+		_status[id]._delta = (double)(max_delta >> _prob_base_bit);
+		//delta = max_delta;
+		//cout << "delta: " << _status[id]._delta << endl;
+		if(_status[id]._delta < 0.1)
 			break;
 	}
 

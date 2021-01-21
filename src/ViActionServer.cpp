@@ -20,14 +20,14 @@ void ViActionServer::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	for(int t=0; t<goal->threadnum; t++)
 		ths.push_back(thread(&ValueIterator::valueIterationWorker, &_vi, sweepnum, t));
 
-	bool fin = false;
+	value_iteration::ViFeedback vi_feedback;
+	vi_feedback.current_sweep_times.data.resize(goal->threadnum);
+	vi_feedback.deltas.data.resize(goal->threadnum);
 	while(1){
-		sleep(3);
-		value_iteration::ViFeedback vi_feedback;
-
-		vi_feedback.current_sweep_times.data.resize(goal->threadnum);
+		sleep(10);
 		for(int t=0; t<goal->threadnum; t++){
 			vi_feedback.current_sweep_times.data[t] = _vi._status[t]._sweep_step;
+			vi_feedback.deltas.data[t] = _vi._status[t]._delta;
 		}
 		as.publishFeedback(vi_feedback);
 

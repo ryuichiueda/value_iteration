@@ -6,3 +6,4 @@ geometry_msgs/Vector3 goal_width
 bool finished
 ---
 std_msgs/UInt32MultiArray current_sweep_times
+std_msgs/Float32MultiArray deltas
