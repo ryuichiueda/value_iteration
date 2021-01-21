@@ -16,7 +16,7 @@ def vi_client():
 
     goal = ViGoal()
     goal.sweepnum = 0
-    goal.threadnum = 2
+    goal.threadnum = 12
     client.send_goal(goal, feedback_cb=vi_state_cb)
     client.wait_for_result()
     return client.get_result()

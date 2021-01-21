@@ -165,9 +165,9 @@ double ValueIterator::valueIteration(State &s)
 	if((not s._free) or s._final_state)
 		return 0.0;
 
-	double min_cost = ValueIterator::_max_cost;
+	uint64_t min_cost = ValueIterator::_max_cost;
 	for(auto a : _actions){
-		double q = actionCost(s, a)/_prob_base;
+		uint64_t q = actionCost(s, a);
 		if(q < min_cost)
 			min_cost = q;
 	}
@@ -175,8 +175,8 @@ double ValueIterator::valueIteration(State &s)
 	if(min_cost > ValueIterator::_max_cost)
 		min_cost = ValueIterator::_max_cost;
 
-	double delta = fabs(min_cost*_prob_base - (double)s._cost);
-	s._cost = (uint64_t)(min_cost*_prob_base);
+	double delta = fabs(min_cost - (double)s._cost);
+	s._cost = (uint64_t)min_cost;
 
 	return delta;
 }
@@ -215,9 +215,9 @@ int ValueIterator::toIndex(int ix, int iy, int it)
 	return it + ix*_cell_t_num + iy*(_cell_t_num*_cell_x_num);
 }
 
-int64_t ValueIterator::actionCost(State &s, Action &a)
+uint64_t ValueIterator::actionCost(State &s, Action &a)
 {
-	int64_t value = 0;
+	int64_t cost = 0;
 	for(auto &tran : a._state_transitions[s._it]){
 		int ix = s._ix + tran._dix;
 		if(ix < 0 or ix >= _cell_x_num)
@@ -233,10 +233,10 @@ int64_t ValueIterator::actionCost(State &s, Action &a)
 		if(not after_s._free)
 			return _max_cost;
 
-		value += after_s._cost/_prob_base * tran._prob;
+		cost += after_s._cost/_prob_base * tran._prob;
 	}
 
-	return value + _prob_base;
+	return cost + _prob_base;
 }
 
 /* statesのセルの情報をPBMとして出力（デバッグ用） */
