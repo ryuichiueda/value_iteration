@@ -42,6 +42,7 @@ Visualization Manager:
       Class: rviz/Grid
       Color: 160; 160; 164
       Enabled: true
+      Alpha: 0.1
       Line Style:
         Line Width: 0.029999999329447746
         Value: Lines
@@ -62,6 +63,7 @@ Visualization Manager:
       Enabled: true
       Name: Map
       Topic: /map
+      Alpha: 1
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -84,7 +86,24 @@ Visualization Manager:
         world:
           map:
             {}
-      Update Interval: 0
+      Class: grid_map_rviz_plugin/GridMap 
+      Color: 200; 200; 200
+      Enabled: true
+      Color Layer: elevation
+      Color Transformer: GridMapLayer
+      Height Layer: elevation
+      Height Transformer: Flat
+      Alpha: 0.7
+      History Length: 1
+      Max Color: 255; 255; 255
+      Max Intensity: 10
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: GridMap
+      Show Grid Lines: true
+      Topic: /image_to_gridmap_demo/grid_map
+      Unreliable: true
+      Use Rainbow: true
       Value: true
   Enabled: true
   Global Options:
