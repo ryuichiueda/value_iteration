@@ -101,7 +101,7 @@ Visualization Manager:
       Min Intensity: 0
       Name: GridMap
       Show Grid Lines: true
-      Topic: /image_to_gridmap_demo/grid_map
+      Topic: /image_to_vi_gridmap/grid_map
       Unreliable: true
       Use Rainbow: true
       Value: true
