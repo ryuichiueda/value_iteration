@@ -1,7 +1,7 @@
 <launch>
   <!-- Set tf -->
   <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 world map 100" />
-  <node pkg="tf" type="static_transform_publisher" name="map_to_grid" args="-0.405 -0.4 0 1.57 3.14 0 map map_grid 100" />
+  <node pkg="tf" type="static_transform_publisher" name="map_to_grid" args="-0.4 -0.4 0 1.57 3.14 0 map map_grid 100" />
 
   <!-- Launch the map server  -->
   <arg name="map_file" default="$(find value_iteration)/maps/ueda_room_small.yaml"/>
