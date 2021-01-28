@@ -13,9 +13,12 @@ git clone -b vi_grid https://github.com/uhobeike/grid_map.git
 ```
 3. [grid_map ](https://github.com/uhobeike/grid_map.git)の依存パッケージをインストール
 ```
+cd catkin_ws 
+rosdep install -r -y --from-paths --ignore-src src/
 sudo apt-get install libeigen3-dev
 ```
 4. ビルド
+何回かエラーが出るかもしれないが、構わずビルドを行うと良い。
 ```
 cd catkin_ws
 catkin build -DCMAKE_BUILD_TYPE=Release
@@ -23,6 +26,11 @@ or
 catkin_make -DCMAKE_BUILD_TYPE=Release
 
 source devel/setup.bash
+```
+5. ros melodicユーザーの方　Python3を使えるようにする
+```
+(多分これ)
+sudo pip3 install rospkg catkin_pkg
 ```
 
 ## How to use 
