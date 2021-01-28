@@ -18,6 +18,7 @@ rosdep install -r -y --from-paths --ignore-src src/
 sudo apt-get install libeigen3-dev
 ```
 4. ビルド
+
 何回かエラーが出るかもしれないが、構わずビルドを行うと良い。
 ```
 cd catkin_ws
@@ -40,8 +41,8 @@ roslaunch value_iteration vi.launch
 ```
 |実行動画|
 |---|
-|[![](https://i9.ytimg.com/vi/315H-RMzHVA/mq2.jpg?sqp=CITuxoAG&rs=AOn4CLBOXycgv8SvK4W4aZzpP0c7QFzBQA)](http://www.youtube.com/watch?v=315H-RMzHVA)|
-## How to do gtest
+|[![](https://i.gyazo.com/19c0217423e9011f125e2a8742204f5d.png)](https://www.youtube.com/watch?v=i8h4V2y6eDE&feature=youtu.be)|
+## How to gtest
 1. ビルド
 ```
 catkin build value_iteration --catkin-make-args tests
