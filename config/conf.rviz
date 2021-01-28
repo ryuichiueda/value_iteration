@@ -104,6 +104,7 @@ Visualization Manager:
       Topic: /image_to_vi_gridmap/grid_map
       Unreliable: true
       Use Rainbow: true
+      Invert Rainbow: true
       Value: true
   Enabled: true
   Global Options:
