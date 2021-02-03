@@ -15,6 +15,13 @@ find_package(catkin REQUIRED COMPONENTS
   genmsg
   geometry_msgs
   message_generation
+  cv_bridge
+)
+
+find_package(OpenCV REQUIRED
+  COMPONENTS
+  opencv_highgui
+  CONFIG
 )
 
 ## System dependencies are found with CMake's conventions
@@ -142,7 +149,7 @@ add_executable(vi_node src/vi_node.cpp)
 add_dependencies(vi_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(vi_node ${catkin_LIBRARIES})
+target_link_libraries(vi_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 target_link_libraries(vi_node ValueIterator ${catkin_LIBRARIES})
 target_link_libraries(vi_node ViActionServer ${catkin_LIBRARIES})
 

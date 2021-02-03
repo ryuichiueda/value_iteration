@@ -8,17 +8,15 @@
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" output="screen" />
 
   <!-- Launch the value_iteration node -->
-  <node pkg="value_iteration" name="vi_node" type="vi_node" output="screen" required="true" />
+  <node pkg="value_iteration" name="vi_node" type="vi_node" output="screen" required="true" >
+    <param name="image_path" value="/tmp/value_t=0.pgm" />
+    <param name="image_topic" value="image" />
+  </node>
+  
   <node pkg="value_iteration" name="vi_control" type="vi_control.py" output="screen" required="true" />
 
   <!-- Load the grid config -->
   <rosparam command="load" file="$(find vi_grid_map_ros)/config/image_to_vi_gridmap.yaml" />
-
-  <!-- Load the image -->
-  <node pkg="vi_grid_map_ros" type="image_publisher" name="image_publisher" output="screen">
-    <param name="image_path" value="/tmp/value_t=0.pgm" />
-    <param name="image_topic" value="image" />
-  </node>
 
   <!-- Launch the grid map image to grid map demo node -->
   <node pkg="vi_grid_map_ros" type="image_to_vi_gridmap" name="image_to_vi_gridmap" output="screen" />

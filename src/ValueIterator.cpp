@@ -1,5 +1,14 @@
 #include "ValueIterator.h"
 #include <thread>
+
+// ROS
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
+
+// OpenCV
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
 using namespace std;
 
 SweepWorkerStatus::SweepWorkerStatus()
@@ -46,7 +55,11 @@ string StateTransition::to_string(void)
 
 /* ROSの地図をもらって各セルの情報からStateのオブジェクトを作ってstatesというベクトルに突っ込む */
 ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
+							:_pnh("~")
 {
+	getParameters();
+	_image_pub = _pnh.advertise<sensor_msgs::Image>(_imageTopic, 10);
+
 	_cell_x_num = map.info.width;
 	_cell_y_num = map.info.height;
 	_cell_t_num = 60; //6[deg]刻みでとりあえず固定
@@ -71,7 +84,7 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 
 	setStateValues();
 
-	outputValuePgmMap();
+	imagePublisher();
 	setAction();
 	setStateTransition();
 }
@@ -269,8 +282,38 @@ void ValueIterator::setStateValues(void)
 	}
 }
 
-void ValueIterator::outputValuePgmMap(void)
+// void ValueIterator::outputValuePgmMap(void)
+// {
+// 	for(int t=0; t<_cell_t_num; t++){
+// 		ofstream ofs("/tmp/value_t=" + to_string(t) + ".pgm");
+
+// 		ofs << "P2" << endl;
+// 		ofs << _cell_x_num << " " << _cell_y_num << " 255" << endl;
+// 		int i = t;
+// 		while(i<_states.size()){
+// 			uint64_t v = _states[i]._cost >> _prob_base_bit;
+// 			if(_states[i]._free and v <= 255)
+// 				ofs << 255 - v << " ";
+// 			else
+// 				ofs << 0 << " ";
+
+// 			i += _cell_t_num;
+// 		}
+	
+// 		ofs << flush;
+// 	}
+// }
+
+bool ValueIterator::getParameters(void)
 {
+	_pnh.getParam("image_path", _imagePath);
+	_pnh.getParam("image_topic", _imageTopic);
+	return true;
+}
+
+void ValueIterator::imagePublisher(void)
+{
+	//ofstreamではなくvectorを検討中
 	for(int t=0; t<_cell_t_num; t++){
 		ofstream ofs("/tmp/value_t=" + to_string(t) + ".pgm");
 
@@ -286,7 +329,45 @@ void ValueIterator::outputValuePgmMap(void)
 
 			i += _cell_t_num;
 		}
-	
+		
 		ofs << flush;
+		if(t == 0)
+		{
+			cv::Mat	image;
+			image = cv::imread(_imagePath);
+
+			std::vector<int> param = std::vector<int>(2);
+			param[0] = CV_IMWRITE_PNG_COMPRESSION;
+			param[1] = 9;//default(3)  0-9　最高設定
+
+			std::vector<uchar>buf;
+			cv::imencode(".png", image, buf, param);
+			cv::Mat im_decode = cv::imdecode(cv::Mat(buf), CV_LOAD_IMAGE_COLOR);
+
+			cv::Mat source = im_decode;
+			cv::Mat alpha_image = cv::Mat(source.size(), CV_8UC3);
+			cv::cvtColor(source, alpha_image, CV_RGB2RGBA);
+			
+			for (int y = 0; y < alpha_image.rows; ++y) {
+				for (int x = 0; x < alpha_image.cols; ++x) {
+					cv::Vec4b px = alpha_image.at<cv::Vec4b>(x, y);
+					if (px[0] + px[1] + px[2] == 0) {
+						px[3] = 0;
+						alpha_image.at<cv::Vec4b>(x, y) = px;
+					}
+				}
+			}
+					
+			std_msgs::Header header; // empty header
+			header.frame_id = "map_grid";
+			header.stamp = ros::Time::now();
+			
+			cv_bridge::CvImage img_bridge;
+			img_bridge = cv_bridge::CvImage(header, "rgba8", alpha_image);
+			
+			sensor_msgs::Image msg;
+			img_bridge.toImageMsg(msg);
+			_image_pub.publish(msg);
+		}
 	}
 }

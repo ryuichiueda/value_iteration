@@ -6,6 +6,11 @@
 #include "nav_msgs/OccupancyGrid.h"
 #include <vector>
 #include <fstream>
+
+// OpenCV
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
 using namespace std;
 
 class SweepWorkerStatus{
@@ -77,6 +82,15 @@ private:
 	uint64_t actionCost(State &s, Action &a);
 
 	int toIndex(int ix, int iy, int it);
+
+	ros::NodeHandle _pnh;
+	ros::Publisher _image_pub;
+
+	//vector<vector<u_char>> _file_vec;
+	string _imageTopic;
+    string _imagePath;
+
+	bool getParameters(void);
 public: 
 	ValueIterator(nav_msgs::OccupancyGrid &map);
 
@@ -90,6 +104,8 @@ public:
 //	const static int64_t _value_min;
 	const static uint64_t _prob_base;
 	const static unsigned char _prob_base_bit;
+
+	void imagePublisher(void);
 };
 
 const unsigned char ValueIterator::_resolution_x_bit = 6;
