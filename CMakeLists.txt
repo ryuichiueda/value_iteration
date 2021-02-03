@@ -118,7 +118,7 @@ generate_messages(
 catkin_package(
   #INCLUDE_DIRS include
   LIBRARIES value_iteration
-  CATKIN_DEPENDS roscpp rospy message_runtime
+  CATKIN_DEPENDS roscpp rospy message_runtime cv_bridge
   #DEPENDS system_lib
 )
 
@@ -129,7 +129,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
-include_directories(include ${catkin_INCLUDE_DIRS} )
+include_directories(include ${catkin_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} )
 
 ## Declare a C++ library
 add_library(ValueIterator src/ValueIterator.cpp)
@@ -149,9 +149,10 @@ add_executable(vi_node src/vi_node.cpp)
 add_dependencies(vi_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(vi_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
-target_link_libraries(vi_node ValueIterator ${catkin_LIBRARIES})
-target_link_libraries(vi_node ViActionServer ${catkin_LIBRARIES})
+#target_link_libraries(vi_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(vi_node ${catkin_LIBRARIES} ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(vi_node ValueIterator ${catkin_LIBRARIES} ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(vi_node ViActionServer ${catkin_LIBRARIES} ${OpenCV_INCLUDE_DIRS})
 
 #############
 ## Install ##
