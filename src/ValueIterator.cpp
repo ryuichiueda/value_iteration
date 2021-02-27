@@ -168,7 +168,7 @@ uint64_t ValueIterator::valueIteration(State &s)
 		return 0;
 
 	uint64_t min_cost = ValueIterator::_max_cost;
-	Action *min_action;
+	Action *min_action = NULL;
 	for(auto &a : _actions){
 		int64_t c = actionCost(s, a);
 		if(c < min_cost){

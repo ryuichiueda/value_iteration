@@ -44,7 +44,7 @@ void ViActionServer::executeVi(const value_iteration::ViGoalConstPtr &goal)
 		th.join();
 
 	_vi.outputValuePgmMap();
-//	_vi.actionImageWriter();
+	_vi.actionImageWriter();
 
 	value_iteration::ViResult vi_result;
 	vi_result.finished = true;
