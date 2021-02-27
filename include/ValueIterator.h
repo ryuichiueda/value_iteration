@@ -13,6 +13,8 @@
 
 using namespace std;
 
+class Action;
+
 class SweepWorkerStatus{
 public: 	
 	bool _finished;
@@ -28,6 +30,7 @@ public:
 	int _ix, _iy, _it;
 	bool _free;
 	bool _final_state;
+	Action *_optimal_action;
 
 	State(int x, int y, int theta, int map_value);
 };
@@ -105,7 +108,9 @@ public:
 	const static uint64_t _prob_base;
 	const static unsigned char _prob_base_bit;
 
-	void imagePublisher(void);
+	void valueImageWriter(void);
+	void actionImageWriter(void);
+	void valuePublisher(void);
 };
 
 const unsigned char ValueIterator::_resolution_x_bit = 6;

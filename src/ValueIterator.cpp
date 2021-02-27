@@ -27,6 +27,7 @@ State::State(int x, int y, int theta, int map_value)
 	_cost = ValueIterator::_max_cost;
 	_free = (map_value == 0);
 	_final_state = false;
+	_optimal_action = NULL;
 }
 
 Action::Action(string name, double fw, double rot)
@@ -85,7 +86,7 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 
 	setStateValues();
 
-	imagePublisher();
+	valuePublisher();
 	setAction();
 	setStateTransition();
 }
@@ -181,8 +182,13 @@ uint64_t ValueIterator::valueIteration(State &s)
 		return 0;
 
 	uint64_t min_cost = ValueIterator::_max_cost;
-	for(auto a : _actions)
-		min_cost = min(actionCost(s, a), min_cost);
+	for(auto a : _actions){
+		uint64_t c = actionCost(s, a);
+		if(c < min_cost){
+			min_cost = c;
+			s._optimal_action = &a;
+		}
+	}
 
 	int64_t delta = min_cost - s._cost;
 	s._cost = min_cost;
@@ -246,6 +252,7 @@ uint64_t ValueIterator::actionCost(State &s, Action &a)
 }
 
 /* statesのセルの情報をPBMとして出力（デバッグ用） */
+/*
 void ValueIterator::outputPbmMap(void){
 	ofstream ofs("/tmp/a.pbm");
 
@@ -259,6 +266,7 @@ void ValueIterator::outputPbmMap(void){
 
 	ofs << flush;
 }
+*/
 
 void ValueIterator::setStateValues(void)
 {
@@ -312,28 +320,60 @@ bool ValueIterator::getParameters(void)
 	return true;
 }
 
-void ValueIterator::imagePublisher(void)
+void ValueIterator::valueImageWriter(void)
 {
-	//ofstreamではなくvectorを検討中
 	for(int t=0; t<_cell_t_num; t++){
-		ofstream ofs("/tmp/value_t=" + to_string(t) + ".pgm");
+		ofstream value_file("/tmp/value_t=" + to_string(t) + ".pgm");
 
-		ofs << "P2" << endl;
-		ofs << _cell_x_num << " " << _cell_y_num << " 255" << endl;
+		value_file << "P2" << endl;
+		value_file << _cell_x_num << " " << _cell_y_num << " 255" << endl;
 		int i = t;
 		while(i<_states.size()){
 			uint64_t v = _states[i]._cost >> _prob_base_bit;
 			if(_states[i]._free and v <= 255)
-				ofs << 255 - v << " ";
+				value_file << 255 - v << " ";
 			else
-				ofs << 0 << " ";
+				value_file << 0 << " ";
 
 			i += _cell_t_num;
 		}
 		
-		ofs << flush;
-		if(t == 0)
-		{
+		value_file << flush;
+	}
+}
+
+void ValueIterator::actionImageWriter(void)
+{
+	for(int t=0; t<_cell_t_num; t++){
+		ofstream action_file("/tmp/action_t=" + to_string(t) + ".ppm");
+
+		action_file << "P3" << endl;
+		action_file << _cell_x_num << " " << _cell_y_num << " 255" << endl;
+		int i = t;
+		while(i<_states.size()){
+
+			if(_states[i]._optimal_action == NULL){
+				action_file << "0 0 0" << endl;
+			}else if(_states[i]._optimal_action->_name == "forward"){
+				action_file << "0 255 0" << endl;
+			}else if(_states[i]._optimal_action->_name == "left"){
+				action_file << "0 0 255" << endl;
+			}else if(_states[i]._optimal_action->_name == "right"){
+				action_file << "255 0 0" << endl;
+			}
+			i += _cell_t_num;
+		}
+		
+		action_file << flush;
+	}
+}
+
+void ValueIterator::valuePublisher(void)
+{
+	//ofstreamではなくvectorを検討中
+	valueImageWriter();
+	for(int t=0; t<_cell_t_num; t++){
+		if(t == 0){
 			cv::Mat	image;
 			image = cv::imread(_imagePath);
 

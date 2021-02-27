@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 
 	ValueIterator value_iterator(res.map);
 	ViActionServer vi_server(n, value_iterator);
-	value_iterator.outputPbmMap();
+//	value_iterator.outputPbmMap();
 
 	ros::spin();
 

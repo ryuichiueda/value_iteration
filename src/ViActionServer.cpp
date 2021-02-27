@@ -37,13 +37,16 @@ void ViActionServer::executeVi(const value_iteration::ViGoalConstPtr &goal)
 		if(finish)
 			break;
 
-		_vi.imagePublisher();
+		_vi.valuePublisher();
 	}
 
 	for(auto &th : ths)
 		th.join();
 
-	_vi.imagePublisher();
+	cout << "closing start" << endl;
+	_vi.valuePublisher();
+	_vi.actionImageWriter();
+	cout << "closing end" << endl;
 
 	value_iteration::ViResult vi_result;
 	vi_result.finished = true;
