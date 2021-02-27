@@ -24,7 +24,7 @@ void ViActionServer::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	vi_feedback.current_sweep_times.data.resize(goal->threadnum);
 	vi_feedback.deltas.data.resize(goal->threadnum);
 	while(1){
-		sleep(10);
+		sleep(1);
 		for(int t=0; t<goal->threadnum; t++){
 			vi_feedback.current_sweep_times.data[t] = _vi._status[t]._sweep_step;
 			vi_feedback.deltas.data[t] = _vi._status[t]._delta;
@@ -37,7 +37,7 @@ void ViActionServer::executeVi(const value_iteration::ViGoalConstPtr &goal)
 		if(finish)
 			break;
 
-		_vi.outputValuePgmMap();
+		//_vi.outputValuePgmMap();
 	}
 
 	for(auto &th : ths)
