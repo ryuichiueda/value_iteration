@@ -17,12 +17,15 @@ public:
 	SweepWorkerStatus();
 };
 
+class Action;
+
 class State{
 public: 
 	uint64_t _cost;
 	int _ix, _iy, _it;
 	bool _free;
 	bool _final_state;
+	Action *_optimal_action;
 
 	State(int x, int y, int theta, int map_value);
 };
@@ -85,6 +88,8 @@ public:
 
 	void valueIterationWorker(int times, int id);
 	map<int, SweepWorkerStatus> _status; 
+
+	void actionImageWriter(void);
 
 	const static uint64_t _max_cost;
 //	const static int64_t _value_min;

@@ -17,6 +17,7 @@ State::State(int x, int y, int theta, int map_value)
 	_cost = ValueIterator::_max_cost;
 	_free = (map_value == 0);
 	_final_state = false;
+	_optimal_action = NULL;
 }
 
 Action::Action(string name, double fw, double rot)
@@ -167,11 +168,18 @@ uint64_t ValueIterator::valueIteration(State &s)
 		return 0;
 
 	uint64_t min_cost = ValueIterator::_max_cost;
-	for(auto a : _actions)
-		min_cost = min(actionCost(s, a), min_cost);
+	Action *min_action;
+	for(auto &a : _actions){
+		int64_t c = actionCost(s, a);
+		if(c < min_cost){
+			min_cost = c;
+			min_action = &a;
+		}
+	}
 
 	int64_t delta = min_cost - s._cost;
 	s._cost = min_cost;
+	s._optimal_action = min_action;
 
 	return delta > 0 ? delta : -delta;
 }
@@ -290,3 +298,30 @@ void ValueIterator::outputValuePgmMap(void)
 		ofs << flush;
 	}
 }
+
+void ValueIterator::actionImageWriter(void)
+{
+	for(int t=0; t<_cell_t_num; t++){
+		ofstream action_file("/tmp/action_t=" + to_string(t) + ".ppm");
+
+		action_file << "P3" << endl;
+		action_file << _cell_x_num << " " << _cell_y_num << " 255" << endl;
+		int i = t;
+		while(i<_states.size()){
+
+			if(_states[i]._optimal_action == NULL){
+				action_file << "0 0 0" << endl;
+			}else if(_states[i]._optimal_action->_name == "forward"){
+				action_file << "0 255 0" << endl;
+			}else if(_states[i]._optimal_action->_name == "left"){
+				action_file << "0 0 255" << endl;
+			}else if(_states[i]._optimal_action->_name == "right"){
+				action_file << "255 0 0" << endl;
+			}
+			i += _cell_t_num;
+		}
+
+		action_file << flush;
+	}
+}
+
