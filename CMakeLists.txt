@@ -15,14 +15,14 @@ find_package(catkin REQUIRED COMPONENTS
   genmsg
   geometry_msgs
   message_generation
-  cv_bridge
+  #  cv_bridge
 )
 
-find_package(OpenCV REQUIRED
-  COMPONENTS
-  opencv_highgui
-  CONFIG
-)
+#find_package(OpenCV REQUIRED
+#  COMPONENTS
+#  opencv_highgui
+#  CONFIG
+#)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -118,7 +118,7 @@ generate_messages(
 catkin_package(
   #INCLUDE_DIRS include
   LIBRARIES value_iteration
-  CATKIN_DEPENDS roscpp rospy message_runtime cv_bridge
+  CATKIN_DEPENDS roscpp rospy message_runtime #cv_bridge
   #DEPENDS system_lib
 )
 
@@ -129,7 +129,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
-include_directories(include ${catkin_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} )
+include_directories(include ${catkin_INCLUDE_DIRS} )
 
 ## Declare a C++ library
 add_library(ValueIterator src/ValueIterator.cpp)
@@ -153,10 +153,10 @@ add_executable(vi_node src/vi_node.cpp)
 add_dependencies(vi_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-#target_link_libraries(vi_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
-target_link_libraries(vi_node ${catkin_LIBRARIES} ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(vi_node ValueIterator ${catkin_LIBRARIES} ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(vi_node ViActionServer ${catkin_LIBRARIES} ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(vi_node ${catkin_LIBRARIES} )
+target_link_libraries(vi_node ${catkin_LIBRARIES} )
+target_link_libraries(vi_node ValueIterator ${catkin_LIBRARIES} )
+target_link_libraries(vi_node ViActionServer ${catkin_LIBRARIES} )
 
 #############
 ## Install ##
@@ -193,26 +193,3 @@ target_link_libraries(vi_node ViActionServer ${catkin_LIBRARIES} ${OpenCV_INCLUD
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
 
-#############
-## Testing ##
-#############
-
-## Add gtest based cpp test target and link libraries
-#catkin_add_gtest(${PROJECT_NAME}-test test/test_value_iterator.cpp src/ValueIterator.cpp)
-#catkin_add_gtest(${PROJECT_NAME}-test test/utest_launch.test test/test_value_iterator.cpp src/ValueIterator.cpp)
-find_package(rostest REQUIRED)
-catkin_add_gtest(test_value_iterator test/utest_launch.test test/test_value_iterator.cpp src/ValueIterator.cpp)
-
-## Declare a C++ library
-add_library(Valueiterator_GoogleTest test/Valueiterator_GoogleTest.cpp)
-
-#target_link_libraries(${PROJECT_NAME}-test ${catkin_LIBRARIES})
-target_link_libraries(test_value_iterator ${catkin_LIBRARIES})
-target_link_libraries(test_value_iterator Valueiterator_GoogleTest ${catkin_LIBRARIES})
-
-#if(TARGET ${PROJECT_NAME}-test)
-# target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-#endif()
-
-## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)

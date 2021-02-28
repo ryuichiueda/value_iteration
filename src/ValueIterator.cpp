@@ -288,13 +288,12 @@ void ValueIterator::outputValuePgmMap(void)
 		while(i<_states.size()){
 			uint64_t v = _states[i]._cost >> _prob_base_bit;
 			if(_states[i]._free and v <= 255)
-				ofs << 255 - v << " ";
+				ofs << 255 - v << '\n';
 			else
-				ofs << 0 << " ";
+				ofs << 0 << '\n';
 
 			i += _cell_t_num;
 		}
-	
 		ofs << flush;
 	}
 }

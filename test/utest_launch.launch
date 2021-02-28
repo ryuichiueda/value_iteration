@@ -1,9 +1,0 @@
-<launch>
-  <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 world map 100" />
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find value_iteration)/config/conf.rviz"/>
-  <arg name="map_file" default="$(find value_iteration)/maps/ueda_room.yaml"/> 
-  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" output="screen" />
-  <node name="test_value_iterator" pkg="value_iteration" type="test_value_iterator" output="screen">
-    <param name="map_path" value="$(find value_iteration)/test/test_data/map.pbm"/>
-  </node>
-</launch>
