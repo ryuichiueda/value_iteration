@@ -1,4 +1,19 @@
 <launch>
+  <!-- parameters -->
+  <rosparam>
+    vi_node:
+      action_list:
+        - name: forward
+          onestep_forward_m: 0.1
+          onestep_rotation_deg: 0.0
+        - name: right
+          onestep_forward_m: 0.0
+          onestep_rotation_deg: -10.0
+        - name: left
+          onestep_forward_m: 0.0
+          onestep_rotation_deg: 10.0
+  </rosparam>
+
   <!-- Set tf -->
   <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 world map 100" />
 
