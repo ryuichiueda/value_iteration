@@ -70,7 +70,7 @@ private:
 	void accurateStateTransition(Action &a, double from_x, double from_y, double from_t, double &to_x, double &to_y, double &to_t);
 	void toCellPos(double x, double y, double t, int &ix, int &iy, int &it);
 
-	void setAction(void);
+	void setAction(XmlRpc::XmlRpcValue &action_list);
 	void setStateValues(void);
 	void setStateTransition(void);
 	void setStateTransition(Action &a, int it);
@@ -81,7 +81,7 @@ private:
 
 	int toIndex(int ix, int iy, int it);
 public: 
-	ValueIterator(nav_msgs::OccupancyGrid &map);
+	ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &action_list);
 
 	void outputPbmMap(void);
 	void outputValuePgmMap(void);

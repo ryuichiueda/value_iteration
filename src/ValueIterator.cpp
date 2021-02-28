@@ -46,8 +46,9 @@ string StateTransition::to_string(void)
 }
 
 /* ROSの地図をもらって各セルの情報からStateのオブジェクトを作ってstatesというベクトルに突っ込む */
-ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
+ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &action_list)
 {
+
 	_cell_x_num = map.info.width;
 	_cell_y_num = map.info.height;
 	_cell_t_num = 60; //6[deg]刻みでとりあえず固定
@@ -73,16 +74,22 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map)
 	setStateValues();
 
 	outputValuePgmMap();
-	setAction();
+	setAction(action_list);
 	setStateTransition();
 }
 
 /* デフォルトのアクションの設定 */
-void ValueIterator::setAction(void)
+void ValueIterator::setAction(XmlRpc::XmlRpcValue &action_list)
 {
-	_actions.push_back(Action("forward", 0.1, 0.0));
-	_actions.push_back(Action("right", 0.0, -10.0));
-	_actions.push_back(Action("left", 0.0, 10.0));
+	ROS_ASSERT(action_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
+
+	for(int i=0; i<action_list.size(); i++){
+		auto &a = action_list[i];
+		_actions.push_back(Action(a["name"], a["onestep_forward_m"], a["onestep_rotation_deg"]));
+
+		auto &b = _actions.back();
+		ROS_INFO("set an action: %s, %f, %f", b._name.c_str(), b._delta_fw, b._delta_rot);
+	}
 }
 
 void ValueIterator::setStateTransition(void)

@@ -28,9 +28,24 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	ValueIterator value_iterator(res.map);
+	XmlRpc::XmlRpcValue action_list;
+	n.getParam("/vi_node/action_list", action_list);
+
+	/*
+	ROS_ASSERT(action_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
+
+	for(int i=0; i<action_list.size(); i++){
+		cout << action_list[i]["name"] << endl;
+		cout << action_list[i]["onestep_forward_m"] << endl;
+		cout << action_list[i]["onestep_rotation_deg"] << endl;
+
+		//ROS_ASSERT(action_list[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+		//sum += static_cast<double>(action_list[i]);
+	}
+	*/
+
+	ValueIterator value_iterator(res.map, action_list);
 	ViActionServer vi_server(n, value_iterator);
-//	value_iterator.outputPbmMap();
 
 	ros::spin();
 
