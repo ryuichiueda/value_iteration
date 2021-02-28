@@ -1,5 +1,8 @@
 # value_iteration
 
+a global planner for mobile robots based on value iteration
+
+
 ## install and run
 
 This package works on ROS. The following procedure is for Ubuntu 18.04.
