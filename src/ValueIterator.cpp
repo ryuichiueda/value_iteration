@@ -2,49 +2,6 @@
 #include <thread>
 using namespace std;
 
-SweepWorkerStatus::SweepWorkerStatus()
-{
-	_finished = false;
-	_sweep_step = 0;
-	_delta = ValueIterator::_max_cost;
-}
-
-State::State(int x, int y, int theta, int map_value)
-{
-	_ix = x;
-	_iy = y;
-	_it = theta;
-	_cost = ValueIterator::_max_cost;
-	_free = (map_value == 0);
-	_final_state = false;
-	_optimal_action = NULL;
-}
-
-Action::Action(string name, double fw, double rot)
-{
-	_name = name;
-
-	_delta_fw = fw;
-	_delta_rot = rot;
-
-	//_delta_fw_stdev = fabs(fw)*0.1;
-	//_delta_rot_stdev = fabs(rot)*0.1;
-}
-
-StateTransition::StateTransition(int dix, int diy, int dit, int prob)
-{
-	_dix = dix;
-	_diy = diy;
-	_dit = dit;
-	_prob = prob;
-}
-
-string StateTransition::to_string(void)
-{
-	return "dix:" + std::to_string(_dix) + " diy:" + std::to_string(_diy) 
-		+ " dit:" + std::to_string(_dit) + " prob:" + std::to_string(_prob);
-}
-
 /* ROSの地図をもらって各セルの情報からStateのオブジェクトを作ってstatesというベクトルに突っ込む */
 ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &params)
 {
