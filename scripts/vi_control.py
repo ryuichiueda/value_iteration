@@ -8,11 +8,8 @@ def vi_state_cb(feedback):
     print(feedback)
 
 def vi_client():
-    print("enter")
     client = actionlib.SimpleActionClient('/vi_controller', ViAction)
-    print("waiting")
     client.wait_for_server()
-    print("ok")
 
     goal = ViGoal()
     goal.sweepnum = 0
@@ -26,8 +23,4 @@ if __name__ == '__main__':
     result = vi_client()
     print(result)
 
-#    rate = rospy.Rate(1);
-#    while not rospy.is_shutdown():
-#        rate.sleep()
-#
     rospy.spin()

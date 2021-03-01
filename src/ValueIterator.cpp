@@ -61,13 +61,6 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &
 	_center_state_ix = _cell_x_num/2;
 	_center_state_iy = _cell_y_num/2;
 
-	/*
-	      final_state:
-        x_center_m: 0.0
-        y_center_m: 0.0
-        width_m: 0.5
-	*/
-
 	auto &fs = params["final_state"];
 	ROS_ASSERT(fs["x_center_m"].getType() == XmlRpc::XmlRpcValue::TypeDouble);
 	ROS_ASSERT(fs["y_center_m"].getType() == XmlRpc::XmlRpcValue::TypeDouble);
