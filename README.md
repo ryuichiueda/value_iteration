@@ -3,7 +3,7 @@
 a global planner for mobile robots based on value iteration
 
 
-## install and run
+## install
 
 This package works on ROS. The following procedure is for Ubuntu 18.04. It also works on Ubuntu 20.04.
 
@@ -15,4 +15,11 @@ $ cd ~/catkin_ws
 $ catkin_make
 ```
 
+## test
 
+```
+$ ~/catkin_ws/src
+$ ./test/test.bash
+$ nautilus /tmp/
+(There are many images.)
+```

@@ -81,7 +81,7 @@ private:
 
 	int toIndex(int ix, int iy, int it);
 public: 
-	ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &action_list);
+	ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &params);
 
 	void outputPbmMap(void);
 	void outputValuePgmMap(void);

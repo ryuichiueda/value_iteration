@@ -46,7 +46,7 @@ string StateTransition::to_string(void)
 }
 
 /* ROSの地図をもらって各セルの情報からStateのオブジェクトを作ってstatesというベクトルに突っ込む */
-ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &action_list)
+ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &params)
 {
 
 	_cell_x_num = map.info.width;
@@ -74,7 +74,7 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &
 	setStateValues();
 
 	outputValuePgmMap();
-	setAction(action_list);
+	setAction(params["action_list"]);
 	setStateTransition();
 }
 

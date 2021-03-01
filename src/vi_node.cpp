@@ -28,12 +28,18 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	XmlRpc::XmlRpcValue action_list;
+	XmlRpc::XmlRpcValue vi_node;
+	n.getParam("/vi_node", vi_node);
+	ROS_ASSERT(vi_node.getType() == XmlRpc::XmlRpcValue::TypeStruct);
+
+	/*
+	XmlRpc::XmlRpcValue action_list, theta_cell_num;
 	n.getParam("/vi_node/action_list", action_list);
+	n.getParam("/vi_node/theta_cell_num", theta_cell_num);
+	*/
 
 	/*
 	ROS_ASSERT(action_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
-
 	for(int i=0; i<action_list.size(); i++){
 		cout << action_list[i]["name"] << endl;
 		cout << action_list[i]["onestep_forward_m"] << endl;
@@ -44,7 +50,7 @@ int main(int argc, char **argv)
 	}
 	*/
 
-	ValueIterator value_iterator(res.map, action_list);
+	ValueIterator value_iterator(res.map, vi_node);
 	ViActionServer vi_server(n, value_iterator);
 
 	ros::spin();
