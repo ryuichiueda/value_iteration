@@ -134,10 +134,18 @@ include_directories(include ${catkin_INCLUDE_DIRS} )
 ## Declare a C++ library
 add_library(ValueIterator src/ValueIterator.cpp)
 add_library(ViActionServer src/ViActionServer.cpp)
+add_library(SweepWorkerStatus src/SweepWorkerStatus.cpp)
+add_library(State src/State.cpp)
+add_library(Action src/Action.cpp)
+add_library(StateTransition src/StateTransition.cpp)
 
 # この2行を追加
 add_dependencies(ValueIterator ${TARGET_NAME} ${PROJECT_NAME}_generate_messages_cpp)
 add_dependencies(ViActionServer ${TARGET_NAME} ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(SweepWorkerStatus ${TARGET_NAME} ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(State ${TARGET_NAME} ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(Action ${TARGET_NAME} ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(StateTransition ${TARGET_NAME} ${PROJECT_NAME}_generate_messages_cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -157,6 +165,10 @@ target_link_libraries(vi_node ${catkin_LIBRARIES} )
 target_link_libraries(vi_node ${catkin_LIBRARIES} )
 target_link_libraries(vi_node ValueIterator ${catkin_LIBRARIES} )
 target_link_libraries(vi_node ViActionServer ${catkin_LIBRARIES} )
+target_link_libraries(vi_node SweepWorkerStatus ${catkin_LIBRARIES} )
+target_link_libraries(vi_node State ${catkin_LIBRARIES} )
+target_link_libraries(vi_node Action ${catkin_LIBRARIES} )
+target_link_libraries(vi_node StateTransition ${catkin_LIBRARIES} )
 
 #############
 ## Install ##

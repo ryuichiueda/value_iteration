@@ -6,52 +6,12 @@
 #include "nav_msgs/OccupancyGrid.h"
 #include <vector>
 #include <fstream>
+
+#include "SweepWorkerStatus.h"
+#include "Action.h"
+#include "State.h"
 using namespace std;
 
-class SweepWorkerStatus{
-public: 	
-	bool _finished;
-	int _sweep_step;
-	double _delta;
-
-	SweepWorkerStatus();
-};
-
-class Action;
-
-class State{
-public: 
-	uint64_t _cost;
-	int _ix, _iy, _it;
-	bool _free;
-	bool _final_state;
-	Action *_optimal_action;
-
-	State(int x, int y, int theta, int map_value);
-};
-
-class StateTransition{
-public:
-	int _dix, _diy, _dit;
-	int _prob;
-
-	StateTransition(int dix, int diy, int dit, int prob);
-	string to_string(void);
-};
-
-class Action{
-public:
-	string _name;
-	double _delta_fw;  //forward traveling distance[m]
-	double _delta_rot;  //rotation[deg]
-
-//	double _delta_fw_stdev;
-//	double _delta_rot_stdev;
-
-	vector< vector<StateTransition> > _state_transitions; //thetaごとに状態遷移先のリストを保存
-
-	Action(string name, double fw, double rot);
-};
 
 class ValueIterator{
 private: 
@@ -81,7 +41,7 @@ private:
 
 	int toIndex(int ix, int iy, int it);
 public: 
-	ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &action_list);
+	ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &params);
 
 	void outputPbmMap(void);
 	void outputValuePgmMap(void);
@@ -92,7 +52,6 @@ public:
 	void actionImageWriter(void);
 
 	const static uint64_t _max_cost;
-//	const static int64_t _value_min;
 	const static uint64_t _prob_base;
 	const static unsigned char _prob_base_bit;
 };

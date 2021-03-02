@@ -2,56 +2,14 @@
 #include <thread>
 using namespace std;
 
-SweepWorkerStatus::SweepWorkerStatus()
-{
-	_finished = false;
-	_sweep_step = 0;
-	_delta = ValueIterator::_max_cost;
-}
-
-State::State(int x, int y, int theta, int map_value)
-{
-	_ix = x;
-	_iy = y;
-	_it = theta;
-	_cost = ValueIterator::_max_cost;
-	_free = (map_value == 0);
-	_final_state = false;
-	_optimal_action = NULL;
-}
-
-Action::Action(string name, double fw, double rot)
-{
-	_name = name;
-
-	_delta_fw = fw;
-	_delta_rot = rot;
-
-	//_delta_fw_stdev = fabs(fw)*0.1;
-	//_delta_rot_stdev = fabs(rot)*0.1;
-}
-
-StateTransition::StateTransition(int dix, int diy, int dit, int prob)
-{
-	_dix = dix;
-	_diy = diy;
-	_dit = dit;
-	_prob = prob;
-}
-
-string StateTransition::to_string(void)
-{
-	return "dix:" + std::to_string(_dix) + " diy:" + std::to_string(_diy) 
-		+ " dit:" + std::to_string(_dit) + " prob:" + std::to_string(_prob);
-}
-
 /* ROSの地図をもらって各セルの情報からStateのオブジェクトを作ってstatesというベクトルに突っ込む */
-ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &action_list)
+ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &params)
 {
-
+	//The cell configurations on XY-plane is set based on the map.
 	_cell_x_num = map.info.width;
 	_cell_y_num = map.info.height;
-	_cell_t_num = 60; //6[deg]刻みでとりあえず固定
+	ROS_ASSERT(params["theta_cell_num"].getType() == XmlRpc::XmlRpcValue::TypeInt);
+	_cell_t_num = params["theta_cell_num"];
 
 	_cell_x_width = map.info.resolution;
 	_cell_y_width = map.info.resolution;
@@ -60,9 +18,13 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &
 	_center_state_ix = _cell_x_num/2;
 	_center_state_iy = _cell_y_num/2;
 
-	_final_state_x = 0.0;
-	_final_state_y = 0.0;
-	_final_state_width = 0.5;
+	auto &fs = params["final_state"];
+	ROS_ASSERT(fs["x_center_m"].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+	ROS_ASSERT(fs["y_center_m"].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+	ROS_ASSERT(fs["width_m"].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+	_final_state_x = fs["x_center_m"];
+	_final_state_y = fs["y_center_m"];
+	_final_state_width = fs["width_m"];
 
 	//_delta = _max_cost;
 
@@ -74,7 +36,7 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &
 	setStateValues();
 
 	outputValuePgmMap();
-	setAction(action_list);
+	setAction(params["action_list"]);
 	setStateTransition();
 }
 

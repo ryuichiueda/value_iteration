@@ -12,6 +12,11 @@
         - name: left
           onestep_forward_m: 0.0
           onestep_rotation_deg: 10.0
+      theta_cell_num: 60
+      final_state:
+        x_center_m: 0.0
+        y_center_m: 0.0
+        width_m: 0.5
   </rosparam>
 
   <!-- Set tf -->

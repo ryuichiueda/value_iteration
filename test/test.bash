@@ -1,5 +1,8 @@
 #!/bin/bash -evx
 
+rm -f '/tmp/value_t=3.pgm' '/tmp/action_t=41.ppm'
+
+
 source ~/.bashrc
 source ~/catkin_ws/devel/setup.bash
 roslaunch value_iteration test.launch || echo Finish
