@@ -247,7 +247,8 @@ uint64_t ValueIterator::actionCost(State &s, Action &a)
 }
 
 /* statesのセルの情報をPBMとして出力（デバッグ用） */
-void ValueIterator::outputPbmMap(void){
+void ValueIterator::outputPbmMap(void)
+{
 	ofstream ofs("/tmp/a.pbm");
 
 	ofs << "P1" << endl;
