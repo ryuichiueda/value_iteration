@@ -270,6 +270,19 @@ void ValueIterator::outputValuePgmMap(void)
 
 void ValueIterator::actionImageWriter(void)
 {
+	ofstream action_list("/tmp/action_list.txt");
+	for(auto &a : _actions){
+		action_list << a._name << ' ' << a._delta_fw << ' ' << a._delta_rot << ' ';
+		if(a._name == "forward"){
+			action_list << "0 255 0" << endl;
+		}else if(a._name == "left"){
+			action_list << "0 0 255" << endl;
+		}else if(a._name == "right"){
+			action_list << "255 0 0" << endl;
+		}
+	}
+
+
 	for(int t=0; t<_cell_t_num; t++){
 		ofstream action_file("/tmp/action_t=" + to_string(t) + ".ppm");
 

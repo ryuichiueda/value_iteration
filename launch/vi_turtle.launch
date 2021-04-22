@@ -1,0 +1,32 @@
+<launch>
+  <!-- parameters -->
+  <rosparam>
+    vi_node:
+      action_list:
+        - name: forward
+          onestep_forward_m: 0.1
+          onestep_rotation_deg: 0.0
+        - name: right
+          onestep_forward_m: 0.0
+          onestep_rotation_deg: -10.0
+        - name: left
+          onestep_forward_m: 0.0
+          onestep_rotation_deg: 10.0
+      theta_cell_num: 60
+      final_state:
+        x_center_m: 0.0
+        y_center_m: 0.0
+        width_m: 0.5
+  </rosparam>
+
+  <!-- Set tf -->
+  <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 world map 100" />
+
+  <!-- Launch the map server  -->
+  <arg name="map_file" default="$(find value_iteration)/maps/turtle.yaml"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" output="screen" />
+
+  <!-- Launch the value_iteration node -->
+  <node pkg="value_iteration" name="vi_node" type="vi_node" output="screen" required="true" />
+  <node pkg="value_iteration" name="vi_control" type="vi_control.py" output="screen" required="true" />
+</launch>
