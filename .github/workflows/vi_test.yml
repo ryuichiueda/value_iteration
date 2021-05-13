@@ -18,7 +18,7 @@ jobs:
          cd ros_setup_scripts_Ubuntu18.04_server 
          bash step0.bash
          bash step1.bash
-         sudo apt-get install ros-melodic-tf ros-melodic-map-server ros-melodic-grid-map ros-melodic-grid-map-msgs ros-melodic-pcl-ros ros-melodic-costmap-2d* ros-melodic-grid-map* ros-melodic-grid-map-filters
+         sudo apt-get install ros-melodic-tf ros-melodic-map-server ros-melodic-grid-map ros-melodic-grid-map-msgs ros-melodic-pcl-ros ros-melodic-costmap-2d* ros-melodic-grid-map* ros-melodic-grid-map-filters ros-melodic-filters
          sudo pip3 install rospkg
          mkdir -p ~/.ros/log/
       - name: Build catkin_ws

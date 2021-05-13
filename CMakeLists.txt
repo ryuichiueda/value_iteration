@@ -28,6 +28,7 @@ find_package(catkin REQUIRED COMPONENTS
   grid_map_octomap
   grid_map_rviz_plugin
   grid_map_visualization
+  filters
 )
 
 ## System dependencies are found with CMake's conventions
