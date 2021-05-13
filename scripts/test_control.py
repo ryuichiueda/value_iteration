@@ -2,6 +2,7 @@
 
 import rospy
 from value_iteration.msg import ViAction, ViGoal
+from grid_map_msgs.srv import GetGridMap
 import actionlib
 
 def vi_state_cb(feedback):
@@ -24,4 +25,8 @@ def vi_client():
 if __name__ == '__main__':
     rospy.init_node('vi_controller')
     result = vi_client()
+
+    get_policy = rospy.ServiceProxy('/policy', GetGridMap)
+    get_policy()
+
     print(result)

@@ -6,6 +6,9 @@ set(CMAKE_CXX_FLAGS "-std=c++14 -O3 ${CMAKE_CXX_FLAGS}")
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+
+find_package(Eigen3 REQUIRED)
+
 find_package(catkin REQUIRED COMPONENTS
   rospy
   roscpp
@@ -15,14 +18,17 @@ find_package(catkin REQUIRED COMPONENTS
   genmsg
   geometry_msgs
   message_generation
-  #  cv_bridge
+  cv_bridge
+  grid_map_core
+  grid_map_ros
+  grid_map_cv
+  grid_map_filters
+  grid_map_loader
+  grid_map_msgs
+  grid_map_octomap
+  grid_map_rviz_plugin
+  grid_map_visualization
 )
-
-#find_package(OpenCV REQUIRED
-#  COMPONENTS
-#  opencv_highgui
-#  CONFIG
-#)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -120,6 +126,15 @@ catkin_package(
   LIBRARIES value_iteration
   CATKIN_DEPENDS roscpp rospy message_runtime #cv_bridge
   #DEPENDS system_lib
+  grid_map_core
+  grid_map_ros
+  grid_map_cv
+  grid_map_filters
+  grid_map_loader
+  grid_map_msgs
+  grid_map_octomap
+  grid_map_rviz_plugin
+  grid_map_visualization
 )
 
 ###########
@@ -129,7 +144,11 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
-include_directories(include ${catkin_INCLUDE_DIRS} )
+include_directories(
+  include
+  ${EIGEN3_INCLUDE_DIR}
+  ${catkin_INCLUDE_DIRS}
+ )
 
 ## Declare a C++ library
 add_library(ValueIterator src/ValueIterator.cpp)

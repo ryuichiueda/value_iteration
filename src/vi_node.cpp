@@ -7,11 +7,10 @@
 #include "ValueIterator.h"
 #include <iostream>
 #include <vector>
-
-#include <grid_map_msgs/GridMap.h>
-
-#include <std_msgs/UInt32MultiArray.h>
 #include <thread>
+
+#include <grid_map_msgs/GetGridMap.h>
+#include <std_msgs/UInt32MultiArray.h>
 using namespace std;
 
 class ViNode{
@@ -20,12 +19,16 @@ public:
 	shared_ptr<ValueIterator> vi_;
 	ros::NodeHandle nh_;
 
-	void setAction(void);
-	
-	shared_ptr<actionlib::SimpleActionServer<value_iteration::ViAction> > as;
+	ros::ServiceServer srv_policy_;
+	ros::ServiceServer srv_value_;
+
+	shared_ptr<actionlib::SimpleActionServer<value_iteration::ViAction> > as_;
 
 	ViNode();
+
 	void executeVi(const value_iteration::ViGoalConstPtr &goal);
+	bool servePolicy(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response);
+	bool serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response);
 };
 
 
@@ -49,13 +52,24 @@ ViNode::ViNode()
 	ROS_ASSERT(params.getType() == XmlRpc::XmlRpcValue::TypeStruct);
 
 	vi_.reset(new ValueIterator(res.map, params));
+	as_.reset(new actionlib::SimpleActionServer<value_iteration::ViAction>( nh_, "vi_controller", boost::bind(&ViNode::executeVi, this, _1), false));
+	as_->start();
+
+	srv_policy_ = nh_.advertiseService("/policy", &ViNode::servePolicy, this);
+	srv_value_ = nh_.advertiseService("/value", &ViNode::serveValue, this);
 }
 
-void ViNode::setAction(void)
+bool ViNode::servePolicy(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response)
 {
-	as.reset(new actionlib::SimpleActionServer<value_iteration::ViAction>(nh_, "vi_controller", boost::bind(&ViNode::executeVi, this, _1), false));
+	vi_->actionImageWriter(response);
+	return true;
 }
 
+bool ViNode::serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response)
+{
+	vi_->outputValuePgmMap(response);
+	return true;
+}
 
 void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 {
@@ -74,26 +88,22 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 			vi_feedback.current_sweep_times.data[t] = vi_->_status[t]._sweep_step;
 			vi_feedback.deltas.data[t] = vi_->_status[t]._delta;
 		}
-		as->publishFeedback(vi_feedback);
+		as_->publishFeedback(vi_feedback);
 
 		bool finish = true;
 		for(int t=0; t<goal->threadnum; t++)
 			finish &= vi_->_status[t]._finished;
 		if(finish)
 			break;
-
-		//vi_.outputValuePgmMap();
 	}
 
 	for(auto &th : ths)
 		th.join();
 
-	vi_->outputValuePgmMap();
-	vi_->actionImageWriter();
 
 	value_iteration::ViResult vi_result;
 	vi_result.finished = true;
-	as->setSucceeded(vi_result);
+	as_->setSucceeded(vi_result);
 }
 
 int main(int argc, char **argv)
@@ -101,10 +111,6 @@ int main(int argc, char **argv)
 	ros::init(argc,argv,"vi_node");
 
 	ViNode vi_node;
-
-	vi_node.setAction();
-	vi_node.as->start();
-	ROS_INFO("ViNode started");
 
 	ros::Rate loop_rate(1);
 	while(ros::ok()){
@@ -117,4 +123,3 @@ int main(int argc, char **argv)
 
 	return 0;
 }
-

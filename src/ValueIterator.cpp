@@ -1,5 +1,7 @@
 #include "ValueIterator.h"
 #include <thread>
+#include <grid_map_ros/grid_map_ros.hpp>
+#include <grid_map_msgs/GridMap.h>
 using namespace std;
 
 /* ROSの地図をもらって各セルの情報からStateのオブジェクトを作ってstatesというベクトルに突っ込む */
@@ -35,7 +37,6 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &
 
 	setStateValues();
 
-	outputValuePgmMap();
 	setAction(params["action_list"]);
 	setStateTransition();
 }
@@ -47,7 +48,7 @@ void ValueIterator::setAction(XmlRpc::XmlRpcValue &action_list)
 
 	for(int i=0; i<action_list.size(); i++){
 		auto &a = action_list[i];
-		_actions.push_back(Action(a["name"], a["onestep_forward_m"], a["onestep_rotation_deg"]));
+		_actions.push_back(Action(a["name"], a["onestep_forward_m"], a["onestep_rotation_deg"], i));
 
 		auto &b = _actions.back();
 		ROS_INFO("set an action: %s, %f, %f", b._name.c_str(), b._delta_fw, b._delta_rot);
@@ -247,8 +248,30 @@ void ValueIterator::setStateValues(void)
 	}
 }
 
-void ValueIterator::outputValuePgmMap(void)
+bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& response)
 {
+	grid_map::GridMap map;
+	map.setFrameId("map");
+	map.setGeometry(grid_map::Length(_cell_x_num*_cell_x_width, _cell_y_num*_cell_y_width), _cell_x_width);
+
+	for(int t=0; t<_cell_t_num; t++){
+		string name = to_string(t);
+
+		map.add(name);
+		int i = t;
+		while(i<_states.size()){
+			auto &s = _states[i];
+			map.at(name, grid_map::Index(s._ix, s._iy)) = s._cost/(ValueIterator::_prob_base);
+
+			i += _cell_t_num;
+		}
+	}
+
+	grid_map_msgs::GridMap message;
+	grid_map::GridMapRosConverter::toMessage(map, message);
+	response.map = message;
+	return true;
+	/*
 	for(int t=0; t<_cell_t_num; t++){
 		ofstream ofs("/tmp/value_t=" + to_string(t) + ".pgm");
 
@@ -266,44 +289,35 @@ void ValueIterator::outputValuePgmMap(void)
 		}
 		ofs << flush;
 	}
+	*/
 }
 
-void ValueIterator::actionImageWriter(void)
+bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& response)
 {
-	ofstream action_list("/tmp/action_list.txt");
-	for(auto &a : _actions){
-		action_list << a._name << ' ' << a._delta_fw << ' ' << a._delta_rot << ' ';
-		if(a._name == "forward"){
-			action_list << "0 255 0" << endl;
-		}else if(a._name == "left"){
-			action_list << "0 0 255" << endl;
-		}else if(a._name == "right"){
-			action_list << "255 0 0" << endl;
-		}
-	}
-
+	grid_map::GridMap map;
+	map.setFrameId("map");
+	map.setGeometry(grid_map::Length(_cell_x_num*_cell_x_width, _cell_y_num*_cell_y_width), _cell_x_width);
 
 	for(int t=0; t<_cell_t_num; t++){
-		ofstream action_file("/tmp/action_t=" + to_string(t) + ".ppm");
+		string name = to_string(t);
 
-		action_file << "P3" << endl;
-		action_file << _cell_x_num << " " << _cell_y_num << " 255" << endl;
+		map.add(name);
 		int i = t;
 		while(i<_states.size()){
-
-			if(_states[i]._optimal_action == NULL){
-				action_file << "0 0 0" << endl;
-			}else if(_states[i]._optimal_action->_name == "forward"){
-				action_file << "0 255 0" << endl;
-			}else if(_states[i]._optimal_action->_name == "left"){
-				action_file << "0 0 255" << endl;
-			}else if(_states[i]._optimal_action->_name == "right"){
-				action_file << "255 0 0" << endl;
+			auto &s = _states[i];
+			if(s._optimal_action == NULL){
+				map.at(name, grid_map::Index(s._ix, s._iy)) = -1.0;
+			}else{
+				map.at(name, grid_map::Index(s._ix, s._iy)) = (double)s._optimal_action->id_;
 			}
+
 			i += _cell_t_num;
 		}
-
-		action_file << flush;
 	}
+
+	grid_map_msgs::GridMap message;
+	grid_map::GridMapRosConverter::toMessage(map, message);
+	response.map = message;
+	return true;
 }
 

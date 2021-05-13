@@ -4,6 +4,7 @@
 #include "ros/ros.h"
 #include "nav_msgs/GetMap.h"
 #include "nav_msgs/OccupancyGrid.h"
+#include <grid_map_msgs/GetGridMap.h>
 #include <vector>
 #include <fstream>
 
@@ -44,12 +45,12 @@ public:
 	ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &params);
 
 	void outputPbmMap(void);
-	void outputValuePgmMap(void);
 
 	void valueIterationWorker(int times, int id);
 	map<int, SweepWorkerStatus> _status; 
 
-	void actionImageWriter(void);
+	bool actionImageWriter(grid_map_msgs::GetGridMap::Response& response);
+	bool outputValuePgmMap(grid_map_msgs::GetGridMap::Response& response);
 
 	const static uint64_t _max_cost;
 	const static uint64_t _prob_base;

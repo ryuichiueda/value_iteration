@@ -13,7 +13,15 @@
 
   <depend>roscpp</depend>
   <depend>rospy</depend>
-  <depend>grid_map</depend>
+  <depend>grid_map_core</depend>
+  <depend>grid_map_ros</depend>
+  <depend>grid_map_cv</depend>
+  <depend>grid_map_filters</depend>
+  <depend>grid_map_loader</depend>
+  <depend>grid_map_msgs</depend>
+  <depend>grid_map_octomap</depend>
+  <depend>grid_map_rviz_plugin</depend>
+  <depend>grid_map_visualization</depend>
 
   <build_depend>message_generation</build_depend>
   <build_depend>geometry_msgs</build_depend>

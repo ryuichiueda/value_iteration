@@ -1,7 +1,7 @@
 #include "Action.h"
 //using namespace std;
 
-Action::Action(string name, double fw, double rot)
+Action::Action(string name, double fw, double rot, int id) : id_(id)
 {
 	_name = name;
 
