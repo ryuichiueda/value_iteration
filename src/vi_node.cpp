@@ -17,20 +17,38 @@ using namespace std;
 class ViNode{
 
 public:
-	ValueIterator& vi_;
+	shared_ptr<ValueIterator> vi_;
 	ros::NodeHandle nh_;
 
 	void setAction(void);
 	
 	shared_ptr<actionlib::SimpleActionServer<value_iteration::ViAction> > as;
 
-	ViNode(ros::NodeHandle &h, ValueIterator &vi);
+	ViNode();
 	void executeVi(const value_iteration::ViGoalConstPtr &goal);
 };
 
 
-ViNode::ViNode(ros::NodeHandle &h, ValueIterator &vi) : nh_(h), vi_(vi)
+ViNode::ViNode()
 {
+	while(!ros::service::waitForService("/static_map", ros::Duration(3.0))){
+		ROS_INFO("Waiting for static_map");
+	}
+
+	ros::ServiceClient client = nh_.serviceClient<nav_msgs::GetMap>("/static_map");
+
+	nav_msgs::GetMap::Request req;
+	nav_msgs::GetMap::Response res;
+	if(not client.call(req, res)){
+		ROS_ERROR("static_map not working");
+		exit(1);
+	}
+
+	XmlRpc::XmlRpcValue params;
+	nh_.getParam("/vi_node", params);
+	ROS_ASSERT(params.getType() == XmlRpc::XmlRpcValue::TypeStruct);
+
+	vi_.reset(new ValueIterator(res.map, params));
 }
 
 void ViNode::setAction(void)
@@ -45,7 +63,7 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 
 	vector<thread> ths;
 	for(int t=0; t<goal->threadnum; t++)
-		ths.push_back(thread(&ValueIterator::valueIterationWorker, &vi_, sweepnum, t));
+		ths.push_back(thread(&ValueIterator::valueIterationWorker, vi_.get(), sweepnum, t));
 
 	value_iteration::ViFeedback vi_feedback;
 	vi_feedback.current_sweep_times.data.resize(goal->threadnum);
@@ -53,14 +71,14 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	while(1){
 		sleep(1);
 		for(int t=0; t<goal->threadnum; t++){
-			vi_feedback.current_sweep_times.data[t] = vi_._status[t]._sweep_step;
-			vi_feedback.deltas.data[t] = vi_._status[t]._delta;
+			vi_feedback.current_sweep_times.data[t] = vi_->_status[t]._sweep_step;
+			vi_feedback.deltas.data[t] = vi_->_status[t]._delta;
 		}
 		as->publishFeedback(vi_feedback);
 
 		bool finish = true;
 		for(int t=0; t<goal->threadnum; t++)
-			finish &= vi_._status[t]._finished;
+			finish &= vi_->_status[t]._finished;
 		if(finish)
 			break;
 
@@ -70,8 +88,8 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	for(auto &th : ths)
 		th.join();
 
-	vi_.outputValuePgmMap();
-	vi_.actionImageWriter();
+	vi_->outputValuePgmMap();
+	vi_->actionImageWriter();
 
 	value_iteration::ViResult vi_result;
 	vi_result.finished = true;
@@ -81,29 +99,8 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 int main(int argc, char **argv)
 {
 	ros::init(argc,argv,"vi_node");
-	ros::NodeHandle n;
 
-	while(!ros::service::waitForService("/static_map", ros::Duration(3.0))){
-		ROS_INFO("Waiting for static_map");
-	}
-
-	ros::ServiceClient client = n.serviceClient<nav_msgs::GetMap>("/static_map");
-
-	nav_msgs::GetMap::Request req;
-	nav_msgs::GetMap::Response res;
-	if(not client.call(req, res)){
-		ROS_ERROR("static_map not working");
-		return 1;
-	}
-
-	XmlRpc::XmlRpcValue params;
-	n.getParam("/vi_node", params);
-	ROS_ASSERT(params.getType() == XmlRpc::XmlRpcValue::TypeStruct);
-
-	ros::Publisher publisher = n.advertise<grid_map_msgs::GridMap>("grid_map", 1, true);
-
-	ValueIterator value_iterator(res.map, params);
-	ViNode vi_node(n, value_iterator);
+	ViNode vi_node;
 
 	vi_node.setAction();
 	vi_node.as->start();
