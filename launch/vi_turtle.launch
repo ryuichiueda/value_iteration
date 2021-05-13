@@ -23,7 +23,7 @@
   <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 world map 100" />
 
   <!-- Launch the map server  -->
-  <arg name="map_file" default="$(find value_iteration)/maps/turtle.yaml"/>
+  <arg name="map_file" default="$(find turtlebot3_navigation)/maps/map.yaml"/>
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" output="screen" />
 
   <!-- Launch the value_iteration node -->

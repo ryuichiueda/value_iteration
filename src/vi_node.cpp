@@ -8,7 +8,14 @@
 #include "ViActionServer.h"
 #include <iostream>
 #include <vector>
+
+#include <grid_map_msgs/GridMap.h>
 using namespace std;
+
+class ViNode{
+public:
+	ViNode(){}
+};
 
 int main(int argc, char **argv)
 {
@@ -32,8 +39,16 @@ int main(int argc, char **argv)
 	n.getParam("/vi_node", vi_node);
 	ROS_ASSERT(vi_node.getType() == XmlRpc::XmlRpcValue::TypeStruct);
 
+	ros::Publisher publisher = n.advertise<grid_map_msgs::GridMap>("grid_map", 1, true);
+
 	ValueIterator value_iterator(res.map, vi_node);
 	ViActionServer vi_server(n, value_iterator);
+
+	ros::Rate loop_rate(1);
+	while(ros::ok()){
+		ros::spinOnce();
+		loop_rate.sleep();
+	}
 
 	ros::spin();
 
