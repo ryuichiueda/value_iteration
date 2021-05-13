@@ -1,29 +1,26 @@
-# value_iteration
+# value_iteration: value iteration package for ROS
 
 a global planner for mobile robots based on value iteration
 
+## Nodes
 
-## install
+### vi_node
 
-This package works on ROS. The following procedure is for Ubuntu 18.04. It also works on Ubuntu 20.04.
+This node executes value iteration.
 
-```
-$ sudo apt-get install ros-melodic-tf ros-melodic-map-server  <- change melodic to your ROS version
-$ cd ~/catkin_ws/src                                          <- change to your workspace directory
-$ git clone https://github.com/ryuichiueda/value_iteration.git
-$ cd ~/catkin_ws
-$ catkin_make
-```
+#### Services
 
-## test
+* policy ([grid_map_msgs::GetGridMap](http://docs.ros.org/en/kinetic/api/grid_map_msgs/html/srv/GetGridMap.html))
+    * Provide calculated policy. The id of the optimal action is written as a float value in each cell.
+* value ([grid_map_msgs::GetGridMap](http://docs.ros.org/en/kinetic/api/grid_map_msgs/html/srv/GetGridMap.html))
+    * Provide calculated value function.
+* action_list (not implemented)
+    * Provide the id and velocity of every action.
 
-```
-$ ~/catkin_ws/src
-$ ./test/test.bash
-$ nautilus /tmp/
-(There are many images.)
-```
+#### Services Called
 
+* static_map ([nav_msgs/GetMap](http://docs.ros.org/en/api/nav_msgs/html/srv/GetMap.html))
+    * Initiate the map for localization.
 
 ## acknowledgement
 
