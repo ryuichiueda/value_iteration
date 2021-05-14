@@ -321,3 +321,27 @@ bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& respo
 	return true;
 }
 
+
+Action *ValueIterator::posToAction(double x, double y, double t_rad)
+{
+	//ROS_INFO("OFFSET: %f, %f", _center_state_ix*_cell_x_width, _center_state_iy*_cell_y_width);
+	ROS_INFO("OFFSET: %d, %f", _center_state_ix, _cell_x_width);
+	x += 10.0;//_center_state_ix*_cell_x_width;
+	y += 10.0;//_center_state_iy*_cell_y_width;
+        int t = (int)(180 * t_rad / M_PI);
+        t = (t + 360*100)%360;
+
+        int ix, iy, it;
+        toCellPos(x, y, (double)t, ix, iy, it);
+	ROS_INFO("CELL: %d, %d, %d", ix, iy, it);
+	int index = toIndex(ix, iy, it);
+	ROS_INFO("INDEX: %d, %d", index, _states.size());
+
+	ROS_INFO("VALUE: %f", (double)_states[index]._cost);
+
+	if(_states[index]._optimal_action != NULL)
+		ROS_INFO("CMDVEL: %f, %f", _states[index]._optimal_action->_delta_fw, 
+			_states[index]._optimal_action->_delta_rot);
+	return _states[index]._optimal_action;
+}
+

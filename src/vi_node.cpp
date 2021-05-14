@@ -2,6 +2,9 @@
 #include <actionlib/server/simple_action_server.h>
 #include <value_iteration/ViAction.h>
 
+#include "geometry_msgs/Twist.h"
+#include "geometry_msgs/PoseWithCovarianceStamped.h"
+
 #include "nav_msgs/GetMap.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "ValueIterator.h"
@@ -18,9 +21,13 @@ class ViNode{
 public:
 	shared_ptr<ValueIterator> vi_;
 	ros::NodeHandle nh_;
+	ros::NodeHandle private_nh_;
 
 	ros::ServiceServer srv_policy_;
 	ros::ServiceServer srv_value_;
+
+	ros::Publisher pub_cmd_vel_;
+	ros::Subscriber sub_pose_;
 
 	shared_ptr<actionlib::SimpleActionServer<value_iteration::ViAction> > as_;
 
@@ -29,10 +36,12 @@ public:
 	void executeVi(const value_iteration::ViGoalConstPtr &goal);
 	bool servePolicy(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response);
 	bool serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response);
+
+	void poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg);
 };
 
 
-ViNode::ViNode()
+ViNode::ViNode() : private_nh_("~") 
 {
 	while(!ros::service::waitForService("/static_map", ros::Duration(3.0))){
 		ROS_INFO("Waiting for static_map");
@@ -47,6 +56,15 @@ ViNode::ViNode()
 		exit(1);
 	}
 
+	bool online;
+	private_nh_.param("online", online, false);
+	ROS_INFO("BOOL: %d", (int)online);
+	if(online){
+		ROS_INFO("SET ONLINE");
+		pub_cmd_vel_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 2, true);
+		sub_pose_ = nh_.subscribe("mcl_pose", 2, &ViNode::poseReceived, this);
+	}
+
 	XmlRpc::XmlRpcValue params;
 	nh_.getParam("/vi_node", params);
 	ROS_ASSERT(params.getType() == XmlRpc::XmlRpcValue::TypeStruct);
@@ -57,6 +75,21 @@ ViNode::ViNode()
 
 	srv_policy_ = nh_.advertiseService("/policy", &ViNode::servePolicy, this);
 	srv_value_ = nh_.advertiseService("/value", &ViNode::serveValue, this);
+}
+
+void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg)
+{
+	ROS_INFO("POSE: %f, %f", msg->pose.pose.position.x, msg->pose.pose.position.y);
+	Action *a = vi_->posToAction(msg->pose.pose.position.x,
+				msg->pose.pose.position.y, msg->pose.pose.orientation.z);
+
+	if(a == NULL)
+		return;
+	geometry_msgs::Twist cmd_vel;
+	cmd_vel.linear.x = a->_delta_fw;
+	cmd_vel.angular.z= a->_delta_rot/180*M_PI;
+
+	pub_cmd_vel_.publish(cmd_vel);
 }
 
 bool ViNode::servePolicy(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response)

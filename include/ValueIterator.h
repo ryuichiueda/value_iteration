@@ -44,6 +44,8 @@ private:
 public: 
 	ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &params);
 
+	Action *posToAction(double x, double y, double t_rad);
+
 	void outputPbmMap(void);
 
 	void valueIterationWorker(int times, int id);
