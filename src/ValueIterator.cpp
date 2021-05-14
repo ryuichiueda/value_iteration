@@ -199,7 +199,8 @@ uint64_t ValueIterator::actionCost(State &s, Action &a)
 		if(iy < 0 or iy >= _cell_y_num)
 			return _max_cost;
 
-		int it = (s._it + tran._dit + _cell_t_num)%_cell_t_num;
+		//ROS_INFO("ANGLE: %d, %d", s._it, tran._dit);
+		int it = (/*s._it +*/ tran._dit + _cell_t_num)%_cell_t_num;
 
 		auto &after_s = _states[toIndex(ix, iy, it)];
 		if(not after_s._free)
@@ -326,6 +327,30 @@ bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& respo
 	grid_map_msgs::GridMap message;
 	grid_map::GridMapRosConverter::toMessage(map, message);
 	response.map = message;
+
+	for(int t=0; t<_cell_t_num; t++){
+		ofstream action_file("/tmp/action_t=" + to_string(t) + ".ppm");
+
+		action_file << "P3" << endl;
+		action_file << _cell_x_num << " " << _cell_y_num << " 255" << endl;
+		int i = t;
+		while(i<_states.size()){
+
+			if(_states[i]._optimal_action == NULL){
+				action_file << "0 0 0" << endl;
+			}else if(_states[i]._optimal_action->_name == "forward"){
+				action_file << "0 255 0" << endl;
+			}else if(_states[i]._optimal_action->_name == "left"){
+				action_file << "0 0 255" << endl;
+			}else if(_states[i]._optimal_action->_name == "right"){
+				action_file << "255 0 0" << endl;
+			}
+			i += _cell_t_num;
+		}
+
+		action_file << flush;
+	}
+
 	return true;
 }
 
@@ -333,24 +358,28 @@ bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& respo
 Action *ValueIterator::posToAction(double x, double y, double t_rad)
 {
 	//ROS_INFO("OFFSET: %d, %f", _center_state_ix, _cell_x_width);
-	x += 10.0;//_center_state_ix*_cell_x_width;
-	y += 10.0;//_center_state_iy*_cell_y_width;
 	//x -= map_origin_x_;
 	//y -= map_origin_y_;
-        int t = (int)(180 * t_rad / M_PI);
-        t = (t + 360*100)%360;
 
-        int ix, iy, it;
-        toCellPos(x, y, (double)t, ix, iy, it);
+        int ix = (int)floor( (x - map_origin_x_)/_cell_x_width );
+        int iy = (int)floor( (y - map_origin_y_)/_cell_y_width );
+
+        int t = (int)(180 * t_rad / M_PI);
+        int it = (int)floor( ( (t + 360*100)%360 )/_cell_t_width );
 	ROS_INFO("CELL: %d, %d, %d", ix, iy, it);
 	int index = toIndex(ix, iy, it);
-	ROS_INFO("INDEX: %d, %d", index, _states.size());
 
 	ROS_INFO("VALUE: %f", (double)_states[index]._cost/ValueIterator::_prob_base);
 
 	if(_states[index]._optimal_action != NULL)
 		ROS_INFO("CMDVEL: %f, %f", _states[index]._optimal_action->_delta_fw, 
 			_states[index]._optimal_action->_delta_rot);
+
+
+	for(auto &a : _actions){
+		ROS_INFO("%s, %f", a._name.c_str(),  (double)actionCost(_states[index],a)/ValueIterator::_prob_base );
+	}
+
 	return _states[index]._optimal_action;
 }
 

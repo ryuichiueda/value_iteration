@@ -7,7 +7,7 @@
     vi_node:
       action_list:
         - name: forward
-          onestep_forward_m: 0.1
+          onestep_forward_m: 0.2
           onestep_rotation_deg: 0.0
         - name: right
           onestep_forward_m: 0.0

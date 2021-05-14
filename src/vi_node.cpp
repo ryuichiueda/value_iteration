@@ -14,6 +14,7 @@
 
 #include <grid_map_msgs/GetGridMap.h>
 #include <std_msgs/UInt32MultiArray.h>
+#include <tf/tf.h>
 using namespace std;
 
 class ViNode{
@@ -79,9 +80,16 @@ ViNode::ViNode() : private_nh_("~")
 
 void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg)
 {
-	ROS_INFO("POSE: %f, %f", msg->pose.pose.position.x, msg->pose.pose.position.y);
+
+	tf::Quaternion q(msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z, msg->pose.pose.orientation.w);
+	tf::Matrix3x3 m(q);
+	double roll, pitch, yaw;
+	m.getRPY(roll, pitch, yaw);
+
+	ROS_INFO("POSE: %f, %f, %f", msg->pose.pose.position.x, msg->pose.pose.position.y, yaw);
+
 	Action *a = vi_->posToAction(msg->pose.pose.position.x,
-				msg->pose.pose.position.y, msg->pose.pose.orientation.z);
+				msg->pose.pose.position.y, yaw);
 
 	if(a == NULL)
 		return;
