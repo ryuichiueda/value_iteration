@@ -17,25 +17,27 @@ ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &
 	_cell_y_width = map.info.resolution;
 	_cell_t_width = 360/_cell_t_num;
 
-	_center_state_ix = _cell_x_num/2;
-	_center_state_iy = _cell_y_num/2;
+	map_origin_x_ = map.info.origin.position.x;
+	map_origin_y_ = map.info.origin.position.y;
+	ROS_INFO("ORIGIN: %f, %f", map_origin_x_, map_origin_y_);
+	ROS_INFO("MAX: %f, %f", map_origin_x_ + _cell_x_num*_cell_x_width, map_origin_y_ + _cell_y_num*_cell_y_width);
+
+//	_center_state_ix = _cell_x_num/2;
+//	_center_state_iy = _cell_y_num/2;
 
 	auto &fs = params["final_state"];
-	ROS_ASSERT(fs["x_center_m"].getType() == XmlRpc::XmlRpcValue::TypeDouble);
-	ROS_ASSERT(fs["y_center_m"].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+	//ROS_ASSERT(fs["x_center_m"].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+	//ROS_ASSERT(fs["y_center_m"].getType() == XmlRpc::XmlRpcValue::TypeDouble);
 	ROS_ASSERT(fs["width_m"].getType() == XmlRpc::XmlRpcValue::TypeDouble);
-	_final_state_x = fs["x_center_m"];
-	_final_state_y = fs["y_center_m"];
+	_final_state_x = 0.0;//fs["x_center_m"];
+	_final_state_y = 0.0;//fs["y_center_m"];
 	_final_state_width = fs["width_m"];
 
 	//_delta = _max_cost;
-
 	for(int y=0; y<_cell_y_num; y++)
 		for(int x=0; x<_cell_x_num; x++)
 			for(int t=0; t<_cell_t_num; t++)
 				_states.push_back(State(x, y, t, map.data[y*_cell_x_num + x]));
-
-	setStateValues();
 
 	setAction(params["action_list"]);
 	setStateTransition();
@@ -228,16 +230,23 @@ void ValueIterator::outputPbmMap(void)
 void ValueIterator::setStateValues(void)
 {
 	for(auto &s : _states){
+		/*
 		double x0 = (s._ix - _center_state_ix)*_cell_x_width;
 		double y0 = (s._iy - _center_state_iy)*_cell_y_width;
+		*/
+		double x0 = s._ix*_cell_x_width + map_origin_x_;
+		double y0 = s._iy*_cell_y_width + map_origin_y_;
 		double x1 = x0 + _cell_x_width;
 		double y1 = y0 + _cell_y_width;
 
 		s._final_state = fabs(x0 - _final_state_x) < _final_state_width
 			       && fabs(y0 - _final_state_y) < _final_state_width
-			       && fabs(x1 - _final_state_y) < _final_state_width 
+			       && fabs(x1 - _final_state_x) < _final_state_width 
 			       && fabs(y1 - _final_state_y) < _final_state_width
 			       && s._free;
+
+		if(s._final_state)
+			ROS_INFO("SET: %f, %f", x0, y0);
 	}
 
 	for(auto &s : _states){
@@ -270,8 +279,7 @@ bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& respo
 	grid_map_msgs::GridMap message;
 	grid_map::GridMapRosConverter::toMessage(map, message);
 	response.map = message;
-	return true;
-	/*
+
 	for(int t=0; t<_cell_t_num; t++){
 		ofstream ofs("/tmp/value_t=" + to_string(t) + ".pgm");
 
@@ -279,7 +287,7 @@ bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& respo
 		ofs << _cell_x_num << " " << _cell_y_num << " 255" << endl;
 		int i = t;
 		while(i<_states.size()){
-			uint64_t v = _states[i]._cost >> _prob_base_bit;
+			uint64_t v = _states[i]._cost*5 >> _prob_base_bit;
 			if(_states[i]._free and v <= 255)
 				ofs << 255 - v << '\n';
 			else
@@ -289,7 +297,7 @@ bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& respo
 		}
 		ofs << flush;
 	}
-	*/
+	return true;
 }
 
 bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& response)
@@ -324,10 +332,11 @@ bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& respo
 
 Action *ValueIterator::posToAction(double x, double y, double t_rad)
 {
-	//ROS_INFO("OFFSET: %f, %f", _center_state_ix*_cell_x_width, _center_state_iy*_cell_y_width);
-	ROS_INFO("OFFSET: %d, %f", _center_state_ix, _cell_x_width);
+	//ROS_INFO("OFFSET: %d, %f", _center_state_ix, _cell_x_width);
 	x += 10.0;//_center_state_ix*_cell_x_width;
 	y += 10.0;//_center_state_iy*_cell_y_width;
+	//x -= map_origin_x_;
+	//y -= map_origin_y_;
         int t = (int)(180 * t_rad / M_PI);
         t = (t + 360*100)%360;
 
@@ -337,7 +346,7 @@ Action *ValueIterator::posToAction(double x, double y, double t_rad)
 	int index = toIndex(ix, iy, it);
 	ROS_INFO("INDEX: %d, %d", index, _states.size());
 
-	ROS_INFO("VALUE: %f", (double)_states[index]._cost);
+	ROS_INFO("VALUE: %f", (double)_states[index]._cost/ValueIterator::_prob_base);
 
 	if(_states[index]._optimal_action != NULL)
 		ROS_INFO("CMDVEL: %f, %f", _states[index]._optimal_action->_delta_fw, 
@@ -345,3 +354,11 @@ Action *ValueIterator::posToAction(double x, double y, double t_rad)
 	return _states[index]._optimal_action;
 }
 
+void ValueIterator::initialize(double goal_x, double goal_y)
+{
+	_final_state_x = goal_x;
+	_final_state_y = goal_y;
+
+	_status.clear();
+	setStateValues();
+}

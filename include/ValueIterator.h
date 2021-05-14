@@ -22,6 +22,10 @@ private:
 	double _cell_x_width, _cell_y_width, _cell_t_width;
 	int _cell_x_num, _cell_y_num, _cell_t_num;
 	int _center_state_ix, _center_state_iy;
+
+	double map_origin_x_;
+	double map_origin_y_;
+
 	double _final_state_x, _final_state_y, _final_state_width;
 	//uint64_t _delta;
 
@@ -47,6 +51,8 @@ public:
 	Action *posToAction(double x, double y, double t_rad);
 
 	void outputPbmMap(void);
+
+	void initialize(double goal_x, double goal_y);
 
 	void valueIterationWorker(int times, int id);
 	map<int, SweepWorkerStatus> _status; 

@@ -108,6 +108,10 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 {
 	int sweepnum = goal->sweepnum > 0 ? goal->sweepnum : INT_MAX;
 
+	vi_->initialize(goal->goal_pos.x, goal->goal_pos.y);
+	//vi_->_final_state_x = goal->goal_pos.x;
+	//vi_->_final_state_y = goal->goal_pos.y;
+
 	vector<thread> ths;
 	for(int t=0; t<goal->threadnum; t++)
 		ths.push_back(thread(&ValueIterator::valueIterationWorker, vi_.get(), sweepnum, t));
