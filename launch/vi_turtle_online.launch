@@ -9,15 +9,24 @@
         - name: forward
           onestep_forward_m: 0.2
           onestep_rotation_deg: 0.0
+        - name: back
+          onestep_forward_m: -0.1
         - name: right
           onestep_forward_m: 0.0
+          onestep_rotation_deg: -10.0
+        - name: rightfw
+          onestep_forward_m: 0.1
           onestep_rotation_deg: -10.0
         - name: left
           onestep_forward_m: 0.0
           onestep_rotation_deg: 10.0
+        - name: leftfw
+          onestep_forward_m: 0.1
+          onestep_rotation_deg: 10.0
       theta_cell_num: 60
       final_state:
         width_m: 0.1
+      safety_radius: 0.2
   </rosparam>
 
   <!-- Arguments -->

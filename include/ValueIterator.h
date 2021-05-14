@@ -36,6 +36,7 @@ private:
 	void toCellPos(double x, double y, double t, int &ix, int &iy, int &it);
 
 	void setAction(XmlRpc::XmlRpcValue &action_list);
+	void setState(const nav_msgs::OccupancyGrid &map, double safety_radius);
 	void setStateValues(void);
 	void setStateTransition(void);
 	void setStateTransition(Action &a, int it);

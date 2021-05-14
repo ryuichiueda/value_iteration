@@ -59,6 +59,7 @@ ViNode::ViNode() : private_nh_("~")
 
 	bool online;
 	private_nh_.param("online", online, false);
+
 	ROS_INFO("BOOL: %d", (int)online);
 	if(online){
 		ROS_INFO("SET ONLINE");
