@@ -1,5 +1,6 @@
-#include "Action.h"
-//using namespace std;
+#include "value_iteration/Action.h"
+
+namespace value_iteration{
 
 Action::Action(string name, double fw, double rot, int id) : id_(id)
 {
@@ -10,4 +11,6 @@ Action::Action(string name, double fw, double rot, int id) : id_(id)
 
 	//_delta_fw_stdev = fabs(fw)*0.1;
 	//_delta_rot_stdev = fabs(rot)*0.1;
+}
+
 }

@@ -1,7 +1,10 @@
-#include "ValueIterator.h"
+#include "value_iteration/ValueIterator.h"
 #include <thread>
 #include <grid_map_ros/grid_map_ros.hpp>
 #include <grid_map_msgs/GridMap.h>
+
+namespace value_iteration{
+
 using namespace std;
 
 /* ROSの地図をもらって各セルの情報からStateのオブジェクトを作ってstatesというベクトルに突っ込む */
@@ -381,4 +384,6 @@ void ValueIterator::initialize(double goal_x, double goal_y)
 
 	_status.clear();
 	setStateValues();
+}
+
 }

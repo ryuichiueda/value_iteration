@@ -4,6 +4,9 @@
 #include "StateTransition.h"
 #include <vector>
 #include <string>
+
+namespace value_iteration{
+
 using namespace std;
 
 class Action{
@@ -22,4 +25,7 @@ public:
 	vector< vector<StateTransition> > _state_transitions; //thetaごとに状態遷移先のリストを保存
 };
 
+}
+
 #endif
+

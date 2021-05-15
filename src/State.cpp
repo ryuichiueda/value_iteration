@@ -1,4 +1,7 @@
-#include "ValueIterator.h"
+#include "value_iteration/ValueIterator.h"
+
+namespace value_iteration{
+
 using namespace std;
 
 State::State(int x, int y, int theta, const nav_msgs::OccupancyGrid &map, int margin, int x_num)
@@ -17,4 +20,6 @@ State::State(int x, int y, int theta, const nav_msgs::OccupancyGrid &map, int ma
 			if(0 <= pos and pos < map.data.size())	
 				_free &= (map.data[iy*x_num + ix] == 0);
 		}
+}
+
 }

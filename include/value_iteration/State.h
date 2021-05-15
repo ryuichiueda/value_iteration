@@ -11,6 +11,9 @@
 #include "SweepWorkerStatus.h"
 */
 #include "Action.h"
+
+namespace value_iteration{
+
 using namespace std;
 
 class State{
@@ -24,5 +27,6 @@ public:
 	State(int x, int y, int theta, const nav_msgs::OccupancyGrid &map, int margin, int x_num);
 };
 
+}
 
 #endif

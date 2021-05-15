@@ -2,6 +2,9 @@
 #define VALUE_STS_
 
 #include <string>
+
+namespace value_iteration{
+
 using namespace std;
 
 class StateTransition{
@@ -13,4 +16,7 @@ public:
 	string to_string(void);
 };
 
+}
+
 #endif
+

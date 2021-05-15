@@ -11,6 +11,9 @@
 #include "SweepWorkerStatus.h"
 #include "Action.h"
 #include "State.h"
+
+namespace value_iteration{
+
 using namespace std;
 
 
@@ -75,5 +78,7 @@ const int ValueIterator::_resolution_t = 1<<ValueIterator::_resolution_t_bit;
 const unsigned char ValueIterator::_prob_base_bit = ValueIterator::_resolution_x_bit+ValueIterator::_resolution_y_bit+ValueIterator::_resolution_t_bit;
 const uint64_t ValueIterator::_prob_base = 1<<ValueIterator::_prob_base_bit;
 const uint64_t ValueIterator::_max_cost = 1000000000*ValueIterator::_prob_base;
+
+}
 
 #endif

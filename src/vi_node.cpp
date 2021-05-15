@@ -7,7 +7,7 @@
 
 #include "nav_msgs/GetMap.h"
 #include "nav_msgs/OccupancyGrid.h"
-#include "ValueIterator.h"
+#include "value_iteration/ValueIterator.h"
 #include <iostream>
 #include <vector>
 #include <thread>
@@ -15,6 +15,9 @@
 #include <grid_map_msgs/GetGridMap.h>
 #include <std_msgs/UInt32MultiArray.h>
 #include <tf/tf.h>
+
+namespace value_iteration{
+
 using namespace std;
 
 class ViNode{
@@ -152,11 +155,13 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	as_->setSucceeded(vi_result);
 }
 
+}
+
 int main(int argc, char **argv)
 {
 	ros::init(argc,argv,"vi_node");
 
-	ViNode vi_node;
+	value_iteration::ViNode vi_node;
 
 	ros::Rate loop_rate(1);
 	while(ros::ok()){
@@ -169,3 +174,4 @@ int main(int argc, char **argv)
 
 	return 0;
 }
+
