@@ -2,6 +2,8 @@
 #define VALUE_ITERATOR_
 
 #include "ros/ros.h"
+#include "std_msgs/UInt32MultiArray.h"
+#include "std_msgs/Float32MultiArray.h"
 #include "nav_msgs/GetMap.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include <grid_map_msgs/GetGridMap.h>
@@ -66,6 +68,8 @@ public:
 	const static uint64_t max_cost_;
 	const static uint64_t prob_base_;
 	const static unsigned char prob_base_bit_;
+
+	bool finished(std_msgs::UInt32MultiArray &sweep_times, std_msgs::Float32MultiArray &deltas);
 };
 
 const unsigned char ValueIterator::resolution_xy_bit_ = 6;

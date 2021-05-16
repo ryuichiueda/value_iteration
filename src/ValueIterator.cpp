@@ -52,6 +52,20 @@ void ValueIterator::setAction(XmlRpc::XmlRpcValue &action_list)
 	}
 }
 
+bool ValueIterator::finished(std_msgs::UInt32MultiArray &sweep_times, std_msgs::Float32MultiArray &deltas)
+{ 
+	sweep_times.data.resize(thread_num_);
+	deltas.data.resize(thread_num_);
+
+	bool finish = true;
+	for(int t=0; t<thread_num_; t++){
+		sweep_times.data[t] = status_[t]._sweep_step;
+		deltas.data[t] = status_[t]._delta;
+		finish &= status_[t]._finished;
+	}
+	return finish;
+}
+
 void ValueIterator::setStateTransition(void)
 {
 	vector<StateTransition> theta_state_transitions;

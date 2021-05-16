@@ -46,23 +46,21 @@ ViNode::ViNode() : private_nh_("~")
 
 void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg)
 {
-
-	tf::Quaternion q(msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z, msg->pose.pose.orientation.w);
-	tf::Matrix3x3 m(q);
+	auto &ori = msg->pose.pose.orientation;	
+	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
 	double roll, pitch, yaw;
-	m.getRPY(roll, pitch, yaw);
-
-	ROS_INFO("POSE: %f, %f, %f", msg->pose.pose.position.x, msg->pose.pose.position.y, yaw);
+	tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
 
 	Action *a = vi_->posToAction(msg->pose.pose.position.x,
 				msg->pose.pose.position.y, yaw);
 
-	if(a == NULL)
-		return;
 	geometry_msgs::Twist cmd_vel;
-	cmd_vel.linear.x = a->_delta_fw;
-	cmd_vel.angular.z= a->_delta_rot/180*M_PI;
-
+	cmd_vel.linear.x = 0.0;
+	cmd_vel.angular.z = 0.0;
+	if(a != NULL){
+		cmd_vel.linear.x = a->_delta_fw;
+		cmd_vel.angular.z= a->_delta_rot/180*M_PI;
+	}
 	pub_cmd_vel_.publish(cmd_vel);
 }
 
@@ -87,22 +85,11 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 		ths.push_back(thread(&ValueIterator::valueIterationWorker, vi_.get(), INT_MAX, t));
 
 	value_iteration::ViFeedback vi_feedback;
-	vi_feedback.current_sweep_times.data.resize(vi_->thread_num_);
-	vi_feedback.deltas.data.resize(vi_->thread_num_);
-	while(1){
-		sleep(1);
-		for(int t=0; t<vi_->thread_num_; t++){
-			vi_feedback.current_sweep_times.data[t] = vi_->status_[t]._sweep_step;
-			vi_feedback.deltas.data[t] = vi_->status_[t]._delta;
-		}
+	while(not vi_->finished(vi_feedback.current_sweep_times, vi_feedback.deltas)){
 		as_->publishFeedback(vi_feedback);
-
-		bool finish = true;
-		for(int t=0; t<vi_->thread_num_; t++)
-			finish &= vi_->status_[t]._finished;
-		if(finish)
-			break;
+		sleep(1);
 	}
+	as_->publishFeedback(vi_feedback);
 
 	for(auto &th : ths)
 		th.join();
@@ -117,18 +104,13 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 int main(int argc, char **argv)
 {
 	ros::init(argc,argv,"vi_node");
-
 	value_iteration::ViNode vi_node;
 
 	ros::Rate loop_rate(1);
 	while(ros::ok()){
-		ROS_INFO("LOOP");
 		ros::spinOnce();
 		loop_rate.sleep();
 	}
 
-	ros::spin();
-
 	return 0;
 }
-
