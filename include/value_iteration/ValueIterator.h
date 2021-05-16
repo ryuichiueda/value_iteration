@@ -19,8 +19,8 @@ using namespace std;
 
 class ValueIterator{
 private: 
-	vector<State> _states;
-	vector<Action> _actions;
+	vector<State> states_;
+	vector<Action> actions_;
 
 	double xy_resolution_, t_resolution_;
 	int cell_num_x_, cell_num_y_, cell_num_t_;
@@ -55,7 +55,7 @@ public:
 	void setGoal(double goal_x, double goal_y);
 
 	void valueIterationWorker(int times, int id);
-	map<int, SweepWorkerStatus> _status; 
+	map<int, SweepWorkerStatus> status_; 
 
 	bool actionImageWriter(grid_map_msgs::GetGridMap::Response& response);
 	bool outputValuePgmMap(grid_map_msgs::GetGridMap::Response& response);

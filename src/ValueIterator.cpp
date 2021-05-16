@@ -45,9 +45,9 @@ void ValueIterator::setAction(XmlRpc::XmlRpcValue &action_list)
 
 	for(int i=0; i<action_list.size(); i++){
 		auto &a = action_list[i];
-		_actions.push_back(Action(a["name"], a["onestep_forward_m"], a["onestep_rotation_deg"], i));
+		actions_.push_back(Action(a["name"], a["onestep_forward_m"], a["onestep_rotation_deg"], i));
 
-		auto &b = _actions.back();
+		auto &b = actions_.back();
 		ROS_INFO("set an action: %s, %f, %f", b._name.c_str(), b._delta_fw, b._delta_rot);
 	}
 }
@@ -55,7 +55,7 @@ void ValueIterator::setAction(XmlRpc::XmlRpcValue &action_list)
 void ValueIterator::setStateTransition(void)
 {
 	vector<StateTransition> theta_state_transitions;
-	for(auto &a : _actions)
+	for(auto &a : actions_)
 		for(int t=0; t<cell_num_t_; t++)
 			a._state_transitions.push_back(theta_state_transitions);
 
@@ -82,7 +82,7 @@ void ValueIterator::cellDelta(double x, double y, double t, int &ix, int &iy, in
 
 void ValueIterator::setStateTransitionWorker(int it)
 {
-	for(auto &a : _actions)
+	for(auto &a : actions_)
 		setStateTransitionWorkerSub(a, it);
 }
 
@@ -137,7 +137,7 @@ uint64_t ValueIterator::valueIteration(State &s)
 
 	uint64_t min_cost = ValueIterator::max_cost_;
 	Action *min_action = NULL;
-	for(auto &a : _actions){
+	for(auto &a : actions_){
 		int64_t c = actionCost(s, a);
 		if(c < min_cost){
 			min_cost = c;
@@ -154,28 +154,28 @@ uint64_t ValueIterator::valueIteration(State &s)
 
 void ValueIterator::valueIterationWorker(int times, int id)
 {
-	_status.insert(make_pair(id, SweepWorkerStatus()));
-	cout << "address:" << &_states[0] << endl;
+	status_.insert(make_pair(id, SweepWorkerStatus()));
+	cout << "address:" << &states_[0] << endl;
 
 	for(int j=0; j<times; j++){
-		_status[id]._sweep_step = j+1;
+		status_[id]._sweep_step = j+1;
 
 		uint64_t max_delta = 0;
 	
-		int start = rand()%_states.size();
-		for(int i=start; i<_states.size(); i++)
-			max_delta = max(max_delta, valueIteration(_states[i]));
+		int start = rand()%states_.size();
+		for(int i=start; i<states_.size(); i++)
+			max_delta = max(max_delta, valueIteration(states_[i]));
 		for(int i=start-1; i>=0; i--)
-			max_delta = max(max_delta, valueIteration(_states[i]));
+			max_delta = max(max_delta, valueIteration(states_[i]));
 	
-		_status[id]._delta = (double)(max_delta >> prob_base_bit_);
+		status_[id]._delta = (double)(max_delta >> prob_base_bit_);
 		//delta = max_delta;
-		//cout << "delta: " << _status[id]._delta << endl;
-		if(_status[id]._delta < 0.1)
+		//cout << "delta: " << status_[id]._delta << endl;
+		if(status_[id]._delta < 0.1)
 			break;
 	}
 
-	_status[id]._finished = true;
+	status_[id]._finished = true;
 }
 
 int ValueIterator::toIndex(int ix, int iy, int it)
@@ -198,7 +198,7 @@ uint64_t ValueIterator::actionCost(State &s, Action &a)
 		//ROS_INFO("ANGLE: %d, %d", s._it, tran._dit);
 		int it = (/*s._it +*/ tran._dit + cell_num_t_)%cell_num_t_;
 
-		auto &after_s = _states[toIndex(ix, iy, it)];
+		auto &after_s = states_[toIndex(ix, iy, it)];
 		if(not after_s._free)
 			return max_cost_;
 
@@ -216,8 +216,8 @@ void ValueIterator::outputPbmMap(void)
 	ofs << "P1" << endl;
 	ofs << cell_num_x_ << " " << cell_num_y_ << endl;
 	int i = 0;
-	while(i<_states.size()){
-		ofs << _states[i]._free << " ";
+	while(i<states_.size()){
+		ofs << states_[i]._free << " ";
 		i += cell_num_t_;
 	}
 
@@ -226,18 +226,18 @@ void ValueIterator::outputPbmMap(void)
 
 void ValueIterator::setState(const nav_msgs::OccupancyGrid &map, double safety_radius)
 {
-	_states.clear();
+	states_.clear();
 	int margin = (int)ceil(safety_radius/xy_resolution_);
 
 	for(int y=0; y<cell_num_y_; y++)
 		for(int x=0; x<cell_num_x_; x++)
 			for(int t=0; t<cell_num_t_; t++)
-				_states.push_back(State(x, y, t, map, margin, cell_num_x_));
+				states_.push_back(State(x, y, t, map, margin, cell_num_x_));
 }
 
 void ValueIterator::setStateValues(void)
 {
-	for(auto &s : _states){
+	for(auto &s : states_){
 		double x0 = s._ix*xy_resolution_ + map_origin_x_;
 		double y0 = s._iy*xy_resolution_ + map_origin_y_;
 		double x1 = x0 + xy_resolution_;
@@ -250,7 +250,7 @@ void ValueIterator::setStateValues(void)
 			       && s._free;
 	}
 
-	for(auto &s : _states){
+	for(auto &s : states_){
 		if(s._final_state)
 			s._cost = 0;
 		else
@@ -269,8 +269,8 @@ bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& respo
 
 		map.add(name);
 		int i = t;
-		while(i<_states.size()){
-			auto &s = _states[i];
+		while(i<states_.size()){
+			auto &s = states_[i];
 			map.at(name, grid_map::Index(s._ix, s._iy)) = s._cost/(ValueIterator::prob_base_);
 
 			i += cell_num_t_;
@@ -287,9 +287,9 @@ bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& respo
 		ofs << "P2" << endl;
 		ofs << cell_num_x_ << " " << cell_num_y_ << " 255" << endl;
 		int i = t;
-		while(i<_states.size()){
-			uint64_t v = _states[i]._cost*5 >> prob_base_bit_;
-			if(_states[i]._free and v <= 255)
+		while(i<states_.size()){
+			uint64_t v = states_[i]._cost*5 >> prob_base_bit_;
+			if(states_[i]._free and v <= 255)
 				ofs << 255 - v << '\n';
 			else
 				ofs << 0 << '\n';
@@ -312,8 +312,8 @@ bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& respo
 
 		map.add(name);
 		int i = t;
-		while(i<_states.size()){
-			auto &s = _states[i];
+		while(i<states_.size()){
+			auto &s = states_[i];
 			if(s._optimal_action == NULL){
 				map.at(name, grid_map::Index(s._ix, s._iy)) = -1.0;
 			}else{
@@ -334,15 +334,15 @@ bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& respo
 		action_file << "P3" << endl;
 		action_file << cell_num_x_ << " " << cell_num_y_ << " 255" << endl;
 		int i = t;
-		while(i<_states.size()){
+		while(i<states_.size()){
 
-			if(_states[i]._optimal_action == NULL){
+			if(states_[i]._optimal_action == NULL){
 				action_file << "0 0 0" << endl;
-			}else if(_states[i]._optimal_action->_name == "forward"){
+			}else if(states_[i]._optimal_action->_name == "forward"){
 				action_file << "0 255 0" << endl;
-			}else if(_states[i]._optimal_action->_name == "left"){
+			}else if(states_[i]._optimal_action->_name == "left"){
 				action_file << "0 0 255" << endl;
-			}else if(_states[i]._optimal_action->_name == "right"){
+			}else if(states_[i]._optimal_action->_name == "right"){
 				action_file << "255 0 0" << endl;
 			}
 			i += cell_num_t_;
@@ -365,13 +365,13 @@ Action *ValueIterator::posToAction(double x, double y, double t_rad)
 	ROS_INFO("CELL: %d, %d, %d", ix, iy, it);
 	int index = toIndex(ix, iy, it);
 
-	ROS_INFO("VALUE: %f", (double)_states[index]._cost/ValueIterator::prob_base_);
+	ROS_INFO("VALUE: %f", (double)states_[index]._cost/ValueIterator::prob_base_);
 
-	if(_states[index]._optimal_action != NULL)
-		ROS_INFO("CMDVEL: %f, %f", _states[index]._optimal_action->_delta_fw, 
-			_states[index]._optimal_action->_delta_rot);
+	if(states_[index]._optimal_action != NULL)
+		ROS_INFO("CMDVEL: %f, %f", states_[index]._optimal_action->_delta_fw, 
+			states_[index]._optimal_action->_delta_rot);
 
-	return _states[index]._optimal_action;
+	return states_[index]._optimal_action;
 }
 
 void ValueIterator::setGoal(double goal_x, double goal_y)
@@ -379,7 +379,7 @@ void ValueIterator::setGoal(double goal_x, double goal_y)
 	goal_x_ = goal_x;
 	goal_y_ = goal_y;
 
-	_status.clear();
+	status_.clear();
 	setStateValues();
 }
 

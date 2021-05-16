@@ -92,21 +92,20 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	while(1){
 		sleep(1);
 		for(int t=0; t<vi_->thread_num_; t++){
-			vi_feedback.current_sweep_times.data[t] = vi_->_status[t]._sweep_step;
-			vi_feedback.deltas.data[t] = vi_->_status[t]._delta;
+			vi_feedback.current_sweep_times.data[t] = vi_->status_[t]._sweep_step;
+			vi_feedback.deltas.data[t] = vi_->status_[t]._delta;
 		}
 		as_->publishFeedback(vi_feedback);
 
 		bool finish = true;
 		for(int t=0; t<vi_->thread_num_; t++)
-			finish &= vi_->_status[t]._finished;
+			finish &= vi_->status_[t]._finished;
 		if(finish)
 			break;
 	}
 
 	for(auto &th : ths)
 		th.join();
-
 
 	value_iteration::ViResult vi_result;
 	vi_result.finished = true;
