@@ -9,7 +9,7 @@ SweepWorkerStatus::SweepWorkerStatus()
 {
 	_finished = false;
 	_sweep_step = 0;
-	_delta = ValueIterator::_max_cost;
+	_delta = ValueIterator::max_cost_;
 }
 
 }

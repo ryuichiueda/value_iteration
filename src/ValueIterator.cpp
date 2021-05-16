@@ -11,25 +11,24 @@ using namespace std;
 ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &params)
 {
 	//The cell configurations on XY-plane is set based on the map.
-	_cell_x_num = map.info.width;
-	_cell_y_num = map.info.height;
+	cell_num_x_ = map.info.width;
+	cell_num_y_ = map.info.height;
 	ROS_ASSERT(params["theta_cell_num"].getType() == XmlRpc::XmlRpcValue::TypeInt);
-	_cell_t_num = params["theta_cell_num"];
+	cell_num_t_ = params["theta_cell_num"];
 
-	_cell_x_width = map.info.resolution;
-	_cell_y_width = map.info.resolution;
-	_cell_t_width = 360/_cell_t_num;
+	xy_resolution_ = map.info.resolution;
+	t_resolution_ = 360/cell_num_t_;
 
 	map_origin_x_ = map.info.origin.position.x;
 	map_origin_y_ = map.info.origin.position.y;
 	ROS_INFO("ORIGIN: %f, %f", map_origin_x_, map_origin_y_);
-	ROS_INFO("MAX: %f, %f", map_origin_x_ + _cell_x_num*_cell_x_width, map_origin_y_ + _cell_y_num*_cell_y_width);
+	ROS_INFO("MAX: %f, %f", map_origin_x_ + cell_num_x_*xy_resolution_, map_origin_y_ + cell_num_y_*xy_resolution_);
 
 	auto &fs = params["final_state"];
 	ROS_ASSERT(fs["width_m"].getType() == XmlRpc::XmlRpcValue::TypeDouble);
-	_final_state_x = 0.0;//fs["x_center_m"];
-	_final_state_y = 0.0;//fs["y_center_m"];
-	_final_state_width = fs["width_m"];
+	goal_x_ = 0.0;//fs["x_center_m"];
+	goal_y_ = 0.0;//fs["y_center_m"];
+	goal_width_ = fs["width_m"];
 
 	ROS_ASSERT(params["safety_radius"].getType() == XmlRpc::XmlRpcValue::TypeDouble);
 	setState(map, params["safety_radius"]);
@@ -56,39 +55,40 @@ void ValueIterator::setStateTransition(void)
 {
 	vector<StateTransition> theta_state_transitions;
 	for(auto &a : _actions)
-		for(int t=0; t<_cell_t_num; t++)
+		for(int t=0; t<cell_num_t_; t++)
 			a._state_transitions.push_back(theta_state_transitions);
 
 	vector<thread> ths;
-	for(int t=0; t<_cell_t_num; t++)
+	for(int t=0; t<cell_num_t_; t++)
 		ths.push_back(thread(&ValueIterator::setStateTransitionWorker, this, t));
 
 	for(auto &th : ths)
 		th.join();
 }
 
-void ValueIterator::toCellPos(double x, double y, double t, int &ix, int &iy, int &it)
+void ValueIterator::cellDelta(double x, double y, double t, int &ix, int &iy, int &it)
 {
-	ix = (int)floor(fabs(x) / _cell_x_width);
+	ix = (int)floor(fabs(x) / xy_resolution_);
 	if(x < 0.0)
 		ix = -ix-1;
-	iy = (int)floor(fabs(y) / _cell_y_width);
+	iy = (int)floor(fabs(y) / xy_resolution_);
 	if(y < 0.0)
 		iy = -iy-1;
 
-	it = (int)floor(t / _cell_t_width);
+	it = (int)floor(t / t_resolution_);
 }
 
 
 void ValueIterator::setStateTransitionWorker(int it)
 {
 	for(auto &a : _actions)
-		setStateTransition(a, it);
+		setStateTransitionWorkerSub(a, it);
 }
 
-void ValueIterator::accurateStateTransition(Action &a, double from_x, double from_y, double from_t, double &to_x, double &to_y, double &to_t)
+void ValueIterator::accurateStateTransition(Action &a, 
+	double from_x, double from_y, double from_t, double &to_x, double &to_y, double &to_t)
 {
-	double ang = from_t / 180 * 3.141592;
+	double ang = from_t / 180 * M_PI;
 	to_x = from_x + a._delta_fw*cos(ang);
 	to_y = from_y + a._delta_fw*sin(ang);
 	to_t = from_t + a._delta_rot;
@@ -96,23 +96,23 @@ void ValueIterator::accurateStateTransition(Action &a, double from_x, double fro
 		to_t += 360.0;
 }
 
-void ValueIterator::setStateTransition(Action &a, int it)
+void ValueIterator::setStateTransitionWorkerSub(Action &a, int it)
 {
-	double theta_origin = it*_cell_t_width;
+	double theta_origin = it*t_resolution_;
+	const int xy_sample_num = 1<<ValueIterator::resolution_xy_bit_;
+	const int t_sample_num = 1<<ValueIterator::resolution_t_bit_;
+	const double xy_step = xy_resolution_/xy_sample_num;
+	const double t_step = t_resolution_/t_sample_num;
 
-	for(int y=0; y<_resolution_y; y++){
-		for(int x=0; x<_resolution_x; x++){
-			for(int t=0; t<_resolution_t; t++){
-				//遷移前の姿勢
-				double ox = ((double)x+0.5)*_cell_x_width/_resolution_x;
-				double oy = ((double)y+0.5)*_cell_y_width/_resolution_y;
-				double ot = ((double)t+0.5)*_cell_t_width/_resolution_t + theta_origin;
+	for(double oy=0.5*xy_step; oy<xy_resolution_; oy+=xy_step){
+		for(double ox=0.5*xy_step; ox<xy_resolution_; ox+=xy_step){
+			for(double ot=0.5*t_step; ot<t_resolution_; ot+=t_step){
 
 				//遷移後の姿勢
 				double dx, dy, dt;
-				accurateStateTransition(a, ox, oy, ot, dx, dy, dt);
+				accurateStateTransition(a, ox, oy, ot + theta_origin, dx, dy, dt);
 				int dix, diy, dit;
-				toCellPos(dx, dy, dt, dix, diy, dit); 
+				cellDelta(dx, dy, dt, dix, diy, dit); 
 
 				bool exist = false;
 				for(auto &s : a._state_transitions[it]){
@@ -134,7 +134,7 @@ uint64_t ValueIterator::valueIteration(State &s)
 	if((not s._free) or s._final_state)
 		return 0;
 
-	uint64_t min_cost = ValueIterator::_max_cost;
+	uint64_t min_cost = ValueIterator::max_cost_;
 	Action *min_action = NULL;
 	for(auto &a : _actions){
 		int64_t c = actionCost(s, a);
@@ -167,7 +167,7 @@ void ValueIterator::valueIterationWorker(int times, int id)
 		for(int i=start-1; i>=0; i--)
 			max_delta = max(max_delta, valueIteration(_states[i]));
 	
-		_status[id]._delta = (double)(max_delta >> _prob_base_bit);
+		_status[id]._delta = (double)(max_delta >> prob_base_bit_);
 		//delta = max_delta;
 		//cout << "delta: " << _status[id]._delta << endl;
 		if(_status[id]._delta < 0.1)
@@ -179,7 +179,7 @@ void ValueIterator::valueIterationWorker(int times, int id)
 
 int ValueIterator::toIndex(int ix, int iy, int it)
 {
-	return it + ix*_cell_t_num + iy*(_cell_t_num*_cell_x_num);
+	return it + ix*cell_num_t_ + iy*(cell_num_t_*cell_num_x_);
 }
 
 uint64_t ValueIterator::actionCost(State &s, Action &a)
@@ -187,24 +187,24 @@ uint64_t ValueIterator::actionCost(State &s, Action &a)
 	uint64_t cost = 0;
 	for(auto &tran : a._state_transitions[s._it]){
 		int ix = s._ix + tran._dix;
-		if(ix < 0 or ix >= _cell_x_num)
-			return _max_cost;
+		if(ix < 0 or ix >= cell_num_x_)
+			return max_cost_;
 
 		int iy = s._iy + tran._diy;
-		if(iy < 0 or iy >= _cell_y_num)
-			return _max_cost;
+		if(iy < 0 or iy >= cell_num_y_)
+			return max_cost_;
 
 		//ROS_INFO("ANGLE: %d, %d", s._it, tran._dit);
-		int it = (/*s._it +*/ tran._dit + _cell_t_num)%_cell_t_num;
+		int it = (/*s._it +*/ tran._dit + cell_num_t_)%cell_num_t_;
 
 		auto &after_s = _states[toIndex(ix, iy, it)];
 		if(not after_s._free)
-			return _max_cost;
+			return max_cost_;
 
-		cost += (after_s._cost>>_prob_base_bit) * tran._prob;
+		cost += (after_s._cost>>prob_base_bit_) * tran._prob;
 	}
 
-	return cost + _prob_base;
+	return cost + prob_base_;
 }
 
 /* statesのセルの情報をPBMとして出力（デバッグ用） */
@@ -213,11 +213,11 @@ void ValueIterator::outputPbmMap(void)
 	ofstream ofs("/tmp/a.pbm");
 
 	ofs << "P1" << endl;
-	ofs << _cell_x_num << " " << _cell_y_num << endl;
+	ofs << cell_num_x_ << " " << cell_num_y_ << endl;
 	int i = 0;
 	while(i<_states.size()){
 		ofs << _states[i]._free << " ";
-		i += _cell_t_num;
+		i += cell_num_t_;
 	}
 
 	ofs << flush;
@@ -226,30 +226,26 @@ void ValueIterator::outputPbmMap(void)
 void ValueIterator::setState(const nav_msgs::OccupancyGrid &map, double safety_radius)
 {
 	_states.clear();
-	int margin = (int)ceil(safety_radius/_cell_x_width);
+	int margin = (int)ceil(safety_radius/xy_resolution_);
 
-	for(int y=0; y<_cell_y_num; y++)
-		for(int x=0; x<_cell_x_num; x++)
-			for(int t=0; t<_cell_t_num; t++)
-				_states.push_back(State(x, y, t, map, margin, _cell_x_num));
+	for(int y=0; y<cell_num_y_; y++)
+		for(int x=0; x<cell_num_x_; x++)
+			for(int t=0; t<cell_num_t_; t++)
+				_states.push_back(State(x, y, t, map, margin, cell_num_x_));
 }
 
 void ValueIterator::setStateValues(void)
 {
 	for(auto &s : _states){
-		/*
-		double x0 = (s._ix - _center_state_ix)*_cell_x_width;
-		double y0 = (s._iy - _center_state_iy)*_cell_y_width;
-		*/
-		double x0 = s._ix*_cell_x_width + map_origin_x_;
-		double y0 = s._iy*_cell_y_width + map_origin_y_;
-		double x1 = x0 + _cell_x_width;
-		double y1 = y0 + _cell_y_width;
+		double x0 = s._ix*xy_resolution_ + map_origin_x_;
+		double y0 = s._iy*xy_resolution_ + map_origin_y_;
+		double x1 = x0 + xy_resolution_;
+		double y1 = y0 + xy_resolution_;
 
-		s._final_state = fabs(x0 - _final_state_x) < _final_state_width
-			       && fabs(y0 - _final_state_y) < _final_state_width
-			       && fabs(x1 - _final_state_x) < _final_state_width 
-			       && fabs(y1 - _final_state_y) < _final_state_width
+		s._final_state = fabs(x0 - goal_x_) < goal_width_
+			       && fabs(y0 - goal_y_) < goal_width_
+			       && fabs(x1 - goal_x_) < goal_width_ 
+			       && fabs(y1 - goal_y_) < goal_width_
 			       && s._free;
 	}
 
@@ -257,7 +253,7 @@ void ValueIterator::setStateValues(void)
 		if(s._final_state)
 			s._cost = 0;
 		else
-			s._cost = _max_cost;
+			s._cost = max_cost_;
 	}
 }
 
@@ -265,18 +261,18 @@ bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& respo
 {
 	grid_map::GridMap map;
 	map.setFrameId("map");
-	map.setGeometry(grid_map::Length(_cell_x_num*_cell_x_width, _cell_y_num*_cell_y_width), _cell_x_width);
+	map.setGeometry(grid_map::Length(cell_num_x_*xy_resolution_, cell_num_y_*xy_resolution_), xy_resolution_);
 
-	for(int t=0; t<_cell_t_num; t++){
+	for(int t=0; t<cell_num_t_; t++){
 		string name = to_string(t);
 
 		map.add(name);
 		int i = t;
 		while(i<_states.size()){
 			auto &s = _states[i];
-			map.at(name, grid_map::Index(s._ix, s._iy)) = s._cost/(ValueIterator::_prob_base);
+			map.at(name, grid_map::Index(s._ix, s._iy)) = s._cost/(ValueIterator::prob_base_);
 
-			i += _cell_t_num;
+			i += cell_num_t_;
 		}
 	}
 
@@ -284,20 +280,20 @@ bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& respo
 	grid_map::GridMapRosConverter::toMessage(map, message);
 	response.map = message;
 
-	for(int t=0; t<_cell_t_num; t++){
+	for(int t=0; t<cell_num_t_; t++){
 		ofstream ofs("/tmp/value_t=" + to_string(t) + ".pgm");
 
 		ofs << "P2" << endl;
-		ofs << _cell_x_num << " " << _cell_y_num << " 255" << endl;
+		ofs << cell_num_x_ << " " << cell_num_y_ << " 255" << endl;
 		int i = t;
 		while(i<_states.size()){
-			uint64_t v = _states[i]._cost*5 >> _prob_base_bit;
+			uint64_t v = _states[i]._cost*5 >> prob_base_bit_;
 			if(_states[i]._free and v <= 255)
 				ofs << 255 - v << '\n';
 			else
 				ofs << 0 << '\n';
 
-			i += _cell_t_num;
+			i += cell_num_t_;
 		}
 		ofs << flush;
 	}
@@ -308,9 +304,9 @@ bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& respo
 {
 	grid_map::GridMap map;
 	map.setFrameId("map");
-	map.setGeometry(grid_map::Length(_cell_x_num*_cell_x_width, _cell_y_num*_cell_y_width), _cell_x_width);
+	map.setGeometry(grid_map::Length(cell_num_x_*xy_resolution_, cell_num_y_*xy_resolution_), xy_resolution_);
 
-	for(int t=0; t<_cell_t_num; t++){
+	for(int t=0; t<cell_num_t_; t++){
 		string name = to_string(t);
 
 		map.add(name);
@@ -323,7 +319,7 @@ bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& respo
 				map.at(name, grid_map::Index(s._ix, s._iy)) = (double)s._optimal_action->id_;
 			}
 
-			i += _cell_t_num;
+			i += cell_num_t_;
 		}
 	}
 
@@ -331,11 +327,11 @@ bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& respo
 	grid_map::GridMapRosConverter::toMessage(map, message);
 	response.map = message;
 
-	for(int t=0; t<_cell_t_num; t++){
+	for(int t=0; t<cell_num_t_; t++){
 		ofstream action_file("/tmp/action_t=" + to_string(t) + ".ppm");
 
 		action_file << "P3" << endl;
-		action_file << _cell_x_num << " " << _cell_y_num << " 255" << endl;
+		action_file << cell_num_x_ << " " << cell_num_y_ << " 255" << endl;
 		int i = t;
 		while(i<_states.size()){
 
@@ -348,7 +344,7 @@ bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& respo
 			}else if(_states[i]._optimal_action->_name == "right"){
 				action_file << "255 0 0" << endl;
 			}
-			i += _cell_t_num;
+			i += cell_num_t_;
 		}
 
 		action_file << flush;
@@ -360,15 +356,15 @@ bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& respo
 
 Action *ValueIterator::posToAction(double x, double y, double t_rad)
 {
-        int ix = (int)floor( (x - map_origin_x_)/_cell_x_width );
-        int iy = (int)floor( (y - map_origin_y_)/_cell_y_width );
+        int ix = (int)floor( (x - map_origin_x_)/xy_resolution_ );
+        int iy = (int)floor( (y - map_origin_y_)/xy_resolution_ );
 
         int t = (int)(180 * t_rad / M_PI);
-        int it = (int)floor( ( (t + 360*100)%360 )/_cell_t_width );
+        int it = (int)floor( ( (t + 360*100)%360 )/t_resolution_ );
 	ROS_INFO("CELL: %d, %d, %d", ix, iy, it);
 	int index = toIndex(ix, iy, it);
 
-	ROS_INFO("VALUE: %f", (double)_states[index]._cost/ValueIterator::_prob_base);
+	ROS_INFO("VALUE: %f", (double)_states[index]._cost/ValueIterator::prob_base_);
 
 	if(_states[index]._optimal_action != NULL)
 		ROS_INFO("CMDVEL: %f, %f", _states[index]._optimal_action->_delta_fw, 
@@ -377,10 +373,10 @@ Action *ValueIterator::posToAction(double x, double y, double t_rad)
 	return _states[index]._optimal_action;
 }
 
-void ValueIterator::initialize(double goal_x, double goal_y)
+void ValueIterator::setGoal(double goal_x, double goal_y)
 {
-	_final_state_x = goal_x;
-	_final_state_y = goal_y;
+	goal_x_ = goal_x;
+	goal_y_ = goal_y;
 
 	_status.clear();
 	setStateValues();

@@ -123,7 +123,7 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  #INCLUDE_DIRS include
+  INCLUDE_DIRS include
   LIBRARIES value_iteration
   CATKIN_DEPENDS roscpp rospy message_runtime #cv_bridge
   #DEPENDS system_lib
@@ -169,7 +169,7 @@ add_dependencies(StateTransition ${TARGET_NAME} ${PROJECT_NAME}_generate_message
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
 #add_dependencies(vi_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-#add_dependencies(pfoe pfoe_generate_messages_cpp)
+#add_dependencies(vi_node vi_node_generate_messages_cpp)
 
 ## Declare a C++ executable
 add_executable(vi_node src/vi_node.cpp)
@@ -201,19 +201,19 @@ target_link_libraries(vi_node StateTransition ${catkin_LIBRARIES} )
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 
-## Mark executables and/or libraries for installation
-# install(TARGETS pfoe pfoe_node
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+# Mark executables and/or libraries for installation
+install(TARGETS vi_node vi_node
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
-## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
-#   PATTERN ".svn" EXCLUDE
-# )
+# Mark cpp header files for installation
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+ PATTERN ".svn" EXCLUDE
+)
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES
@@ -221,4 +221,3 @@ target_link_libraries(vi_node StateTransition ${catkin_LIBRARIES} )
 #   # myfile2
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
-
