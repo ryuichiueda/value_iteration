@@ -4,35 +4,17 @@ namespace value_iteration{
 
 ViNode::ViNode() : private_nh_("~") 
 {
-	while(!ros::service::waitForService("/static_map", ros::Duration(3.0))){
-		ROS_INFO("Waiting for static_map");
-	}
+	nav_msgs::GetMap::Response res;
+	setMap(res);
 
 	setActions();
 
-	ros::ServiceClient client = nh_.serviceClient<nav_msgs::GetMap>("/static_map");
-	nav_msgs::GetMap::Request req;
-	nav_msgs::GetMap::Response res;
-	if(not client.call(req, res)){
-		ROS_ERROR("static_map not working");
-		exit(1);
-	}
-
-	bool online;
 	int theta_cell_num;
 	int thread_num;
 	double safety_radius;
-	private_nh_.param("online", online, false);
 	private_nh_.param("theta_cell_num", theta_cell_num, 60);
 	private_nh_.param("thread_num", thread_num, 1);
 	private_nh_.param("safety_radius", safety_radius, 0.2);
-
-	ROS_INFO("BOOL: %d", (int)online);
-	if(online){
-		ROS_INFO("SET ONLINE");
-		pub_cmd_vel_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 2, true);
-		sub_pose_ = nh_.subscribe("mcl_pose", 2, &ViNode::poseReceived, this);
-	}
 
 	vi_.reset(new ValueIterator(res.map, *actions_, theta_cell_num, thread_num, safety_radius));
 
@@ -44,9 +26,32 @@ ViNode::~ViNode()
 	delete actions_;
 }
 
+void ViNode::setMap(nav_msgs::GetMap::Response &res)
+{
+	while(!ros::service::waitForService("/static_map", ros::Duration(3.0))){
+		ROS_INFO("Waiting for static_map");
+	}
+
+	ros::ServiceClient client = nh_.serviceClient<nav_msgs::GetMap>("/static_map");
+	nav_msgs::GetMap::Request req;
+	if(not client.call(req, res)){
+		ROS_ERROR("static_map not working");
+		exit(1);
+	}
+}
+
 void ViNode::setCommunication(void)
 {
-	as_.reset(new actionlib::SimpleActionServer<value_iteration::ViAction>( nh_, "vi_controller", boost::bind(&ViNode::executeVi, this, _1), false));
+	bool online;
+	private_nh_.param("online", online, false);
+	if(online){
+		ROS_INFO("SET ONLINE");
+		pub_cmd_vel_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 2, true);
+		sub_pose_ = nh_.subscribe("mcl_pose", 2, &ViNode::poseReceived, this);
+	}
+
+	as_.reset(new actionlib::SimpleActionServer<value_iteration::ViAction>( nh_, "vi_controller",
+				boost::bind(&ViNode::executeVi, this, _1), false));
 	as_->start();
 	srv_policy_ = nh_.advertiseService("/policy", &ViNode::servePolicy, this);
 	srv_value_ = nh_.advertiseService("/value", &ViNode::serveValue, this);

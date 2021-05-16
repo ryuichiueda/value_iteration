@@ -49,6 +49,7 @@ private:
 	void poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg);
 
 	void setActions(void);
+	void setMap(nav_msgs::GetMap::Response &res);
 	void setCommunication(void);
 };
 
