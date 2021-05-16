@@ -1,49 +1,6 @@
-#include <ros/ros.h>
-#include <actionlib/server/simple_action_server.h>
-#include <value_iteration/ViAction.h>
-
-#include "geometry_msgs/Twist.h"
-#include "geometry_msgs/PoseWithCovarianceStamped.h"
-
-#include "nav_msgs/GetMap.h"
-#include "nav_msgs/OccupancyGrid.h"
-#include "value_iteration/ValueIterator.h"
-#include <iostream>
-#include <vector>
-#include <thread>
-
-#include <grid_map_msgs/GetGridMap.h>
-#include <std_msgs/UInt32MultiArray.h>
-#include <tf/tf.h>
+#include "value_iteration/vi_node.h"
 
 namespace value_iteration{
-
-using namespace std;
-
-class ViNode{
-
-public:
-	shared_ptr<ValueIterator> vi_;
-	ros::NodeHandle nh_;
-	ros::NodeHandle private_nh_;
-
-	ros::ServiceServer srv_policy_;
-	ros::ServiceServer srv_value_;
-
-	ros::Publisher pub_cmd_vel_;
-	ros::Subscriber sub_pose_;
-
-	shared_ptr<actionlib::SimpleActionServer<value_iteration::ViAction> > as_;
-
-	ViNode();
-
-	void executeVi(const value_iteration::ViGoalConstPtr &goal);
-	bool servePolicy(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response);
-	bool serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response);
-
-	void poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg);
-};
-
 
 ViNode::ViNode() : private_nh_("~") 
 {
@@ -63,6 +20,11 @@ ViNode::ViNode() : private_nh_("~")
 	bool online;
 	private_nh_.param("online", online, false);
 
+	int theta_cell_num;
+	private_nh_.param("theta_cell_num", theta_cell_num, 60);
+	int thread_num;
+	private_nh_.param("thread_num", thread_num, 1);
+
 	ROS_INFO("BOOL: %d", (int)online);
 	if(online){
 		ROS_INFO("SET ONLINE");
@@ -74,7 +36,7 @@ ViNode::ViNode() : private_nh_("~")
 	nh_.getParam("/vi_node", params);
 	ROS_ASSERT(params.getType() == XmlRpc::XmlRpcValue::TypeStruct);
 
-	vi_.reset(new ValueIterator(res.map, params));
+	vi_.reset(new ValueIterator(res.map, params, theta_cell_num, thread_num));
 	as_.reset(new actionlib::SimpleActionServer<value_iteration::ViAction>( nh_, "vi_controller", boost::bind(&ViNode::executeVi, this, _1), false));
 	as_->start();
 
@@ -118,27 +80,25 @@ bool ViNode::serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_ms
 
 void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 {
-	int sweepnum = goal->sweepnum > 0 ? goal->sweepnum : INT_MAX;
-
-	vi_->setGoal(goal->goal_pos.x, goal->goal_pos.y);
+	vi_->setGoal(goal->goal.pose.position.x, goal->goal.pose.position.y);
 
 	vector<thread> ths;
-	for(int t=0; t<goal->threadnum; t++)
-		ths.push_back(thread(&ValueIterator::valueIterationWorker, vi_.get(), sweepnum, t));
+	for(int t=0; t<vi_->thread_num_; t++)
+		ths.push_back(thread(&ValueIterator::valueIterationWorker, vi_.get(), INT_MAX, t));
 
 	value_iteration::ViFeedback vi_feedback;
-	vi_feedback.current_sweep_times.data.resize(goal->threadnum);
-	vi_feedback.deltas.data.resize(goal->threadnum);
+	vi_feedback.current_sweep_times.data.resize(vi_->thread_num_);
+	vi_feedback.deltas.data.resize(vi_->thread_num_);
 	while(1){
 		sleep(1);
-		for(int t=0; t<goal->threadnum; t++){
+		for(int t=0; t<vi_->thread_num_; t++){
 			vi_feedback.current_sweep_times.data[t] = vi_->_status[t]._sweep_step;
 			vi_feedback.deltas.data[t] = vi_->_status[t]._delta;
 		}
 		as_->publishFeedback(vi_feedback);
 
 		bool finish = true;
-		for(int t=0; t<goal->threadnum; t++)
+		for(int t=0; t<vi_->thread_num_; t++)
 			finish &= vi_->_status[t]._finished;
 		if(finish)
 			break;

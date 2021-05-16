@@ -8,13 +8,14 @@ namespace value_iteration{
 using namespace std;
 
 /* ROSの地図をもらって各セルの情報からStateのオブジェクトを作ってstatesというベクトルに突っ込む */
-ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &params)
+ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &params,
+		int theta_cell_num, int thread_num)
+	: cell_num_t_(theta_cell_num), thread_num_(thread_num)
 {
 	//The cell configurations on XY-plane is set based on the map.
 	cell_num_x_ = map.info.width;
 	cell_num_y_ = map.info.height;
 	ROS_ASSERT(params["theta_cell_num"].getType() == XmlRpc::XmlRpcValue::TypeInt);
-	cell_num_t_ = params["theta_cell_num"];
 
 	xy_resolution_ = map.info.resolution;
 	t_resolution_ = 360/cell_num_t_;

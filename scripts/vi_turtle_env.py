@@ -13,10 +13,7 @@ def vi_client(data):
     client.wait_for_server()
 
     goal = ViGoal()
-    goal.goal_pos.x = data.pose.position.x;
-    goal.goal_pos.y = data.pose.position.y;
-    goal.sweepnum = 0
-    goal.threadnum = 4
+    goal.goal = data
     client.send_goal(goal, feedback_cb=vi_state_cb)
     client.wait_for_result()
     return client.get_result()

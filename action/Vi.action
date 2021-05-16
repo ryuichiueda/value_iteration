@@ -1,7 +1,4 @@
-uint32 sweepnum
-uint32 threadnum
-geometry_msgs/Vector3 goal_pos
-geometry_msgs/Vector3 goal_width
+geometry_msgs/PoseStamped goal
 ---
 bool finished
 ---

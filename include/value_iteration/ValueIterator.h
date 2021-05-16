@@ -46,7 +46,7 @@ private:
 
 	int toIndex(int ix, int iy, int it);
 public: 
-	ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &params);
+	ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &params, int theta_cell_num, int thread_num);
 
 	Action *posToAction(double x, double y, double t_rad);
 
@@ -61,6 +61,7 @@ public:
 	bool outputValuePgmMap(grid_map_msgs::GetGridMap::Response& response);
 
 	double goal_x_, goal_y_, goal_width_;
+	int thread_num_;
 
 	const static uint64_t max_cost_;
 	const static uint64_t prob_base_;

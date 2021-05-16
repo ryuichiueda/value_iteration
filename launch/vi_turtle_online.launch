@@ -23,7 +23,6 @@
         - name: leftfw
           onestep_forward_m: 0.1
           onestep_rotation_deg: 10.0
-      theta_cell_num: 60
       final_state:
         width_m: 0.1
       safety_radius: 0.2
@@ -57,6 +56,8 @@
   <!-- Launch the value_iteration node -->
   <node pkg="value_iteration" name="vi_node" type="vi_node" output="screen" required="true">
     <param name="online" value="true" />
+    <param name="theta_cell_num" value="60" />
+    <param name="thread_num" value="4" />
   </node>
   <node pkg="value_iteration" name="vi_turtle_env" type="vi_turtle_env.py" output="screen" required="true" />
 
