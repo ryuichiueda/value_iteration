@@ -24,6 +24,11 @@ namespace value_iteration{
 class ViNode{
 
 public:
+	ViNode();
+	~ViNode();
+
+private:
+	vector<Action> *actions_;
 	shared_ptr<ValueIterator> vi_;
 	ros::NodeHandle nh_;
 	ros::NodeHandle private_nh_;
@@ -36,16 +41,17 @@ public:
 
 	shared_ptr<actionlib::SimpleActionServer<value_iteration::ViAction> > as_;
 
-	ViNode();
 
 	void executeVi(const value_iteration::ViGoalConstPtr &goal);
 	bool servePolicy(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response);
 	bool serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response);
 
 	void poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg);
+
+	void setActions(void);
+	void setCommunication(void);
 };
 
 }
-
 #endif
 

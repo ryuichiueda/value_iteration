@@ -8,48 +8,22 @@ namespace value_iteration{
 using namespace std;
 
 /* ROSの地図をもらって各セルの情報からStateのオブジェクトを作ってstatesというベクトルに突っ込む */
-ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &params,
-		int theta_cell_num, int thread_num)
-	: cell_num_t_(theta_cell_num), thread_num_(thread_num)
+ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, 
+		vector<Action> &actions, int theta_cell_num, int thread_num, double safety_radius)
+	: actions_(actions), cell_num_t_(theta_cell_num), thread_num_(thread_num), 
+	  goal_x_(0.0), goal_y_(0.0), goal_width_(0.2)
 {
-	//The cell configurations on XY-plane is set based on the map.
 	cell_num_x_ = map.info.width;
 	cell_num_y_ = map.info.height;
-	ROS_ASSERT(params["theta_cell_num"].getType() == XmlRpc::XmlRpcValue::TypeInt);
 
 	xy_resolution_ = map.info.resolution;
 	t_resolution_ = 360/cell_num_t_;
 
 	map_origin_x_ = map.info.origin.position.x;
 	map_origin_y_ = map.info.origin.position.y;
-	ROS_INFO("ORIGIN: %f, %f", map_origin_x_, map_origin_y_);
-	ROS_INFO("MAX: %f, %f", map_origin_x_ + cell_num_x_*xy_resolution_, map_origin_y_ + cell_num_y_*xy_resolution_);
 
-	auto &fs = params["final_state"];
-	ROS_ASSERT(fs["width_m"].getType() == XmlRpc::XmlRpcValue::TypeDouble);
-	goal_x_ = 0.0;//fs["x_center_m"];
-	goal_y_ = 0.0;//fs["y_center_m"];
-	goal_width_ = fs["width_m"];
-
-	ROS_ASSERT(params["safety_radius"].getType() == XmlRpc::XmlRpcValue::TypeDouble);
-	setState(map, params["safety_radius"]);
-
-	setAction(params["action_list"]);
+	setState(map, safety_radius);
 	setStateTransition();
-}
-
-/* デフォルトのアクションの設定 */
-void ValueIterator::setAction(XmlRpc::XmlRpcValue &action_list)
-{
-	ROS_ASSERT(action_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
-
-	for(int i=0; i<action_list.size(); i++){
-		auto &a = action_list[i];
-		actions_.push_back(Action(a["name"], a["onestep_forward_m"], a["onestep_rotation_deg"], i));
-
-		auto &b = actions_.back();
-		ROS_INFO("set an action: %s, %f, %f", b._name.c_str(), b._delta_fw, b._delta_rot);
-	}
 }
 
 bool ValueIterator::finished(std_msgs::UInt32MultiArray &sweep_times, std_msgs::Float32MultiArray &deltas)

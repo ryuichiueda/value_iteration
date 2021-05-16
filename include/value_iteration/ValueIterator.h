@@ -22,7 +22,7 @@ using namespace std;
 class ValueIterator{
 private: 
 	vector<State> states_;
-	vector<Action> actions_;
+	vector<Action> &actions_;
 
 	double xy_resolution_, t_resolution_;
 	int cell_num_x_, cell_num_y_, cell_num_t_;
@@ -34,7 +34,6 @@ private:
 
 	void accurateStateTransition(Action &a, double from_x, double from_y, double from_t, double &to_x, double &to_y, double &to_t);
 
-	void setAction(XmlRpc::XmlRpcValue &action_list);
 	void setState(const nav_msgs::OccupancyGrid &map, double safety_radius);
 	void setStateValues(void);
 
@@ -48,7 +47,8 @@ private:
 
 	int toIndex(int ix, int iy, int it);
 public: 
-	ValueIterator(nav_msgs::OccupancyGrid &map, XmlRpc::XmlRpcValue &params, int theta_cell_num, int thread_num);
+	ValueIterator(nav_msgs::OccupancyGrid &map, vector<Action> &actions,
+			int theta_cell_num, int thread_num, double safety_radius);
 
 	Action *posToAction(double x, double y, double t_rad);
 

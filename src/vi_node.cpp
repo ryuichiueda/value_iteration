@@ -8,8 +8,9 @@ ViNode::ViNode() : private_nh_("~")
 		ROS_INFO("Waiting for static_map");
 	}
 
-	ros::ServiceClient client = nh_.serviceClient<nav_msgs::GetMap>("/static_map");
+	setActions();
 
+	ros::ServiceClient client = nh_.serviceClient<nav_msgs::GetMap>("/static_map");
 	nav_msgs::GetMap::Request req;
 	nav_msgs::GetMap::Response res;
 	if(not client.call(req, res)){
@@ -18,12 +19,13 @@ ViNode::ViNode() : private_nh_("~")
 	}
 
 	bool online;
-	private_nh_.param("online", online, false);
-
 	int theta_cell_num;
-	private_nh_.param("theta_cell_num", theta_cell_num, 60);
 	int thread_num;
+	double safety_radius;
+	private_nh_.param("online", online, false);
+	private_nh_.param("theta_cell_num", theta_cell_num, 60);
 	private_nh_.param("thread_num", thread_num, 1);
+	private_nh_.param("safety_radius", safety_radius, 0.2);
 
 	ROS_INFO("BOOL: %d", (int)online);
 	if(online){
@@ -32,16 +34,40 @@ ViNode::ViNode() : private_nh_("~")
 		sub_pose_ = nh_.subscribe("mcl_pose", 2, &ViNode::poseReceived, this);
 	}
 
+	vi_.reset(new ValueIterator(res.map, *actions_, theta_cell_num, thread_num, safety_radius));
+
+	setCommunication();
+}
+
+ViNode::~ViNode() 
+{
+	delete actions_;
+}
+
+void ViNode::setCommunication(void)
+{
+	as_.reset(new actionlib::SimpleActionServer<value_iteration::ViAction>( nh_, "vi_controller", boost::bind(&ViNode::executeVi, this, _1), false));
+	as_->start();
+	srv_policy_ = nh_.advertiseService("/policy", &ViNode::servePolicy, this);
+	srv_value_ = nh_.advertiseService("/value", &ViNode::serveValue, this);
+}
+
+void ViNode::setActions(void)
+{
 	XmlRpc::XmlRpcValue params;
 	nh_.getParam("/vi_node", params);
 	ROS_ASSERT(params.getType() == XmlRpc::XmlRpcValue::TypeStruct);
+	auto &action_list = params["action_list"];
+	ROS_ASSERT(action_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
+	actions_ = new vector<Action>();
 
-	vi_.reset(new ValueIterator(res.map, params, theta_cell_num, thread_num));
-	as_.reset(new actionlib::SimpleActionServer<value_iteration::ViAction>( nh_, "vi_controller", boost::bind(&ViNode::executeVi, this, _1), false));
-	as_->start();
+	for(int i=0; i<action_list.size(); i++){
+		auto &a = action_list[i];
+		actions_->push_back(Action(a["name"], a["onestep_forward_m"], a["onestep_rotation_deg"], i));
 
-	srv_policy_ = nh_.advertiseService("/policy", &ViNode::servePolicy, this);
-	srv_value_ = nh_.advertiseService("/value", &ViNode::serveValue, this);
+		auto &b = actions_->back();
+		ROS_INFO("set an action: %s, %f, %f", b._name.c_str(), b._delta_fw, b._delta_rot);
+	}
 }
 
 void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg)
