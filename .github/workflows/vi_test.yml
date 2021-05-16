@@ -1,4 +1,4 @@
-name: vi_test
+name: build
 
 on:
   push:
@@ -11,24 +11,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: Setup ROS
+      - name: Build
         run: |
-         git clone https://github.com/ryuichiueda/ros_setup_scripts_Ubuntu18.04_server
-         cd ros_setup_scripts_Ubuntu18.04_server 
-         bash step0.bash
-         bash step1.bash
-         sudo apt-get install ros-melodic-tf ros-melodic-map-server ros-melodic-grid-map ros-melodic-grid-map-msgs ros-melodic-pcl-ros ros-melodic-costmap-2d* ros-melodic-grid-map* ros-melodic-grid-map-filters ros-melodic-filters
-         sudo pip3 install rospkg
-         mkdir -p ~/.ros/log/
-      - name: Build catkin_ws
-        run: |
-         source /opt/ros/melodic/setup.bash
-         mkdir -p ~/catkin_ws/src
-         cd ~/catkin_ws/src
          git clone -b "${GITHUB_REF#refs/heads/}" https://github.com/ryuichiueda/value_iteration.git
-         cd ../
-         catkin_make
-      - name: Execute and Test
-        run: |
-         ~/catkin_ws/src/value_iteration/test/test.bash
+         cd value_iteration/test/docker
+         sed -i "s;clone;clone -b ${GITHUB_REF#refs/heads/};" Dockerfile
+         docker build -t test .
+#      - name: Reset and navigation test on Gazebo
+#        run: |
+#         docker run test /bin/bash -c 'source ~/.bashrc && /catkin_ws/src/emcl/test/test.bash'
+
+
