@@ -9,9 +9,11 @@ using namespace std;
 
 /* ROSの地図をもらって各セルの情報からStateのオブジェクトを作ってstatesというベクトルに突っ込む */
 ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, 
-		vector<Action> &actions, int theta_cell_num, int thread_num, double safety_radius)
+		vector<Action> &actions, int theta_cell_num, int thread_num,
+		double safety_radius, double goal_margin_radius, int goal_margin_theta)
 	: actions_(actions), cell_num_t_(theta_cell_num), thread_num_(thread_num), 
-	  goal_x_(0.0), goal_y_(0.0), goal_width_(0.2)
+	  goal_x_(0.0), goal_y_(0.0), goal_t_(0), 
+	  goal_margin_radius_(goal_margin_radius), goal_margin_theta_(goal_margin_theta)
 {
 	cell_num_x_ = map.info.width;
 	cell_num_y_ = map.info.height;
@@ -226,16 +228,27 @@ void ValueIterator::setState(const nav_msgs::OccupancyGrid &map, double safety_r
 void ValueIterator::setStateValues(void)
 {
 	for(auto &s : states_){
+		/* goal distance check */
 		double x0 = s._ix*xy_resolution_ + map_origin_x_;
 		double y0 = s._iy*xy_resolution_ + map_origin_y_;
+		double r0 = (x0 - goal_x_)*(x0 - goal_x_) + (y0 - goal_y_)*(y0 - goal_y_);
+
 		double x1 = x0 + xy_resolution_;
 		double y1 = y0 + xy_resolution_;
+		double r1 = (x1 - goal_x_)*(x1 - goal_x_) + (y1 - goal_y_)*(y1 - goal_y_);
 
-		s._final_state = fabs(x0 - goal_x_) < goal_width_
-			       && fabs(y0 - goal_y_) < goal_width_
-			       && fabs(x1 - goal_x_) < goal_width_ 
-			       && fabs(y1 - goal_y_) < goal_width_
+		s._final_state = r0 < goal_margin_radius_*goal_margin_radius_ 
+			       && r1 < goal_margin_radius_*goal_margin_radius_
 			       && s._free;
+
+		/* orientation check */
+		int t0 = s._it*t_resolution_;
+		int t1 = (s._it+1)*t_resolution_;
+		int goal_t_2 = goal_t_ > 180 ? goal_t_ - 360 : goal_t_ + 360;
+
+		s._final_state &= 
+			(goal_t_ - goal_margin_theta_ <= t0 and t1 <= goal_t_ + goal_margin_theta_) or 
+			(goal_t_2 - goal_margin_theta_ <= t0 and t1 <= goal_t_2 + goal_margin_theta_);
 	}
 
 	for(auto &s : states_){
@@ -362,10 +375,16 @@ Action *ValueIterator::posToAction(double x, double y, double t_rad)
 	return states_[index]._optimal_action;
 }
 
-void ValueIterator::setGoal(double goal_x, double goal_y)
+void ValueIterator::setGoal(double goal_x, double goal_y, int goal_t)
 {
+	while(goal_t < 0)
+		goal_t += 360;
+	while(goal_t >= 360)
+		goal_t -= 360;
+
 	goal_x_ = goal_x;
 	goal_y_ = goal_y;
+	goal_t_ = goal_t;
 
 	status_.clear();
 	setStateValues();

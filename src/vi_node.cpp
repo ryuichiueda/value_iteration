@@ -16,7 +16,14 @@ ViNode::ViNode() : private_nh_("~")
 	private_nh_.param("thread_num", thread_num, 1);
 	private_nh_.param("safety_radius", safety_radius, 0.2);
 
-	vi_.reset(new ValueIterator(res.map, *actions_, theta_cell_num, thread_num, safety_radius));
+	
+	double goal_margin_radius;
+	private_nh_.param("goal_margin_radius", goal_margin_radius, 0.2);
+	int goal_margin_theta;
+	private_nh_.param("goal_margin_theta", goal_margin_theta, 10);
+
+	vi_.reset(new ValueIterator(res.map, *actions_, theta_cell_num, thread_num, 
+				safety_radius, goal_margin_radius, goal_margin_theta));
 
 	setCommunication();
 }
@@ -109,7 +116,12 @@ bool ViNode::serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_ms
 
 void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 {
-	vi_->setGoal(goal->goal.pose.position.x, goal->goal.pose.position.y);
+	auto &ori = goal->goal.pose.orientation;	
+	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
+	double roll, pitch, yaw;
+	tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+	int t = (int)(yaw*180/M_PI);
+	vi_->setGoal(goal->goal.pose.position.x, goal->goal.pose.position.y, t);
 
 	vector<thread> ths;
 	for(int t=0; t<vi_->thread_num_; t++)

@@ -48,13 +48,14 @@ private:
 	int toIndex(int ix, int iy, int it);
 public: 
 	ValueIterator(nav_msgs::OccupancyGrid &map, vector<Action> &actions,
-			int theta_cell_num, int thread_num, double safety_radius);
+		int theta_cell_num, int thread_num,
+		double safety_radius, double goal_margin_radius, int goal_margin_theta);
 
 	Action *posToAction(double x, double y, double t_rad);
 
 	void outputPbmMap(void);
 
-	void setGoal(double goal_x, double goal_y);
+	void setGoal(double goal_x, double goal_y, int goal_t);
 
 	void valueIterationWorker(int times, int id);
 	map<int, SweepWorkerStatus> status_; 
@@ -62,7 +63,8 @@ public:
 	bool actionImageWriter(grid_map_msgs::GetGridMap::Response& response);
 	bool outputValuePgmMap(grid_map_msgs::GetGridMap::Response& response);
 
-	double goal_x_, goal_y_, goal_width_;
+	double goal_x_, goal_y_, goal_margin_radius_;
+	int goal_t_, goal_margin_theta_;
 	int thread_num_;
 
 	const static uint64_t max_cost_;

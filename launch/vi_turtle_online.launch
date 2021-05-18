@@ -7,22 +7,22 @@
     vi_node:
       action_list:
         - name: forward
-          onestep_forward_m: 0.2
+          onestep_forward_m: 0.3
           onestep_rotation_deg: 0.0
         - name: back
-          onestep_forward_m: -0.1
+          onestep_forward_m: -0.2
         - name: right
           onestep_forward_m: 0.0
-          onestep_rotation_deg: -10.0
+          onestep_rotation_deg: -20.0
         - name: rightfw
-          onestep_forward_m: 0.1
-          onestep_rotation_deg: -10.0
+          onestep_forward_m: 0.2
+          onestep_rotation_deg: -20.0
         - name: left
           onestep_forward_m: 0.0
-          onestep_rotation_deg: 10.0
+          onestep_rotation_deg: 20.0
         - name: leftfw
-          onestep_forward_m: 0.1
-          onestep_rotation_deg: 10.0
+          onestep_forward_m: 0.2
+          onestep_rotation_deg: 20.0
   </rosparam>
 
   <!-- Arguments -->
@@ -56,6 +56,8 @@
     <param name="theta_cell_num" value="60" />
     <param name="thread_num" value="4" />
     <param name="safety_radius" value="0.2" />
+    <param name="goal_margin_radius" value="0.2" />
+    <param name="goal_margin_theta" value="10" />
   </node>
   <node pkg="value_iteration" name="vi_turtle_env" type="vi_turtle_env.py" output="screen" required="true" />
 
