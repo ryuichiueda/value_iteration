@@ -38,6 +38,16 @@ The value iteration procedure rises up through the action `value_iteration/ViAct
 * static_map ([nav_msgs/GetMap](http://docs.ros.org/en/api/nav_msgs/html/srv/GetMap.html))
     * Initiate the map for localization.
 
+#### Subscribed Topics
+
+* /mcl_pose ([geometry_msgs/PoseWithCovarianceStamped](http://docs.ros.org/en/melodic/api/geometry_msgs/html/msg/PoseWithCovarianceStamped.html))
+    * the poes of the robot on the map; received only when the parameter `online` is true
+
+#### Published Topics
+
+* /cmd_vel ([geometry_msgs/Twist](http://docs.ros.org/en/melodic/api/geometry_msgs/html/msg/Twist.html))
+    * the control order to the robot; published only when the parameter `online` is true
+
 ### vi_controller_turtle_env
 
 This node receives the 2D Nav Goal from RViz and sends it to vi_node. It is implemented in `scripts/vi_turtle_env.py`.
