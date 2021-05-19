@@ -24,7 +24,7 @@ def receive_goal(data):
     print(result)
 
 if __name__ == '__main__':
-    rospy.init_node('vi_controller')
+    rospy.init_node('vi_controller_turtle_env')
 
     sub_goal = rospy.Subscriber("/move_base_simple/goal", PoseStamped, receive_goal)
 

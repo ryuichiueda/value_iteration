@@ -10,7 +10,7 @@ This node executes value iteration.
 
 #### how to execute value iteration
 
-The value iteration procedure rises up through the action `value_iteration/ViAction`, which is composed of the following goal, feedback, and result. 
+The value iteration procedure rises up through the action `value_iteration/ViAction`, which is composed of the following goal, feedback, and result. An example of usage is shown in [vi_turtle_env.py](https://github.com/ryuichiueda/value_iteration/blob/main/scripts/vi_turtle_env.py).
 
 * /vi_controller/goal
     * goal [geometry_msgs/PoseStamped](http://docs.ros.org/en/melodic/api/geometry_msgs/html/msg/PoseStamped.html)
@@ -24,6 +24,9 @@ The value iteration procedure rises up through the action `value_iteration/ViAct
     * finished (bool)
         * return true after the completion of value iteration
 
+### vi_controller_turtle_env
+
+This node receives the 2D Nav Goal from RViz and sends it to vi_node. It is implemented in `scripts/vi_turtle_env.py`.
 
 #### Services
 
