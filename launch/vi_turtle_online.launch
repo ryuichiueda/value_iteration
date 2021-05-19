@@ -11,6 +11,7 @@
           onestep_rotation_deg: 0.0
         - name: back
           onestep_forward_m: -0.2
+          onestep_rotation_deg: 0.0
         - name: right
           onestep_forward_m: 0.0
           onestep_rotation_deg: -20.0
