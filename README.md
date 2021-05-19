@@ -8,6 +8,23 @@ a global planner for mobile robots based on value iteration
 
 This node executes value iteration.
 
+#### how to execute value iteration
+
+The value iteration procedure rises up through the action `value_iteration/ViAction`, which is composed of the following goal, feedback, and result. 
+
+* /vi_controller/goal
+    * goal [geometry_msgs/PoseStamped](http://docs.ros.org/en/melodic/api/geometry_msgs/html/msg/PoseStamped.html)
+        * the destination
+* /vi_controller/feedback
+    * current_sweep_times (std_msgs/UInt32MultiArray)
+        * the number of sweeps executed so far by each thread
+    * deltas (std_msgs/Float32MultiArray)
+        * the maximum change of state values caused by the latest sweep of each thread
+* /vi_controller/result
+    * finished (bool)
+        * return true after the completion of value iteration
+
+
 #### Services
 
 * policy ([grid_map_msgs::GetGridMap](http://docs.ros.org/en/kinetic/api/grid_map_msgs/html/srv/GetGridMap.html))

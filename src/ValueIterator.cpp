@@ -252,10 +252,13 @@ void ValueIterator::setStateValues(void)
 	}
 
 	for(auto &s : states_){
+		s._cost = s._final_state ? 0 : max_cost_;
+		/*
 		if(s._final_state)
 			s._cost = 0;
 		else
 			s._cost = max_cost_;
+			*/
 	}
 }
 
@@ -368,9 +371,12 @@ Action *ValueIterator::posToAction(double x, double y, double t_rad)
 
 	ROS_INFO("VALUE: %f", (double)states_[index]._cost/ValueIterator::prob_base_);
 
-	if(states_[index]._optimal_action != NULL)
+/*	if(states_[index]._optimal_action != NULL)
 		ROS_INFO("CMDVEL: %f, %f", states_[index]._optimal_action->_delta_fw, 
-			states_[index]._optimal_action->_delta_rot);
+			states_[index]._optimal_action->_delta_rot); */
+
+	if(states_[index]._final_state)
+		return NULL;
 
 	return states_[index]._optimal_action;
 }
