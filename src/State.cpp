@@ -2,8 +2,6 @@
 
 namespace value_iteration{
 
-using namespace std;
-
 State::State(int x, int y, int theta, const nav_msgs::OccupancyGrid &map, int margin, int x_num)
 {
 	_ix = x;

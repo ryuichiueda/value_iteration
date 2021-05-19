@@ -3,8 +3,6 @@
 
 namespace value_iteration{
 
-using namespace std;
-
 SweepWorkerStatus::SweepWorkerStatus()
 {
 	_finished = false;

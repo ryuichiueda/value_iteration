@@ -5,11 +5,9 @@
 
 namespace value_iteration{
 
-using namespace std;
-
 /* ROSの地図をもらって各セルの情報からStateのオブジェクトを作ってstatesというベクトルに突っ込む */
 ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, 
-		vector<Action> &actions, int theta_cell_num, int thread_num,
+		std::vector<Action> &actions, int theta_cell_num, int thread_num,
 		double safety_radius, double goal_margin_radius, int goal_margin_theta)
 	: actions_(actions), cell_num_t_(theta_cell_num), thread_num_(thread_num), 
 	  goal_x_(0.0), goal_y_(0.0), goal_t_(0), 
@@ -44,12 +42,12 @@ bool ValueIterator::finished(std_msgs::UInt32MultiArray &sweep_times, std_msgs::
 
 void ValueIterator::setStateTransition(void)
 {
-	vector<StateTransition> theta_state_transitions;
+	std::vector<StateTransition> theta_state_transitions;
 	for(auto &a : actions_)
 		for(int t=0; t<cell_num_t_; t++)
 			a._state_transitions.push_back(theta_state_transitions);
 
-	vector<thread> ths;
+	std::vector<thread> ths;
 	for(int t=0; t<cell_num_t_; t++)
 		ths.push_back(thread(&ValueIterator::setStateTransitionWorker, this, t));
 
@@ -267,7 +265,7 @@ bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& respo
 	map.setGeometry(grid_map::Length(cell_num_x_*xy_resolution_, cell_num_y_*xy_resolution_), xy_resolution_);
 
 	for(int t=0; t<cell_num_t_; t++){
-		string name = to_string(t);
+		std::string name = to_string(t);
 
 		map.add(name);
 		int i = t;
@@ -310,7 +308,7 @@ bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& respo
 	map.setGeometry(grid_map::Length(cell_num_x_*xy_resolution_, cell_num_y_*xy_resolution_), xy_resolution_);
 
 	for(int t=0; t<cell_num_t_; t++){
-		string name = to_string(t);
+		std::string name = to_string(t);
 
 		map.add(name);
 		int i = t;

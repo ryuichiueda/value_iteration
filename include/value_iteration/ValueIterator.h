@@ -16,13 +16,10 @@
 
 namespace value_iteration{
 
-using namespace std;
-
-
 class ValueIterator{
 private: 
-	vector<State> states_;
-	vector<Action> &actions_;
+	std::vector<State> states_;
+	std::vector<Action> &actions_;
 
 	double xy_resolution_, t_resolution_;
 	int cell_num_x_, cell_num_y_, cell_num_t_;

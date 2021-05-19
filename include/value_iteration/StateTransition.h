@@ -5,15 +5,13 @@
 
 namespace value_iteration{
 
-using namespace std;
-
 class StateTransition{
 public:
 	int _dix, _diy, _dit;
 	int _prob;
 
 	StateTransition(int dix, int diy, int dit, int prob);
-	string to_string(void);
+	std::string to_string(void);
 };
 
 }
