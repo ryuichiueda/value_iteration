@@ -24,10 +24,6 @@ The value iteration procedure rises up through the action `value_iteration/ViAct
     * finished (bool)
         * return true after the completion of value iteration
 
-### vi_controller_turtle_env
-
-This node receives the 2D Nav Goal from RViz and sends it to vi_node. It is implemented in `scripts/vi_turtle_env.py`.
-
 #### Services
 
 * policy ([grid_map_msgs/GetGridMap](http://docs.ros.org/en/kinetic/api/grid_map_msgs/html/srv/GetGridMap.html))
@@ -41,6 +37,10 @@ This node receives the 2D Nav Goal from RViz and sends it to vi_node. It is impl
 
 * static_map ([nav_msgs/GetMap](http://docs.ros.org/en/api/nav_msgs/html/srv/GetMap.html))
     * Initiate the map for localization.
+
+### vi_controller_turtle_env
+
+This node receives the 2D Nav Goal from RViz and sends it to vi_node. It is implemented in `scripts/vi_turtle_env.py`.
 
 ## acknowledgement
 
