@@ -56,7 +56,7 @@
     <param name="online" value="true" />
     <param name="theta_cell_num" value="60" />
     <param name="thread_num" value="4" />
-    <param name="safety_radius" value="0.2" />
+    <param name="safety_radius" value="0.3" />
     <param name="goal_margin_radius" value="0.2" />
     <param name="goal_margin_theta" value="10" />
   </node>

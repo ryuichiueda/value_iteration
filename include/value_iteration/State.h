@@ -1,15 +1,6 @@
 #ifndef VALUE_STATE_
 #define VALUE_STATE_
 
-/*
-#include "ros/ros.h"
-#include "nav_msgs/GetMap.h"
-#include "nav_msgs/OccupancyGrid.h"
-#include <vector>
-#include <fstream>
-
-#include "SweepWorkerStatus.h"
-*/
 #include "Action.h"
 
 namespace value_iteration{
@@ -19,6 +10,7 @@ using namespace std;
 class State{
 public: 
 	uint64_t _cost;
+	uint64_t _penalty;
 	int _ix, _iy, _it;
 	bool _free;
 	bool _final_state;

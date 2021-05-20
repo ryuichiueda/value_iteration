@@ -29,7 +29,7 @@ private:
 
 	const static unsigned char resolution_xy_bit_, resolution_t_bit_;
 
-	void accurateStateTransition(Action &a, double from_x, double from_y, double from_t, double &to_x, double &to_y, double &to_t);
+	void noNoiseStateTransition(Action &a, double from_x, double from_y, double from_t, double &to_x, double &to_y, double &to_t);
 
 	void setState(const nav_msgs::OccupancyGrid &map, double safety_radius);
 	void setStateValues(void);

@@ -74,7 +74,7 @@ void ValueIterator::setStateTransitionWorker(int it)
 		setStateTransitionWorkerSub(a, it);
 }
 
-void ValueIterator::accurateStateTransition(Action &a, 
+void ValueIterator::noNoiseStateTransition(Action &a, 
 	double from_x, double from_y, double from_t, double &to_x, double &to_y, double &to_t)
 {
 	double ang = from_t / 180 * M_PI;
@@ -99,7 +99,7 @@ void ValueIterator::setStateTransitionWorkerSub(Action &a, int it)
 
 				//遷移後の姿勢
 				double dx, dy, dt;
-				accurateStateTransition(a, ox, oy, ot + theta_origin, dx, dy, dt);
+				noNoiseStateTransition(a, ox, oy, ot + theta_origin, dx, dy, dt);
 				int dix, diy, dit;
 				cellDelta(dx, dy, dt, dix, diy, dit); 
 
@@ -181,14 +181,14 @@ uint64_t ValueIterator::actionCost(State &s, Action &a)
 		if(iy < 0 or iy >= cell_num_y_)
 			return max_cost_;
 
-		//ROS_INFO("ANGLE: %d, %d", s._it, tran._dit);
-		int it = (/*s._it +*/ tran._dit + cell_num_t_)%cell_num_t_;
+		int it = (tran._dit + cell_num_t_)%cell_num_t_;
 
 		auto &after_s = states_[toIndex(ix, iy, it)];
 		if(not after_s._free)
 			return max_cost_;
 
-		cost += (after_s._cost>>prob_base_bit_) * tran._prob;
+		cost += ( (after_s._cost>>prob_base_bit_) + (after_s._penalty>>prob_base_bit_) ) * tran._prob;
+		//cost += (after_s._cost>>prob_base_bit_ ) * tran._prob;
 	}
 
 	return cost + prob_base_;
@@ -247,15 +247,8 @@ void ValueIterator::setStateValues(void)
 			(goal_t_2 - goal_margin_theta_ <= t0 and t1 <= goal_t_2 + goal_margin_theta_);
 	}
 
-	for(auto &s : states_){
+	for(auto &s : states_)
 		s._cost = s._final_state ? 0 : max_cost_;
-		/*
-		if(s._final_state)
-			s._cost = 0;
-		else
-			s._cost = max_cost_;
-			*/
-	}
 }
 
 bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& response)
@@ -366,10 +359,6 @@ Action *ValueIterator::posToAction(double x, double y, double t_rad)
 	int index = toIndex(ix, iy, it);
 
 	ROS_INFO("VALUE: %f", (double)states_[index]._cost/ValueIterator::prob_base_);
-
-/*	if(states_[index]._optimal_action != NULL)
-		ROS_INFO("CMDVEL: %f, %f", states_[index]._optimal_action->_delta_fw, 
-			states_[index]._optimal_action->_delta_rot); */
 
 	if(states_[index]._final_state)
 		return NULL;
