@@ -9,7 +9,7 @@ using namespace std;
 
 class State{
 public: 
-	uint64_t _cost;
+	uint64_t total_cost_;
 	uint64_t _penalty;
 	int _ix, _iy, _it;
 	bool _free;

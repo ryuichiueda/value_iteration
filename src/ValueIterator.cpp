@@ -133,8 +133,8 @@ uint64_t ValueIterator::valueIteration(State &s)
 		}
 	}
 
-	int64_t delta = min_cost - s._cost;
-	s._cost = min_cost;
+	int64_t delta = min_cost - s.total_cost_;
+	s.total_cost_ = min_cost;
 	s._optimal_action = min_action;
 
 	return delta > 0 ? delta : -delta;
@@ -187,8 +187,7 @@ uint64_t ValueIterator::actionCost(State &s, Action &a)
 		if(not after_s._free)
 			return max_cost_;
 
-		cost += ( (after_s._cost>>prob_base_bit_) + (after_s._penalty>>prob_base_bit_) ) * tran._prob;
-		//cost += (after_s._cost>>prob_base_bit_ ) * tran._prob;
+		cost += ( (after_s.total_cost_>>prob_base_bit_) + (after_s._penalty>>prob_base_bit_) ) * tran._prob;
 	}
 
 	return cost + prob_base_;
@@ -248,7 +247,7 @@ void ValueIterator::setStateValues(void)
 	}
 
 	for(auto &s : states_)
-		s._cost = s._final_state ? 0 : max_cost_;
+		s.total_cost_ = s._final_state ? 0 : max_cost_;
 }
 
 bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& response)
@@ -264,7 +263,7 @@ bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& respo
 		int i = t;
 		while(i<states_.size()){
 			auto &s = states_[i];
-			map.at(name, grid_map::Index(s._ix, s._iy)) = s._cost/(ValueIterator::prob_base_);
+			map.at(name, grid_map::Index(s._ix, s._iy)) = s.total_cost_/(ValueIterator::prob_base_);
 
 			i += cell_num_t_;
 		}
@@ -281,7 +280,7 @@ bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& respo
 		ofs << cell_num_x_ << " " << cell_num_y_ << " 255" << endl;
 		int i = t;
 		while(i<states_.size()){
-			uint64_t v = states_[i]._cost*5 >> prob_base_bit_;
+			uint64_t v = states_[i].total_cost_*5 >> prob_base_bit_;
 			if(states_[i]._free and v <= 255)
 				ofs << 255 - v << '\n';
 			else
@@ -358,7 +357,7 @@ Action *ValueIterator::posToAction(double x, double y, double t_rad)
 	ROS_INFO("CELL: %d, %d, %d", ix, iy, it);
 	int index = toIndex(ix, iy, it);
 
-	ROS_INFO("VALUE: %f", (double)states_[index]._cost/ValueIterator::prob_base_);
+	ROS_INFO("VALUE: %f", (double)states_[index].total_cost_/ValueIterator::prob_base_);
 
 	if(states_[index]._final_state)
 		return NULL;
