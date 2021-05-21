@@ -187,7 +187,9 @@ uint64_t ValueIterator::actionCost(State &s, Action &a)
 		if(not after_s._free)
 			return max_cost_;
 
-		cost += ( (after_s.total_cost_>>prob_base_bit_) + (after_s._penalty>>prob_base_bit_) ) * tran._prob;
+		cost += ( (after_s.total_cost_ + after_s.penalty_ ) >> prob_base_bit_ ) * tran._prob;
+		//if(after_s.penalty_ != 0)
+		//	ROS_INFO("%ld %ld", after_s.penalty_, cost);
 	}
 
 	return cost + prob_base_;
