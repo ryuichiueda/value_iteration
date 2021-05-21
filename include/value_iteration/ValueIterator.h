@@ -31,7 +31,7 @@ private:
 
 	void noNoiseStateTransition(Action &a, double from_x, double from_y, double from_t, double &to_x, double &to_y, double &to_t);
 
-	void setState(const nav_msgs::OccupancyGrid &map, double safety_radius);
+	void setState(const nav_msgs::OccupancyGrid &map, double safety_radius, double safety_radius_penalty);
 	void setStateValues(void);
 
 	void setStateTransition(void);

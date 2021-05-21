@@ -212,7 +212,7 @@ void ValueIterator::outputPbmMap(void)
 	ofs << flush;
 }
 
-void ValueIterator::setState(const nav_msgs::OccupancyGrid &map, double safety_radius)
+void ValueIterator::setState(const nav_msgs::OccupancyGrid &map, double safety_radius, double safety_radius_penalty)
 {
 	states_.clear();
 	int margin = (int)ceil(safety_radius/xy_resolution_);

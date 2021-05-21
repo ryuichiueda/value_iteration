@@ -25,7 +25,8 @@ ViNode::ViNode() : private_nh_("~")
 	private_nh_.param("goal_margin_theta", goal_margin_theta, 10);
 
 	vi_.reset(new ValueIterator(res.map, *actions_, theta_cell_num, thread_num, 
-				safety_radius, goal_margin_radius, goal_margin_theta));
+				safety_radius, safety_radius_penalty,
+				goal_margin_radius, goal_margin_theta));
 
 	setCommunication();
 }
