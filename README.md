@@ -80,14 +80,24 @@ The value iteration procedure rises up through the action `value_iteration/ViAct
     * number of threads used on value iteration
 * ~safety_radius (double, default: 0.2[m]) 
     * distance that should be kept between the center of the robot and an occupancy grid 
+* ~safety_radius_penalty (double, default: 30[s], max: 1,000,000,000[s]) 
+    * immediate penarty (negative immediate reward in the field of reinforcement learning) when the robot invades the safety radius. 
 * ~goal_margin_radius (double, default: 0.2[m]) 
     * radius of the goal on xy-plane
 * ~goal_margin_theta (int, default: 10[deg]) 
     * radius of the goal on theta-axis
 
+max: 1,000,000,000
+
 ### vi_controller_turtle_env
 
 This node receives the 2D Nav Goal from RViz and sends it to vi_node. It is implemented in `scripts/vi_turtle_env.py`.
+
+## Notes
+
+### What's the cost means?
+
+It is the sum of costs from a pose (position + orientation) to a point of goal. The cost means the time. Therefore, it means the time required to reach the goal if immediate penarties don't exist. As shown in the parameter list, we can define some kinds of immediate penalties, which are quantified in units of seconds. 
 
 ## acknowledgement
 

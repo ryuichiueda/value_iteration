@@ -46,7 +46,8 @@ private:
 public: 
 	ValueIterator(nav_msgs::OccupancyGrid &map, vector<Action> &actions,
 		int theta_cell_num, int thread_num,
-		double safety_radius, double goal_margin_radius, int goal_margin_theta);
+		double safety_radius, double safety_radius_penalty,
+		double goal_margin_radius, int goal_margin_theta);
 
 	Action *posToAction(double x, double y, double t_rad);
 
@@ -73,7 +74,7 @@ public:
 
 const unsigned char ValueIterator::resolution_xy_bit_ = 6;
 const unsigned char ValueIterator::resolution_t_bit_ = 6;
-const unsigned char ValueIterator::prob_base_bit_ = ValueIterator::resolution_xy_bit_+ValueIterator::resolution_xy_bit_+ValueIterator::resolution_t_bit_;
+const unsigned char ValueIterator::prob_base_bit_ = ValueIterator::resolution_xy_bit_*2+ValueIterator::resolution_t_bit_;
 const uint64_t ValueIterator::prob_base_ = 1<<ValueIterator::prob_base_bit_;
 const uint64_t ValueIterator::max_cost_ = 1000000000*ValueIterator::prob_base_;
 

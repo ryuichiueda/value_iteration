@@ -12,9 +12,11 @@ ViNode::ViNode() : private_nh_("~")
 	int theta_cell_num;
 	int thread_num;
 	double safety_radius;
+	double safety_radius_penalty;
 	private_nh_.param("theta_cell_num", theta_cell_num, 60);
 	private_nh_.param("thread_num", thread_num, 1);
 	private_nh_.param("safety_radius", safety_radius, 0.2);
+	private_nh_.param("safety_radius_penalty", safety_radius_penalty, 30.0);
 
 	
 	double goal_margin_radius;
