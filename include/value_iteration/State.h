@@ -16,7 +16,8 @@ public:
 	bool _final_state;
 	Action *_optimal_action;
 
-	State(int x, int y, int theta, const nav_msgs::OccupancyGrid &map, int margin, int x_num);
+	State(int x, int y, int theta, const nav_msgs::OccupancyGrid &map,
+		int margin, double margin_penalty, int x_num);
 };
 
 }

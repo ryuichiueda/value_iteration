@@ -220,7 +220,7 @@ void ValueIterator::setState(const nav_msgs::OccupancyGrid &map, double safety_r
 	for(int y=0; y<cell_num_y_; y++)
 		for(int x=0; x<cell_num_x_; x++)
 			for(int t=0; t<cell_num_t_; t++)
-				states_.push_back(State(x, y, t, map, margin, cell_num_x_));
+				states_.push_back(State(x, y, t, map, margin, safety_radius_penalty, cell_num_x_));
 }
 
 void ValueIterator::setStateValues(void)
