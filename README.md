@@ -48,6 +48,7 @@ The value iteration procedure rises up through the action `value_iteration/ViAct
 * /cmd_vel ([geometry_msgs/Twist](http://docs.ros.org/en/melodic/api/geometry_msgs/html/msg/Twist.html))
     * the control order to the robot; published only when the parameter `online` is true
 
+
 #### Parameters
 
 * action_list
@@ -86,8 +87,19 @@ The value iteration procedure rises up through the action `value_iteration/ViAct
     * radius of the goal on xy-plane
 * ~goal_margin_theta (int, default: 10[deg]) 
     * radius of the goal on theta-axis
+* ~map_type (string, default: occupancy) 
+    * choice of map for setting immediate costs and occupancy
 
-max: 1,000,000,000
+#### Maps
+
+This node uses an accupancy grid map. In `launch/vi_turtle_online.launch`, you can find the following line.
+
+```
+  <arg name="map_file" default="$(find turtlebot3_navigation)/maps/map.yaml"/>
+```
+
+TODO: or you can use a cost map, in which immediate cost of each cell is written in units of seconds. Cells given 255 as their immediate costs are regarded as occupancy cells.
+
 
 ### vi_controller_turtle_env
 
