@@ -44,14 +44,15 @@ private:
 
 	int toIndex(int ix, int iy, int it);
 public: 
-	ValueIterator(nav_msgs::OccupancyGrid &map, vector<Action> &actions,
-		int theta_cell_num, int thread_num,
-		double safety_radius, double safety_radius_penalty,
-		double goal_margin_radius, int goal_margin_theta);
+	ValueIterator(vector<Action> &actions, int thread_num);
 
 	Action *posToAction(double x, double y, double t_rad);
 
 	void outputPbmMap(void);
+
+	void setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int theta_cell_num,
+		double safety_radius, double safety_radius_penalty,
+		double goal_margin_radius, int goal_margin_theta);
 
 	void setGoal(double goal_x, double goal_y, int goal_t);
 

@@ -5,15 +5,19 @@
 
 namespace value_iteration{
 
-/* ROSの地図をもらって各セルの情報からStateのオブジェクトを作ってstatesというベクトルに突っ込む */
-ValueIterator::ValueIterator(nav_msgs::OccupancyGrid &map, 
-		std::vector<Action> &actions, int theta_cell_num, int thread_num,
+ValueIterator::ValueIterator(std::vector<Action> &actions, int thread_num)
+	: actions_(actions), thread_num_(thread_num), goal_x_(0.0), goal_y_(0.0), goal_t_(0)
+{
+}
+
+void ValueIterator::setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int theta_cell_num,
 		double safety_radius, double safety_radius_penalty,
 		double goal_margin_radius, int goal_margin_theta)
-	: actions_(actions), cell_num_t_(theta_cell_num), thread_num_(thread_num), 
-	  goal_x_(0.0), goal_y_(0.0), goal_t_(0), 
-	  goal_margin_radius_(goal_margin_radius), goal_margin_theta_(goal_margin_theta)
 {
+	cell_num_t_ = theta_cell_num;
+	goal_margin_radius_ = goal_margin_radius;
+	goal_margin_theta_ = goal_margin_theta;
+
 	cell_num_x_ = map.info.width;
 	cell_num_y_ = map.info.height;
 
