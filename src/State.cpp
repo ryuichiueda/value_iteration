@@ -39,7 +39,10 @@ State::State(int x, int y, int theta, unsigned int cost)
 	_final_state = false;
 	_optimal_action = NULL;
 	_free = (cost != 255);
-	penalty_ = _free ? cost : 0;
+	penalty_ = _free ? (cost << ValueIterator::prob_base_bit_) : 0;
+
+	if(penalty_ != 0)
+		ROS_INFO("%ld", penalty_);
 }
 
 }
