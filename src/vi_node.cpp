@@ -35,19 +35,43 @@ void ViNode::setMap(nav_msgs::GetMap::Response &res)
 	private_nh_.param("goal_margin_radius", goal_margin_radius, 0.2);
 	private_nh_.param("goal_margin_theta", goal_margin_theta, 10);
 
-	while(!ros::service::waitForService("/static_map", ros::Duration(3.0))){
-		ROS_INFO("Waiting for static_map");
-	}
+	std::string map_type;
+	private_nh_.param("map_type", map_type, std::string("occupancy"));
 
-	ros::ServiceClient client = nh_.serviceClient<nav_msgs::GetMap>("/static_map");
-	nav_msgs::GetMap::Request req;
-	if(not client.call(req, res)){
-		ROS_ERROR("static_map not working");
+	if(map_type == "occupancy"){
+		while(!ros::service::waitForService("/static_map", ros::Duration(3.0))){
+			ROS_INFO("Waiting for static_map");
+		}
+
+		ros::ServiceClient client = nh_.serviceClient<nav_msgs::GetMap>("/static_map");
+		nav_msgs::GetMap::Request req;
+		if(not client.call(req, res)){
+			ROS_ERROR("static_map not working");
+			exit(1);
+		}
+	
+		vi_->setMapWithOccupancyGrid(res.map, theta_cell_num, safety_radius, safety_radius_penalty,
+			goal_margin_radius, goal_margin_theta);
+	}else if(map_type == "cost"){
+		while(!ros::service::waitForService("/cost_map", ros::Duration(3.0))){
+			ROS_INFO("Waiting for cost_map");
+		}
+
+		ros::ServiceClient client = nh_.serviceClient<nav_msgs::GetMap>("/cost_map");
+		nav_msgs::GetMap::Request req;
+		if(not client.call(req, res)){
+			ROS_ERROR("cost_map not working");
+			exit(1);
+		}
+		for(int i=0;i<100;i++)
+			ROS_INFO("%u", (unsigned int)(res.map.data[i] & 0xFF));
+	
+		vi_->setMapWithCostGrid(res.map, theta_cell_num, safety_radius, safety_radius_penalty,
+			goal_margin_radius, goal_margin_theta);
+	}else{
+		ROS_ERROR("NO SUPPORT MAP TYPE");
 		exit(1);
 	}
-
-	vi_->setMapWithOccupancyGrid(res.map, theta_cell_num, safety_radius, safety_radius_penalty,
-		goal_margin_radius, goal_margin_theta);
 }
 
 void ViNode::setCommunication(void)

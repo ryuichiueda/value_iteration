@@ -38,6 +38,10 @@
 
   <!-- Map server -->
   <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+  <node pkg="map_server" name="cost_map" type="map_server" args="$(find value_iteration)/maps/cost.yaml">
+    <remap from="static_map" to="cost_map" />
+    <remap from="map" to="cost_map_for_vi" />
+  </node>
 
   <!-- MCL -->
   <include file="$(find emcl)/launch/emcl.launch"/> 
@@ -59,6 +63,7 @@
     <param name="safety_radius" value="0.2" />
     <param name="goal_margin_radius" value="0.2" />
     <param name="goal_margin_theta" value="10" />
+    <param name="map_type" value="cost" />
   </node>
   <node pkg="value_iteration" name="vi_controller_turtle_env" type="vi_turtle_env.py" output="screen" required="true" />
 

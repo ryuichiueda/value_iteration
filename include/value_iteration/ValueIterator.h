@@ -54,6 +54,10 @@ public:
 		double safety_radius, double safety_radius_penalty,
 		double goal_margin_radius, int goal_margin_theta);
 
+	void setMapWithCostGrid(nav_msgs::OccupancyGrid &map, int theta_cell_num,
+		double safety_radius, double safety_radius_penalty,
+		double goal_margin_radius, int goal_margin_theta);
+
 	void setGoal(double goal_x, double goal_y, int goal_t);
 
 	void valueIterationWorker(int times, int id);

@@ -31,6 +31,36 @@ void ValueIterator::setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int th
 	setStateTransition();
 }
 
+void ValueIterator::setMapWithCostGrid(nav_msgs::OccupancyGrid &map, int theta_cell_num,
+		double safety_radius, double safety_radius_penalty,
+		double goal_margin_radius, int goal_margin_theta)
+{
+	cell_num_t_ = theta_cell_num;
+	goal_margin_radius_ = goal_margin_radius;
+	goal_margin_theta_ = goal_margin_theta;
+
+	cell_num_x_ = map.info.width;
+	cell_num_y_ = map.info.height;
+
+	xy_resolution_ = map.info.resolution;
+	t_resolution_ = 360/cell_num_t_;
+
+	map_origin_x_ = map.info.origin.position.x;
+	map_origin_y_ = map.info.origin.position.y;
+
+	states_.clear();
+	int margin = (int)ceil(safety_radius/xy_resolution_);
+
+	for(int y=0; y<cell_num_y_; y++)
+		for(int x=0; x<cell_num_x_; x++){
+			unsigned int cost = (unsigned int)(map.data[x + cell_num_x_*y] & 0xFF);
+			for(int t=0; t<cell_num_t_; t++)
+				states_.push_back(State(x, y, t, cost));
+		}
+
+	setStateTransition();
+}
+
 bool ValueIterator::finished(std_msgs::UInt32MultiArray &sweep_times, std_msgs::Float32MultiArray &deltas)
 { 
 	sweep_times.data.resize(thread_num_);
@@ -200,7 +230,7 @@ uint64_t ValueIterator::actionCost(State &s, Action &a)
 	return cost + prob_base_;
 }
 
-/* statesのセルの情報をPBMとして出力（デバッグ用） */
+/*
 void ValueIterator::outputPbmMap(void)
 {
 	ofstream ofs("/tmp/a.pbm");
@@ -215,6 +245,7 @@ void ValueIterator::outputPbmMap(void)
 
 	ofs << flush;
 }
+*/
 
 void ValueIterator::setState(const nav_msgs::OccupancyGrid &map, double safety_radius, double safety_radius_penalty)
 {

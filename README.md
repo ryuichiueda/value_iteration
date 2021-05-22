@@ -36,7 +36,9 @@ The value iteration procedure rises up through the action `value_iteration/ViAct
 #### Services Called
 
 * static_map ([nav_msgs/GetMap](http://docs.ros.org/en/api/nav_msgs/html/srv/GetMap.html))
-    * Initiate the map for localization.
+    * Initiate the map for value iteration.
+* cost_map ([nav_msgs/GetMap](http://docs.ros.org/en/api/nav_msgs/html/srv/GetMap.html))
+    * It can be used instead of `static_map`. (please read Maps section)
 
 #### Subscribed Topics
 
@@ -79,27 +81,51 @@ The value iteration procedure rises up through the action `value_iteration/ViAct
     * number of intervals of the discrete state space on theta-axis
 * ~thread_num (int, default: 4) 
     * number of threads used on value iteration
-* ~safety_radius (double, default: 0.2[m]) 
-    * distance that should be kept between the center of the robot and an occupancy grid 
-* ~safety_radius_penalty (double, default: 30[s], max: 1,000,000,000[s]) 
-    * immediate penarty (negative immediate reward in the field of reinforcement learning) when the robot invades the safety radius. 
 * ~goal_margin_radius (double, default: 0.2[m]) 
     * radius of the goal on xy-plane
 * ~goal_margin_theta (int, default: 10[deg]) 
     * radius of the goal on theta-axis
-* ~map_type (string, default: occupancy) 
-    * choice of map for setting immediate costs and occupancy
+* ~map_type (string, "cost" or "occupancy", default: occupancy) 
+    * choice of map for setting immediate costs and occupancy (please read the Maps section)
 
 #### Maps
 
-This node uses an accupancy grid map. In `launch/vi_turtle_online.launch`, you can find the following line.
+We can choose two types of maps for initializing parametes of states. 
+
+##### occupancy mode: 
+
+A cost map is created from an occupancy grid map. Occupied cells are marked as roped-off area. Moreover, cells near occupied ones are given immediate penalty. The near cells and the value of the penalty are controlled through the following parametes. 
+
+* parapeters
+    * ~safety_radius (double, default: 0.2[m]) 
+        * distance that should be kept between the center of the robot and an occupancy grid 
+    * ~safety_radius_penalty (double, default: 30[s], max: 1,000,000,000[s]) 
+        * immediate penality (negative immediate reward in the field of reinforcement learning) when the robot invades the safety radius. 
+
+##### cost mode:
+
+We can also use a "cost map," which contains the immediate cost of every cell. This map should be written with "[Raw mode](http://wiki.ros.org/map_server#Raw)". In a map, cells given 255 are regarded as roped-off cells. Cells with other values are free cells but are given the values as their immediate costs. 
+
+There are an information file (`cost.yaml`) and a map file (`cost.pgm`) in the `maps` directory. The information file must contains the line `mode: raw` as shown below.
 
 ```
-  <arg name="map_file" default="$(find turtlebot3_navigation)/maps/map.yaml"/>
+image: ./cost.pgm
+resolution: 0.050000
+origin: [-10.000000, -10.000000, 0.000000]
+negate: 0
+occupied_thresh: 0.65 #not used
+free_thresh: 0.196    #not used
+mode: raw
 ```
 
-TODO: or you can use a cost map, in which immediate cost of each cell is written in units of seconds. Cells given 255 as their immediate costs are regarded as occupancy cells.
+`vi_node` reads a cost map from a service `cost_map`. In `launch/vi_turtle_online.launch`, you can find the following lines so as to provice the cost map through `cost_map`. 
 
+```
+  <node pkg="map_server" name="cost_map" type="map_server" args="$(find value_iteration)/maps/cost.yaml">
+    <remap from="static_map" to="cost_map" />
+    <remap from="map" to="cost_map_for_vi" />  <!-- This line avoids this node to provide the map to RViz. -->
+  </node>
+```
 
 ### vi_controller_turtle_env
 

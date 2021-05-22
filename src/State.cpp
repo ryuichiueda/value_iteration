@@ -30,4 +30,16 @@ State::State(int x, int y, int theta, const nav_msgs::OccupancyGrid &map,
 	}
 }
 
+State::State(int x, int y, int theta, unsigned int cost)
+{
+	_ix = x;
+	_iy = y;
+	_it = theta;
+	total_cost_ = ValueIterator::max_cost_;
+	_final_state = false;
+	_optimal_action = NULL;
+	_free = (cost != 255);
+	penalty_ = _free ? cost : 0;
+}
+
 }
