@@ -2,7 +2,7 @@
 
 namespace value_iteration{
 
-ViNode::ViNode() : private_nh_("~") 
+ViNode::ViNode() : private_nh_("~"), yaw_(0.0), x_(0.0), y_(0.0)
 {
 	setActions();
 
@@ -84,6 +84,8 @@ void ViNode::setCommunication(void)
 		sub_pose_ = nh_.subscribe("mcl_pose", 2, &ViNode::poseReceived, this);
 	}
 
+	pub_value_function_ = nh_.advertise<nav_msgs::OccupancyGrid>("value_function", 2, true);
+
 	as_.reset(new actionlib::SimpleActionServer<value_iteration::ViAction>( nh_, "vi_controller",
 				boost::bind(&ViNode::executeVi, this, _1), false));
 	as_->start();
@@ -113,11 +115,13 @@ void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr
 {
 	auto &ori = msg->pose.pose.orientation;	
 	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
-	double roll, pitch, yaw;
-	tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
+	double roll, pitch;
+	tf::Matrix3x3(q).getRPY(roll, pitch, yaw_);
 
-	Action *a = vi_->posToAction(msg->pose.pose.position.x,
-				msg->pose.pose.position.y, yaw);
+	x_ = msg->pose.pose.position.x;
+	y_ = msg->pose.pose.position.y;
+
+	Action *a = vi_->posToAction(x_, y_, yaw_);
 
 	geometry_msgs::Twist cmd_vel;
 	cmd_vel.linear.x = 0.0;
@@ -169,6 +173,14 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	as_->setSucceeded(vi_result);
 }
 
+
+void ViNode::pubValueFunction(void)
+{
+	nav_msgs::OccupancyGrid map;
+	vi_->makeValueFunctionMap(map, x_, y_, yaw_);
+	pub_value_function_.publish(map);
+}
+
 }
 
 int main(int argc, char **argv)
@@ -176,8 +188,9 @@ int main(int argc, char **argv)
 	ros::init(argc,argv,"vi_node");
 	value_iteration::ViNode vi_node;
 
-	ros::Rate loop_rate(1);
+	ros::Rate loop_rate(3);
 	while(ros::ok()){
+		vi_node.pubValueFunction();
 		ros::spinOnce();
 		loop_rate.sleep();
 	}

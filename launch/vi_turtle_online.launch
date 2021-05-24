@@ -63,7 +63,8 @@
     <param name="safety_radius" value="0.2" />
     <param name="goal_margin_radius" value="0.2" />
     <param name="goal_margin_theta" value="10" />
-    <param name="map_type" value="cost" />
+    <param name="map_type" value="occupancy" />
+<!--    <param name="map_type" value="cost" /> -->
   </node>
   <node pkg="value_iteration" name="vi_controller_turtle_env" type="vi_turtle_env.py" output="screen" required="true" />
 

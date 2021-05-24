@@ -27,6 +27,7 @@ public:
 	ViNode();
 	~ViNode();
 
+	void pubValueFunction(void);
 private:
 	vector<Action> *actions_;
 	shared_ptr<ValueIterator> vi_;
@@ -37,10 +38,10 @@ private:
 	ros::ServiceServer srv_value_;
 
 	ros::Publisher pub_cmd_vel_;
+	ros::Publisher pub_value_function_;
 	ros::Subscriber sub_pose_;
 
 	shared_ptr<actionlib::SimpleActionServer<value_iteration::ViAction> > as_;
-
 
 	void executeVi(const value_iteration::ViGoalConstPtr &goal);
 	bool servePolicy(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response);
@@ -51,6 +52,8 @@ private:
 	void setActions(void);
 	void setMap(nav_msgs::GetMap::Response &res);
 	void setCommunication(void);
+
+	double x_, y_, yaw_;
 };
 
 }

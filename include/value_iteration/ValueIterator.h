@@ -26,6 +26,7 @@ private:
 
 	double map_origin_x_;
 	double map_origin_y_;
+	geometry_msgs::Quaternion map_origin_quat_;
 
 	const static unsigned char resolution_xy_bit_, resolution_t_bit_;
 
@@ -65,6 +66,9 @@ public:
 
 	bool actionImageWriter(grid_map_msgs::GetGridMap::Response& response);
 	bool outputValuePgmMap(grid_map_msgs::GetGridMap::Response& response);
+
+	void makeValueFunctionMap(nav_msgs::OccupancyGrid &map,
+			double x, double y, double yaw_rad);
 
 	double goal_x_, goal_y_, goal_margin_radius_;
 	int goal_t_, goal_margin_theta_;

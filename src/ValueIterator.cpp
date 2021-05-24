@@ -26,6 +26,7 @@ void ValueIterator::setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int th
 
 	map_origin_x_ = map.info.origin.position.x;
 	map_origin_y_ = map.info.origin.position.y;
+	map_origin_quat_ = map.info.origin.orientation;
 
 	setState(map, safety_radius, safety_radius_penalty);
 	setStateTransition();
@@ -47,6 +48,7 @@ void ValueIterator::setMapWithCostGrid(nav_msgs::OccupancyGrid &map, int theta_c
 
 	map_origin_x_ = map.info.origin.position.x;
 	map_origin_y_ = map.info.origin.position.y;
+	map_origin_quat_ = map.info.origin.orientation;
 
 	states_.clear();
 	int margin = (int)ceil(safety_radius/xy_resolution_);
@@ -416,6 +418,44 @@ void ValueIterator::setGoal(double goal_x, double goal_y, int goal_t)
 
 	status_.clear();
 	setStateValues();
+}
+
+void ValueIterator::makeValueFunctionMap(nav_msgs::OccupancyGrid &map,
+		double x, double y, double yaw_rad)
+{
+	map.header.stamp = ros::Time::now();
+	map.header.frame_id = "map";
+	map.info.resolution = xy_resolution_;
+	map.info.width = cell_num_x_;
+	map.info.height = cell_num_y_;
+	map.info.origin.position.x = map_origin_x_;
+	map.info.origin.position.y = map_origin_y_;
+	
+	map.info.origin.orientation = map_origin_quat_;
+        int it = (int)floor( ( ((int)(yaw_rad/M_PI*180) + 360*100)%360 )/t_resolution_ );
+        int ix = (int)floor( (x - map_origin_x_)/xy_resolution_ );
+        int iy = (int)floor( (y - map_origin_y_)/xy_resolution_ );
+
+	double current_cost = (double)states_[toIndex(ix, iy, it)].total_cost_;
+	if(current_cost == 0.0)
+		current_cost = 0.000001;
+
+	uint64_t min = max_cost_;
+	uint64_t max = 0;
+	for(int y=0; y<cell_num_y_; y++)
+		for(int x=0; x<cell_num_x_; x++){
+			int index = toIndex(x, y, it);
+			double cost = (double)states_[index].total_cost_;
+
+			int c = (int)((current_cost - cost)/current_cost * 128) + 127;
+			if(c < 0)
+				c = 0;
+			else if(c > 255)
+				c = 255;
+
+			map.data.push_back(c);
+		}
+
 }
 
 }
