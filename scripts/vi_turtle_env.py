@@ -6,7 +6,8 @@ from geometry_msgs.msg import PoseStamped
 import actionlib
 
 def vi_state_cb(feedback):
-    print(feedback)
+    rospy.loginfo("SWEEPS: " + ", ".join(str(e) for e in feedback.current_sweep_times.data))
+    rospy.loginfo("DELTAS: " + ", ".join(str(e) for e in feedback.deltas.data))
 
 def vi_client(data):
     client = actionlib.SimpleActionClient('/vi_controller', ViAction)
@@ -21,7 +22,7 @@ def vi_client(data):
 def receive_goal(data):
     rospy.loginfo(data)
     result = vi_client(data)
-    print(result)
+    rospy.loginfo(result)
 
 if __name__ == '__main__':
     rospy.init_node('vi_controller_turtle_env')

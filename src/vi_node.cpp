@@ -147,6 +147,7 @@ bool ViNode::serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_ms
 
 void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 {
+	ROS_INFO("VALUE ITERATION START");
 	auto &ori = goal->goal.pose.orientation;	
 	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
 	double roll, pitch, yaw;
@@ -159,9 +160,11 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 		ths.push_back(thread(&ValueIterator::valueIterationWorker, vi_.get(), INT_MAX, t));
 
 	value_iteration::ViFeedback vi_feedback;
+
+	ros::Rate loop_rate(10);
 	while(not vi_->finished(vi_feedback.current_sweep_times, vi_feedback.deltas)){
 		as_->publishFeedback(vi_feedback);
-		sleep(1);
+		loop_rate.sleep();
 	}
 	as_->publishFeedback(vi_feedback);
 
@@ -171,6 +174,7 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	value_iteration::ViResult vi_result;
 	vi_result.finished = true;
 	as_->setSucceeded(vi_result);
+	ROS_INFO("VALUE ITERATION END");
 }
 
 

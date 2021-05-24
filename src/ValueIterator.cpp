@@ -232,23 +232,6 @@ uint64_t ValueIterator::actionCost(State &s, Action &a)
 	return cost + prob_base_;
 }
 
-/*
-void ValueIterator::outputPbmMap(void)
-{
-	ofstream ofs("/tmp/a.pbm");
-
-	ofs << "P1" << endl;
-	ofs << cell_num_x_ << " " << cell_num_y_ << endl;
-	int i = 0;
-	while(i<states_.size()){
-		ofs << states_[i]._free << " ";
-		i += cell_num_t_;
-	}
-
-	ofs << flush;
-}
-*/
-
 void ValueIterator::setState(const nav_msgs::OccupancyGrid &map, double safety_radius, double safety_radius_penalty)
 {
 	states_.clear();
