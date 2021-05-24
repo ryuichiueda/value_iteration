@@ -188,11 +188,15 @@ int main(int argc, char **argv)
 	ros::init(argc,argv,"vi_node");
 	value_iteration::ViNode vi_node;
 
+	int step = 0;
 	ros::Rate loop_rate(10);
 	while(ros::ok()){
-		vi_node.pubValueFunction();
+		if(step % 30 == 0)
+			vi_node.pubValueFunction();
+
 		ros::spinOnce();
 		loop_rate.sleep();
+		step++;
 	}
 
 	return 0;
