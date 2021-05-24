@@ -20,7 +20,6 @@ def vi_client(data):
     return client.get_result()
 
 def receive_goal(data):
-    rospy.loginfo(data)
     result = vi_client(data)
     rospy.loginfo(result)
 

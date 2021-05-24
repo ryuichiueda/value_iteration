@@ -399,6 +399,8 @@ void ValueIterator::setGoal(double goal_x, double goal_y, int goal_t)
 	goal_y_ = goal_y;
 	goal_t_ = goal_t;
 
+	ROS_INFO("GOAL: %f, %f, %d", goal_x_, goal_y_, goal_t_);
+
 	status_.clear();
 	setStateValues();
 }
@@ -430,7 +432,8 @@ void ValueIterator::makeValueFunctionMap(nav_msgs::OccupancyGrid &map,
 			int index = toIndex(x, y, it);
 			double cost = (double)states_[index].total_cost_;
 
-			int c = (int)((current_cost - cost)/current_cost * 128) + 127;
+	//		int c = (int)((current_cost - cost)/current_cost * 128) + 127;
+			int c = 128 - (int)((current_cost - cost)/current_cost * 128);
 			if(c < 0)
 				c = 0;
 			else if(c > 255)
