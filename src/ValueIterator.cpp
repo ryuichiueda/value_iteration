@@ -28,8 +28,10 @@ void ValueIterator::setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int th
 	map_origin_y_ = map.info.origin.position.y;
 	map_origin_quat_ = map.info.origin.orientation;
 
+	ROS_INFO("SET STATES START");
 	setState(map, safety_radius, safety_radius_penalty);
 	setStateTransition();
+	ROS_INFO("SET STATES END");
 }
 
 void ValueIterator::setMapWithCostGrid(nav_msgs::OccupancyGrid &map, int theta_cell_num,
@@ -432,7 +434,6 @@ void ValueIterator::makeValueFunctionMap(nav_msgs::OccupancyGrid &map,
 			int index = toIndex(x, y, it);
 			double cost = (double)states_[index].total_cost_;
 
-	//		int c = (int)((current_cost - cost)/current_cost * 128) + 127;
 			int c = 128 - (int)((current_cost - cost)/current_cost * 128);
 			if(c < 0)
 				c = 0;
