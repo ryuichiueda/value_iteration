@@ -104,7 +104,7 @@ void ViNode::setActions(void)
 
 	for(int i=0; i<action_list.size(); i++){
 		auto &a = action_list[i];
-		actions_->push_back(Action(a["name"], a["onestep_forward_m"], a["onestep_rotation_deg"], i, a["essential"]));
+		actions_->push_back(Action(a["name"], a["onestep_forward_m"], a["onestep_rotation_deg"], i));
 
 		auto &b = actions_->back();
 		ROS_INFO("set an action: %s, %f, %f", b._name.c_str(), b._delta_fw, b._delta_rot);
@@ -147,7 +147,7 @@ bool ViNode::serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_ms
 
 void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 {
-	ROS_INFO("VALUE ITERATION PHASE1 START");
+	ROS_INFO("VALUE ITERATION START");
 	auto &ori = goal->goal.pose.orientation;	
 	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
 	double roll, pitch, yaw;
@@ -157,7 +157,7 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 
 	vector<thread> ths;
 	for(int t=0; t<vi_->thread_num_; t++)
-		ths.push_back(thread(&ValueIterator::valueIterationWorker, vi_.get(), INT_MAX, t, true));
+		ths.push_back(thread(&ValueIterator::valueIterationWorker, vi_.get(), INT_MAX, t));
 
 	value_iteration::ViFeedback vi_feedback;
 
@@ -171,25 +171,10 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	for(auto &th : ths)
 		th.join();
 
-	ROS_INFO("VALUE ITERATION PHASE1 END");
-
-	ths.clear();
-	for(int t=0; t<vi_->thread_num_; t++)
-		ths.push_back(thread(&ValueIterator::valueIterationWorker, vi_.get(), INT_MAX, t, false));
-
-	while(not vi_->finished(vi_feedback.current_sweep_times, vi_feedback.deltas)){
-		as_->publishFeedback(vi_feedback);
-		loop_rate.sleep();
-	}
-	as_->publishFeedback(vi_feedback);
-
-	for(auto &th : ths)
-		th.join();
-
 	value_iteration::ViResult vi_result;
 	vi_result.finished = true;
 	as_->setSucceeded(vi_result);
-	ROS_INFO("VALUE ITERATION PHASE2 END");
+	ROS_INFO("VALUE ITERATION END");
 }
 
 

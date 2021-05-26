@@ -2,7 +2,7 @@
 
 namespace value_iteration{
 
-Action::Action(std::string name, double fw, double rot, int id, bool essential) : id_(id), essential_(essential)
+Action::Action(std::string name, double fw, double rot, int id) : id_(id)
 {
 	_name = name;
 

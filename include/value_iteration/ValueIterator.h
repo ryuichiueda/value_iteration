@@ -40,7 +40,7 @@ private:
 	void setStateTransitionWorkerSub(Action &a, int it);
 	void cellDelta(double x, double y, double t, int &ix, int &iy, int &it);
 
-	uint64_t valueIteration(State &s, bool only_essential);
+	uint64_t valueIteration(State &s);
 	uint64_t actionCost(State &s, Action &a);
 
 	int toIndex(int ix, int iy, int it);
@@ -61,7 +61,7 @@ public:
 
 	void setGoal(double goal_x, double goal_y, int goal_t);
 
-	void valueIterationWorker(int times, int id, bool only_essential);
+	void valueIterationWorker(int times, int id);
 	map<int, SweepWorkerStatus> status_; 
 
 	bool actionImageWriter(grid_map_msgs::GetGridMap::Response& response);

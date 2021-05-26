@@ -9,15 +9,13 @@ namespace value_iteration{
 
 class Action{
 public:
-	Action(std::string name, double fw, double rot, int id, bool essential);
+	Action(std::string name, double fw, double rot, int id);
 
 	std::string _name;
 	double _delta_fw;  //forward traveling distance[m]
 	double _delta_rot;  //rotation[deg]
 
 	int id_;
-
-	bool essential_;
 
 //	double _delta_fw_stdev;
 //	double _delta_rot_stdev;
