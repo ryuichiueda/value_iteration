@@ -157,7 +157,7 @@ void ValueIterator::setStateTransitionWorkerSub(Action &a, int it)
 	}
 }
 
-uint64_t ValueIterator::valueIteration(State &s)
+uint64_t ValueIterator::valueIteration(State &s, bool only_essential)
 {
 	if((not s._free) or s._final_state)
 		return 0;
@@ -165,6 +165,9 @@ uint64_t ValueIterator::valueIteration(State &s)
 	uint64_t min_cost = ValueIterator::max_cost_;
 	Action *min_action = NULL;
 	for(auto &a : actions_){
+		if(only_essential and not a.essential_)
+			continue; 
+
 		int64_t c = actionCost(s, a);
 		if(c < min_cost){
 			min_cost = c;
@@ -179,7 +182,7 @@ uint64_t ValueIterator::valueIteration(State &s)
 	return delta > 0 ? delta : -delta;
 }
 
-void ValueIterator::valueIterationWorker(int times, int id)
+void ValueIterator::valueIterationWorker(int times, int id, bool only_essential)
 {
 	status_.insert(make_pair(id, SweepWorkerStatus()));
 	ROS_INFO("state space address this thread using: %p", &states_[0]); 
@@ -191,9 +194,9 @@ void ValueIterator::valueIterationWorker(int times, int id)
 	
 		int start = rand()%states_.size();
 		for(int i=start; i<states_.size(); i++)
-			max_delta = max(max_delta, valueIteration(states_[i]));
+			max_delta = max(max_delta, valueIteration(states_[i], only_essential));
 		for(int i=start-1; i>=0; i--)
-			max_delta = max(max_delta, valueIteration(states_[i]));
+			max_delta = max(max_delta, valueIteration(states_[i], only_essential));
 	
 		status_[id]._delta = (double)(max_delta >> prob_base_bit_);
 		if(status_[id]._delta < 0.1)

@@ -9,21 +9,27 @@
         - name: forward
           onestep_forward_m: 0.3
           onestep_rotation_deg: 0.0
+          essential: true
         - name: back
           onestep_forward_m: -0.2
           onestep_rotation_deg: 0.0
+          essential: false
         - name: right
           onestep_forward_m: 0.0
           onestep_rotation_deg: -20.0
+          essential: true
         - name: rightfw
           onestep_forward_m: 0.2
           onestep_rotation_deg: -20.0
+          essential: false
         - name: left
           onestep_forward_m: 0.0
           onestep_rotation_deg: 20.0
+          essential: true
         - name: leftfw
           onestep_forward_m: 0.2
           onestep_rotation_deg: 20.0
+          essential: false
   </rosparam>
 
   <!-- Arguments -->
