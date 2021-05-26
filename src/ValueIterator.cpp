@@ -229,12 +229,13 @@ uint64_t ValueIterator::actionCost(State &s, Action &a)
 		if(not after_s._free)
 			return max_cost_;
 
-		cost += ( (after_s.total_cost_ + after_s.penalty_ ) >> prob_base_bit_ ) * tran._prob;
+		//cost += ( (after_s.total_cost_ + after_s.penalty_ ) >> prob_base_bit_ ) * tran._prob;
+		cost += ( after_s.total_cost_ + after_s.penalty_ ) * tran._prob;
 		//if(after_s.penalty_ != 0)
 		//	ROS_INFO("%ld %ld", after_s.penalty_, cost);
 	}
 
-	return cost + prob_base_;
+	return (cost >> prob_base_bit_) + prob_base_;
 }
 
 void ValueIterator::setState(const nav_msgs::OccupancyGrid &map, double safety_radius, double safety_radius_penalty)
@@ -382,13 +383,19 @@ Action *ValueIterator::posToAction(double x, double y, double t_rad)
 
         int t = (int)(180 * t_rad / M_PI);
         int it = (int)floor( ( (t + 360*100)%360 )/t_resolution_ );
-	ROS_INFO("CELL: %d, %d, %d", ix, iy, it);
 	int index = toIndex(ix, iy, it);
 
-	ROS_INFO("VALUE: %f", (double)states_[index].total_cost_/ValueIterator::prob_base_);
-
-	if(states_[index]._final_state)
+	if(states_[index]._final_state){
+		ROS_INFO("goal");
 		return NULL;
+	}else if(states_[index]._optimal_action == NULL){
+		return NULL;
+	}
+
+	ROS_INFO("CELL: %d, %d, %d. VALUE: %f ACTION: %s.",
+			ix, iy, it,
+			(double)states_[index].total_cost_/ValueIterator::prob_base_,
+			states_[index]._optimal_action->_name.c_str());
 
 	return states_[index]._optimal_action;
 }
@@ -428,7 +435,7 @@ void ValueIterator::makeValueFunctionMap(nav_msgs::OccupancyGrid &map,
 
 	double current_cost = (double)states_[toIndex(ix, iy, it)].total_cost_;
 	if(current_cost == 0.0)
-		current_cost = 0.000001;
+		current_cost = 60.0;
 
 	uint64_t min = max_cost_;
 	uint64_t max = 0;
