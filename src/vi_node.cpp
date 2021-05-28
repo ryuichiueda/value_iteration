@@ -2,7 +2,7 @@
 
 namespace value_iteration{
 
-ViNode::ViNode() : private_nh_("~"), yaw_(0.0), x_(0.0), y_(0.0)
+ViNode::ViNode() : private_nh_("~"), yaw_(0.0), x_(0.0), y_(0.0), status_("init"), online_("false")
 {
 	setActions();
 
@@ -76,9 +76,8 @@ void ViNode::setMap(nav_msgs::GetMap::Response &res)
 
 void ViNode::setCommunication(void)
 {
-	bool online;
-	private_nh_.param("online", online, false);
-	if(online){
+	private_nh_.param("online", online_, false);
+	if(online_){
 		ROS_INFO("SET ONLINE");
 		pub_cmd_vel_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 2, true);
 		sub_pose_ = nh_.subscribe("mcl_pose", 2, &ViNode::poseReceived, this);
@@ -113,6 +112,9 @@ void ViNode::setActions(void)
 
 void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg)
 {
+	if(status_ != "calculating" and status_ != "calculated")
+		return;
+
 	auto &ori = msg->pose.pose.orientation;	
 	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
 	double roll, pitch;
@@ -121,7 +123,10 @@ void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr
 	x_ = msg->pose.pose.position.x;
 	y_ = msg->pose.pose.position.y;
 
-	Action *a = vi_->posToAction(x_, y_, yaw_);
+	bool goal;
+	Action *a = vi_->posToAction(x_, y_, yaw_, goal);
+	if(goal)
+		status_ = "goal";
 
 	geometry_msgs::Twist cmd_vel;
 	cmd_vel.linear.x = 0.0;
@@ -148,6 +153,7 @@ bool ViNode::serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_ms
 void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 {
 	ROS_INFO("VALUE ITERATION START");
+	status_ = "calculating";
 	auto &ori = goal->goal.pose.orientation;	
 	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
 	double roll, pitch, yaw;
@@ -171,10 +177,17 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	for(auto &th : ths)
 		th.join();
 
+	status_ = "calculated";
+	ROS_INFO("VALUE ITERATION END");
+
+	while(online_ and status_ != "goal"){
+		loop_rate.sleep();
+	}
+
+	ROS_INFO("GOAL");
 	value_iteration::ViResult vi_result;
 	vi_result.finished = true;
 	as_->setSucceeded(vi_result);
-	ROS_INFO("VALUE ITERATION END");
 }
 
 

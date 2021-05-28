@@ -372,8 +372,9 @@ bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& respo
 }
 
 
-Action *ValueIterator::posToAction(double x, double y, double t_rad)
+Action *ValueIterator::posToAction(double x, double y, double t_rad, bool &goal)
 {
+	goal = false;
         int ix = (int)floor( (x - map_origin_x_)/xy_resolution_ );
         int iy = (int)floor( (y - map_origin_y_)/xy_resolution_ );
 
@@ -382,14 +383,14 @@ Action *ValueIterator::posToAction(double x, double y, double t_rad)
 	int index = toIndex(ix, iy, it);
 
 	if(states_[index]._final_state){
-		ROS_INFO("goal");
+		goal = true;
 		return NULL;
 	}else if(states_[index]._optimal_action == NULL){
 		return NULL;
 	}
 
-	ROS_INFO("CELL: %d, %d, %d. VALUE: %f ACTION: %s.",
-			ix, iy, it,
+	ROS_INFO("POS: (%f, %f, %f) VALUE: %f ACTION: %s",
+			x, y, t_rad/M_PI*180, 
 			(double)states_[index].total_cost_/ValueIterator::prob_base_,
 			states_[index]._optimal_action->_name.c_str());
 

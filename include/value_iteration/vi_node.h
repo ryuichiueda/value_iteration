@@ -54,6 +54,9 @@ private:
 	void setCommunication(void);
 
 	double x_, y_, yaw_;
+
+	string status_;
+	bool online_;
 };
 
 }

@@ -5,7 +5,14 @@ from value_iteration.msg import ViAction, ViGoal
 from geometry_msgs.msg import PoseStamped
 import actionlib
 
-pos = [(6.0, -2.0, math.pi/2), (3.5, 1.5, math.pi/3) ]
+pos = [(6.0, -2.0, math.pi/2), 
+        (3.0, 3.0, math.pi/3),
+        (4.0, -1.0, math.pi*1.5), 
+        (1.0, 2.0, 0.0),
+        (-4.0, -1.0, 0.0),
+        (-2.0, 4.5, math.pi),
+        (-7.0, -3.0, math.pi/4*3),
+        (-7.0, 2.0, math.pi/4*7) ]
 
 def vi_state_cb(feedback):
     rospy.loginfo("SWEEPS: " + ", ".join(str(e) for e in feedback.current_sweep_times.data))
@@ -38,10 +45,5 @@ if __name__ == '__main__':
         goal.pose.orientation.w = q[3]
 
         vi_client(goal)
-
-        r = rospy.Rate(1)
-        while True:
-            r.sleep()
-
 
     #rospy.spin()
