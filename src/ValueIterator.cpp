@@ -182,7 +182,6 @@ uint64_t ValueIterator::valueIteration(State &s)
 void ValueIterator::valueIterationWorker(int times, int id)
 {
 	status_.insert(make_pair(id, SweepWorkerStatus()));
-	//ROS_INFO("state space address this thread using: %p", &states_[0]); 
 
 	for(int j=0; j<times; j++){
 		status_[id]._sweep_step = j+1;
