@@ -6,7 +6,8 @@
 namespace value_iteration{
 
 ValueIterator::ValueIterator(std::vector<Action> &actions, int thread_num)
-	: actions_(actions), thread_num_(thread_num), goal_x_(0.0), goal_y_(0.0), goal_t_(0)
+	: actions_(actions), thread_num_(thread_num),
+	  goal_x_(0.0), goal_y_(0.0), goal_t_(0)
 {
 	local_ix_min_ = local_ix_max_ = local_iy_min_ = local_iy_max_ = 0;
 }

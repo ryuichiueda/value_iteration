@@ -113,8 +113,14 @@ void ViNode::setActions(void)
 
 void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg)
 {
-	if(status_ != "calculating" and status_ != "calculated")
+	geometry_msgs::Twist cmd_vel;
+	cmd_vel.linear.x = 0.0;
+	cmd_vel.angular.z = 0.0;
+
+	if(status_ != "calculating" and status_ != "calculated"){
+		pub_cmd_vel_.publish(cmd_vel);
 		return;
+	}
 
 	auto &ori = msg->pose.pose.orientation;	
 	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
@@ -130,9 +136,6 @@ void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr
 	if(goal)
 		status_ = "goal";
 
-	geometry_msgs::Twist cmd_vel;
-	cmd_vel.linear.x = 0.0;
-	cmd_vel.angular.z = 0.0;
 	if(a != NULL){
 		cmd_vel.linear.x = a->_delta_fw;
 		cmd_vel.angular.z= a->_delta_rot/180*M_PI;
@@ -177,6 +180,10 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	ros::Rate loop_rate(10);
 	while(not vi_->finished(vi_feedback.current_sweep_times, vi_feedback.deltas)){
 		as_->publishFeedback(vi_feedback);
+
+		if(as_->isPreemptRequested())
+			status_ = "canceled";
+
 		loop_rate.sleep();
 	}
 	as_->publishFeedback(vi_feedback);
@@ -187,7 +194,10 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	status_ = "calculated";
 	ROS_INFO("VALUE ITERATION END");
 
-	while(online_ and status_ != "goal"){
+	while(online_ and status_ != "goal" and status_ != "canceled"){
+		if(as_->isPreemptRequested())
+			status_ = "canceled";
+
 		loop_rate.sleep();
 	}
 
