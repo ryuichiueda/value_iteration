@@ -73,6 +73,6 @@
     <param name="map_type" value="occupancy" />
 <!--    <param name="map_type" value="cost" /> -->
   </node>
-  <node pkg="value_iteration" name="vi_controller_turtle_env" type="vi_turtle_env.py" output="screen" required="true" />
+  <node pkg="value_iteration" name="vi_controller_turtle_env" type="vi_controller.py" output="screen" required="true" />
 
 </launch>

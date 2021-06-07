@@ -11,6 +11,7 @@ def vi_state_cb(feedback):
 
 def vi_client(data):
     client = actionlib.SimpleActionClient('/vi_controller', ViAction)
+    old_client = client
     client.wait_for_server()
 
     goal = ViGoal()
