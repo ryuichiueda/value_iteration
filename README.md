@@ -2,6 +2,8 @@
 
 a global planner for mobile robots based on value iteration
 
+[![](https://img.youtube.com/vi/AsjQZ3WDI-Q/0.jpg)](https://www.youtube.com/watch?v=AsjQZ3WDI-Q)
+
 ## Nodes
 
 ### vi_node
