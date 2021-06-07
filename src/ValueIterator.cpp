@@ -228,7 +228,7 @@ uint64_t ValueIterator::actionCost(State &s, Action &a)
 		cost += ( after_s.total_cost_ + after_s.penalty_ ) * tran._prob;
 	}
 
-	return (cost >> prob_base_bit_) + prob_base_;
+	return cost >> prob_base_bit_;
 }
 
 void ValueIterator::setState(const nav_msgs::OccupancyGrid &map, double safety_radius, double safety_radius_penalty)
