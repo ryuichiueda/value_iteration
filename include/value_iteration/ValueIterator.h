@@ -48,6 +48,7 @@ public:
 	ValueIterator(vector<Action> &actions, int thread_num);
 
 	Action *posToAction(double x, double y, double t_rad, bool &goal);
+	Action *posToActionLocal(double x, double y, double t_rad, bool &goal);
 
 	void outputPbmMap(void);
 
