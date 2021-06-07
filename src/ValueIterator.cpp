@@ -8,6 +8,7 @@ namespace value_iteration{
 ValueIterator::ValueIterator(std::vector<Action> &actions, int thread_num)
 	: actions_(actions), thread_num_(thread_num), goal_x_(0.0), goal_y_(0.0), goal_t_(0)
 {
+	local_ix_min_ = local_ix_max_ = local_iy_min_ = local_iy_max_ = 0;
 }
 
 void ValueIterator::setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int theta_cell_num,
@@ -23,6 +24,7 @@ void ValueIterator::setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int th
 
 	xy_resolution_ = map.info.resolution;
 	t_resolution_ = 360/cell_num_t_;
+	local_ixy_range_ = (int)(2.0/xy_resolution_);
 
 	map_origin_x_ = map.info.origin.position.x;
 	map_origin_y_ = map.info.origin.position.y;
@@ -159,7 +161,7 @@ void ValueIterator::setStateTransitionWorkerSub(Action &a, int it)
 
 uint64_t ValueIterator::valueIteration(State &s)
 {
-	if((not s._free) or s._final_state)
+	if((not s.free_) or s.final_state_)
 		return 0;
 
 	uint64_t min_cost = ValueIterator::max_cost_;
@@ -174,7 +176,7 @@ uint64_t ValueIterator::valueIteration(State &s)
 
 	int64_t delta = min_cost - s.total_cost_;
 	s.total_cost_ = min_cost;
-	s._optimal_action = min_action;
+	s.optimal_action_ = min_action;
 
 	return delta > 0 ? delta : -delta;
 }
@@ -207,6 +209,16 @@ int ValueIterator::toIndex(int ix, int iy, int it)
 	return it + ix*cell_num_t_ + iy*(cell_num_t_*cell_num_x_);
 }
 
+bool ValueIterator::inMapArea(int ix, int iy)
+{
+	return ix >= 0 and ix < cell_num_x_ and iy >= 0 and iy < cell_num_y_;
+}
+
+bool ValueIterator::inLocalArea(int ix, int iy)
+{
+	return ix >= local_ix_min_ and ix <= local_ix_max_ and iy >= local_iy_min_ and iy <= local_iy_max_;
+}
+
 uint64_t ValueIterator::actionCost(State &s, Action &a)
 {
 	uint64_t cost = 0;
@@ -222,7 +234,7 @@ uint64_t ValueIterator::actionCost(State &s, Action &a)
 		int it = (tran._dit + cell_num_t_)%cell_num_t_;
 
 		auto &after_s = states_[toIndex(ix, iy, it)];
-		if(not after_s._free)
+		if(not after_s.free_)
 			return max_cost_;
 
 		cost += ( after_s.total_cost_ + after_s.penalty_ ) * tran._prob;
@@ -254,22 +266,22 @@ void ValueIterator::setStateValues(void)
 		double y1 = y0 + xy_resolution_;
 		double r1 = (x1 - goal_x_)*(x1 - goal_x_) + (y1 - goal_y_)*(y1 - goal_y_);
 
-		s._final_state = r0 < goal_margin_radius_*goal_margin_radius_ 
+		s.final_state_ = r0 < goal_margin_radius_*goal_margin_radius_ 
 			       && r1 < goal_margin_radius_*goal_margin_radius_
-			       && s._free;
+			       && s.free_;
 
 		/* orientation check */
 		int t0 = s._it*t_resolution_;
 		int t1 = (s._it+1)*t_resolution_;
 		int goal_t_2 = goal_t_ > 180 ? goal_t_ - 360 : goal_t_ + 360;
 
-		s._final_state &= 
+		s.final_state_ &= 
 			(goal_t_ - goal_margin_theta_ <= t0 and t1 <= goal_t_ + goal_margin_theta_) or 
 			(goal_t_2 - goal_margin_theta_ <= t0 and t1 <= goal_t_2 + goal_margin_theta_);
 	}
 
 	for(auto &s : states_)
-		s.total_cost_ = s._final_state ? 0 : max_cost_;
+		s.total_cost_ = s.final_state_ ? 0 : max_cost_;
 }
 
 bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& response)
@@ -295,6 +307,7 @@ bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& respo
 	grid_map::GridMapRosConverter::toMessage(map, message);
 	response.map = message;
 
+	/*
 	for(int t=0; t<cell_num_t_; t++){
 		ofstream ofs("/tmp/value_t=" + to_string(t) + ".pgm");
 
@@ -303,7 +316,7 @@ bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& respo
 		int i = t;
 		while(i<states_.size()){
 			uint64_t v = states_[i].total_cost_*5 >> prob_base_bit_;
-			if(states_[i]._free and v <= 255)
+			if(states_[i].free_ and v <= 255)
 				ofs << 255 - v << '\n';
 			else
 				ofs << 0 << '\n';
@@ -312,6 +325,7 @@ bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& respo
 		}
 		ofs << flush;
 	}
+	*/
 	return true;
 }
 
@@ -328,10 +342,10 @@ bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& respo
 		int i = t;
 		while(i<states_.size()){
 			auto &s = states_[i];
-			if(s._optimal_action == NULL){
+			if(s.optimal_action_ == NULL){
 				map.at(name, grid_map::Index(s._ix, s._iy)) = -1.0;
 			}else{
-				map.at(name, grid_map::Index(s._ix, s._iy)) = (double)s._optimal_action->id_;
+				map.at(name, grid_map::Index(s._ix, s._iy)) = (double)s.optimal_action_->id_;
 			}
 
 			i += cell_num_t_;
@@ -342,6 +356,7 @@ bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& respo
 	grid_map::GridMapRosConverter::toMessage(map, message);
 	response.map = message;
 
+	/*
 	for(int t=0; t<cell_num_t_; t++){
 		ofstream action_file("/tmp/action_t=" + to_string(t) + ".ppm");
 
@@ -350,13 +365,13 @@ bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& respo
 		int i = t;
 		while(i<states_.size()){
 
-			if(states_[i]._optimal_action == NULL){
+			if(states_[i].optimal_action_ == NULL){
 				action_file << "0 0 0" << endl;
-			}else if(states_[i]._optimal_action->_name == "forward"){
+			}else if(states_[i].optimal_action_->_name == "forward"){
 				action_file << "0 255 0" << endl;
-			}else if(states_[i]._optimal_action->_name == "left"){
+			}else if(states_[i].optimal_action_->_name == "left"){
 				action_file << "0 0 255" << endl;
-			}else if(states_[i]._optimal_action->_name == "right"){
+			}else if(states_[i].optimal_action_->_name == "right"){
 				action_file << "255 0 0" << endl;
 			}
 			i += cell_num_t_;
@@ -364,6 +379,7 @@ bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& respo
 
 		action_file << flush;
 	}
+	*/
 
 	return true;
 }
@@ -379,19 +395,86 @@ Action *ValueIterator::posToAction(double x, double y, double t_rad, bool &goal)
         int it = (int)floor( ( (t + 360*100)%360 )/t_resolution_ );
 	int index = toIndex(ix, iy, it);
 
-	if(states_[index]._final_state){
+	if(states_[index].final_state_){
 		goal = true;
 		return NULL;
-	}else if(states_[index]._optimal_action == NULL){
+	}else if(states_[index].optimal_action_ == NULL){
 		return NULL;
 	}
 
 	ROS_INFO("POS: (%f, %f, %f) VALUE: %f ACTION: %s",
 			x, y, t_rad/M_PI*180, 
 			(double)states_[index].total_cost_/ValueIterator::prob_base_,
-			states_[index]._optimal_action->_name.c_str());
+			states_[index].optimal_action_->_name.c_str());
 
-	return states_[index]._optimal_action;
+	return states_[index].optimal_action_;
+}
+
+Action *ValueIterator::posToActionLocal(double x, double y, double t_rad, bool &goal)
+{
+	goal = false;
+        int ix = (int)floor( (x - map_origin_x_)/xy_resolution_ );
+        int iy = (int)floor( (y - map_origin_y_)/xy_resolution_ );
+
+	//set for local cost map
+	local_ix_min_ = ix - local_ixy_range_ >=0 ? ix - local_ixy_range_ : 0;
+	local_iy_min_ = iy - local_ixy_range_ >=0 ? iy - local_ixy_range_ : 0;
+	local_ix_max_ = ix + local_ixy_range_ < cell_num_x_ ? ix + local_ixy_range_ : cell_num_x_-1;
+	local_iy_max_ = iy + local_ixy_range_ < cell_num_y_ ? ix + local_ixy_range_ : cell_num_y_-1;
+
+        int t = (int)(180 * t_rad / M_PI);
+        int it = (int)floor( ( (t + 360*100)%360 )/t_resolution_ );
+	int index = toIndex(ix, iy, it);
+
+	if(states_[index].final_state_){
+		goal = true;
+		return NULL;
+	}else if(states_[index].optimal_action_ == NULL){
+		return NULL;
+	}
+
+	// local plan 
+	
+	// local plan end
+
+	ROS_INFO("POS: (%f, %f, %f) VALUE: %f ACTION: %s",
+			x, y, t_rad/M_PI*180, 
+			(double)states_[index].total_cost_/ValueIterator::prob_base_,
+			states_[index].optimal_action_->_name.c_str());
+
+	return states_[index].optimal_action_;
+}
+
+void ValueIterator::setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, double x, double y, double t)
+{
+	double start_angle = msg->angle_min;
+	for(int i=0; i<msg->ranges.size(); i++){
+		double a = t + msg->angle_increment*i + start_angle;
+
+		double lx = x + msg->ranges[i]*cos(a);
+		double ly = y + msg->ranges[i]*sin(a);
+
+        	int ix = (int)floor( (lx - map_origin_x_)/xy_resolution_ );
+        	int iy = (int)floor( (ly - map_origin_y_)/xy_resolution_ );
+
+		if(not inLocalArea(ix, iy))
+			continue;
+
+		for(int it=0;it<cell_num_t_;it++){
+			int index = toIndex(ix, iy, it);
+
+			states_[index].local_penalty_ = 2048 << prob_base_bit_;
+		}
+	}
+
+	for(int ix=local_ix_min_;ix<=local_ix_max_;ix++){
+		for(int iy=local_iy_min_;iy<=local_iy_max_;iy++){
+			for(int it=0;it<cell_num_t_;it++){
+				int index = toIndex(ix, iy, it);
+				states_[index].local_penalty_ /= 2;
+			}
+		}
+	}
 }
 
 void ValueIterator::setGoal(double goal_x, double goal_y, int goal_t)
@@ -436,7 +519,8 @@ void ValueIterator::makeValueFunctionMap(nav_msgs::OccupancyGrid &map,
 	for(int y=0; y<cell_num_y_; y++)
 		for(int x=0; x<cell_num_x_; x++){
 			int index = toIndex(x, y, it);
-			double cost = (double)states_[index].total_cost_;
+//			double cost = (double)states_[index].total_cost_;
+			double cost = (double)states_[index].total_cost_ + (double)states_[index].local_penalty_;
 
 			int c = 128 - (int)((current_cost - cost)/current_cost * 128);
 			if(c < 0)

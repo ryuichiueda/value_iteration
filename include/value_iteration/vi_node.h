@@ -40,6 +40,7 @@ private:
 	ros::Publisher pub_cmd_vel_;
 	ros::Publisher pub_value_function_;
 	ros::Subscriber sub_pose_;
+	ros::Subscriber sub_laser_scan_;
 
 	shared_ptr<actionlib::SimpleActionServer<value_iteration::ViAction> > as_;
 
@@ -48,6 +49,7 @@ private:
 	bool serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response);
 
 	void poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg);
+	void scanReceived(const sensor_msgs::LaserScan::ConstPtr &msg);
 
 	void setActions(void);
 	void setMap(nav_msgs::GetMap::Response &res);
@@ -61,4 +63,3 @@ private:
 
 }
 #endif
-
