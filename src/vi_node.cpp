@@ -153,7 +153,7 @@ bool ViNode::serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_ms
 void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 {
 	ROS_INFO("VALUE ITERATION START");
-	status_ = "calculating";
+//	status_ = "calculating";
 	auto &ori = goal->goal.pose.orientation;	
 	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
 	double roll, pitch, yaw;
