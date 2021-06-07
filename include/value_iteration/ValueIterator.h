@@ -46,6 +46,10 @@ private:
 
 	int toIndex(int ix, int iy, int it);
 	bool inMapArea(int ix, int iy);
+	bool inLocalArea(int ix, int iy);
+
+	int local_ix_min_, local_ix_max_, local_iy_min_, local_iy_max_;
+	int local_ixy_range_;
 public: 
 	ValueIterator(vector<Action> &actions, int thread_num);
 

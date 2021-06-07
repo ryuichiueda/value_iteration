@@ -125,8 +125,8 @@ void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr
 	y_ = msg->pose.pose.position.y;
 
 	bool goal;
-	//Action *a = vi_->posToActionLocal(x_, y_, yaw_, goal);
-	Action *a = vi_->posToAction(x_, y_, yaw_, goal);
+	Action *a = vi_->posToActionLocal(x_, y_, yaw_, goal);
+	//Action *a = vi_->posToAction(x_, y_, yaw_, goal);
 	if(goal)
 		status_ = "goal";
 

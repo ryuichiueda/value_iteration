@@ -8,6 +8,7 @@ namespace value_iteration{
 ValueIterator::ValueIterator(std::vector<Action> &actions, int thread_num)
 	: actions_(actions), thread_num_(thread_num), goal_x_(0.0), goal_y_(0.0), goal_t_(0)
 {
+	local_ix_min_ = local_ix_max_ = local_iy_min_ = local_iy_max_ = 0;
 }
 
 void ValueIterator::setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int theta_cell_num,
@@ -23,6 +24,7 @@ void ValueIterator::setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int th
 
 	xy_resolution_ = map.info.resolution;
 	t_resolution_ = 360/cell_num_t_;
+	local_ixy_range_ = (int)(2.0/xy_resolution_);
 
 	map_origin_x_ = map.info.origin.position.x;
 	map_origin_y_ = map.info.origin.position.y;
@@ -210,6 +212,11 @@ int ValueIterator::toIndex(int ix, int iy, int it)
 bool ValueIterator::inMapArea(int ix, int iy)
 {
 	return ix >= 0 and ix < cell_num_x_ and iy >= 0 and iy < cell_num_y_;
+}
+
+bool ValueIterator::inLocalArea(int ix, int iy)
+{
+	return ix >= local_ix_min_ and ix <= local_ix_max_ and iy >= local_iy_min_ and iy <= local_iy_max_;
 }
 
 uint64_t ValueIterator::actionCost(State &s, Action &a)
@@ -409,6 +416,12 @@ Action *ValueIterator::posToActionLocal(double x, double y, double t_rad, bool &
         int ix = (int)floor( (x - map_origin_x_)/xy_resolution_ );
         int iy = (int)floor( (y - map_origin_y_)/xy_resolution_ );
 
+	//set for local cost map
+	local_ix_min_ = ix - local_ixy_range_ >=0 ? ix - local_ixy_range_ : 0;
+	local_iy_min_ = iy - local_ixy_range_ >=0 ? iy - local_ixy_range_ : 0;
+	local_ix_max_ = ix + local_ixy_range_ < cell_num_x_ ? ix + local_ixy_range_ : cell_num_x_-1;
+	local_iy_max_ = iy + local_ixy_range_ < cell_num_y_ ? ix + local_ixy_range_ : cell_num_y_-1;
+
         int t = (int)(180 * t_rad / M_PI);
         int it = (int)floor( ( (t + 360*100)%360 )/t_resolution_ );
 	int index = toIndex(ix, iy, it);
@@ -444,13 +457,22 @@ void ValueIterator::setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, do
         	int ix = (int)floor( (lx - map_origin_x_)/xy_resolution_ );
         	int iy = (int)floor( (ly - map_origin_y_)/xy_resolution_ );
 
-		if(not inMapArea(ix, iy))
+		if(not inLocalArea(ix, iy))
 			continue;
 
 		for(int it=0;it<cell_num_t_;it++){
 			int index = toIndex(ix, iy, it);
 
 			states_[index].local_penalty_ = 2048 << prob_base_bit_;
+		}
+	}
+
+	for(int ix=local_ix_min_;ix<=local_ix_max_;ix++){
+		for(int iy=local_iy_min_;iy<=local_iy_max_;iy++){
+			for(int it=0;it<cell_num_t_;it++){
+				int index = toIndex(ix, iy, it);
+				states_[index].local_penalty_ /= 2;
+			}
 		}
 	}
 }
