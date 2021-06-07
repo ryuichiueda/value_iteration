@@ -421,7 +421,19 @@ Action *ValueIterator::posToActionLocal(double x, double y, double t_rad, bool &
 	local_ix_min_ = ix - local_ixy_range_ >=0 ? ix - local_ixy_range_ : 0;
 	local_iy_min_ = iy - local_ixy_range_ >=0 ? iy - local_ixy_range_ : 0;
 	local_ix_max_ = ix + local_ixy_range_ < cell_num_x_ ? ix + local_ixy_range_ : cell_num_x_-1;
-	local_iy_max_ = iy + local_ixy_range_ < cell_num_y_ ? ix + local_ixy_range_ : cell_num_y_-1;
+	local_iy_max_ = iy + local_ixy_range_ < cell_num_y_ ? iy + local_ixy_range_ : cell_num_y_-1;
+
+	for(int iix=local_ix_min_;iix<=local_ix_max_;iix++){
+		for(int iiy=local_iy_min_;iiy<=local_iy_max_;iiy++){
+			for(int iit=0;iit<cell_num_t_;iit++){
+				int index = toIndex(iix, iiy, iit);
+				states_[index].local_optimal_action_ = states_[index].optimal_action_;
+				if(states_[index].local_total_cost_ == 0){
+					states_[index].local_total_cost_ = states_[index].total_cost_;
+				}
+			}
+		}
+	}
 
         int t = (int)(180 * t_rad / M_PI);
         int it = (int)floor( ( (t + 360*100)%360 )/t_resolution_ );
@@ -430,7 +442,7 @@ Action *ValueIterator::posToActionLocal(double x, double y, double t_rad, bool &
 	if(states_[index].final_state_){
 		goal = true;
 		return NULL;
-	}else if(states_[index].optimal_action_ == NULL){
+	}else if(states_[index].local_optimal_action_ == NULL){
 		return NULL;
 	}
 
@@ -440,10 +452,10 @@ Action *ValueIterator::posToActionLocal(double x, double y, double t_rad, bool &
 
 	ROS_INFO("POS: (%f, %f, %f) VALUE: %f ACTION: %s",
 			x, y, t_rad/M_PI*180, 
-			(double)states_[index].total_cost_/ValueIterator::prob_base_,
-			states_[index].optimal_action_->_name.c_str());
+			(double)states_[index].local_total_cost_/ValueIterator::prob_base_,
+			states_[index].local_optimal_action_->_name.c_str());
 
-	return states_[index].optimal_action_;
+	return states_[index].local_optimal_action_;
 }
 
 void ValueIterator::setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, double x, double y, double t)
