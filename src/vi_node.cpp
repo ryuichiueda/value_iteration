@@ -81,6 +81,7 @@ void ViNode::setCommunication(void)
 		ROS_INFO("SET ONLINE");
 		pub_cmd_vel_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 2, true);
 		sub_pose_ = nh_.subscribe("mcl_pose", 2, &ViNode::poseReceived, this);
+		sub_laser_scan_ = nh_.subscribe("scan", 2, &ViNode::scanReceived, this);
 	}
 
 	pub_value_function_ = nh_.advertise<nav_msgs::OccupancyGrid>("value_function", 2, true);
@@ -137,6 +138,11 @@ void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr
 		cmd_vel.angular.z= a->_delta_rot/180*M_PI;
 	}
 	pub_cmd_vel_.publish(cmd_vel);
+}
+
+void ViNode::scanReceived(const sensor_msgs::LaserScan::ConstPtr &msg)
+{
+	vi_->setLocalCost(msg, x_, y_, yaw_);
 }
 
 bool ViNode::servePolicy(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response)

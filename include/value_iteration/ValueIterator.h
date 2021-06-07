@@ -6,6 +6,7 @@
 #include "std_msgs/Float32MultiArray.h"
 #include "nav_msgs/GetMap.h"
 #include "nav_msgs/OccupancyGrid.h"
+#include "sensor_msgs/LaserScan.h"
 #include <grid_map_msgs/GetGridMap.h>
 #include <vector>
 #include <fstream>
@@ -44,6 +45,7 @@ private:
 	uint64_t actionCost(State &s, Action &a);
 
 	int toIndex(int ix, int iy, int it);
+	bool inMapArea(int ix, int iy);
 public: 
 	ValueIterator(vector<Action> &actions, int thread_num);
 
@@ -71,6 +73,10 @@ public:
 	void makeValueFunctionMap(nav_msgs::OccupancyGrid &map,
 			double x, double y, double yaw_rad);
 
+	bool finished(std_msgs::UInt32MultiArray &sweep_times, std_msgs::Float32MultiArray &deltas);
+
+	void setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, double x, double y, double t);
+
 	double goal_x_, goal_y_, goal_margin_radius_;
 	int goal_t_, goal_margin_theta_;
 	int thread_num_;
@@ -78,8 +84,6 @@ public:
 	const static uint64_t max_cost_;
 	const static uint64_t prob_base_;
 	const static unsigned char prob_base_bit_;
-
-	bool finished(std_msgs::UInt32MultiArray &sweep_times, std_msgs::Float32MultiArray &deltas);
 };
 
 const unsigned char ValueIterator::resolution_xy_bit_ = 6;

@@ -207,6 +207,11 @@ int ValueIterator::toIndex(int ix, int iy, int it)
 	return it + ix*cell_num_t_ + iy*(cell_num_t_*cell_num_x_);
 }
 
+bool ValueIterator::inMapArea(int ix, int iy)
+{
+	return ix >= 0 and ix < cell_num_x_ and iy >= 0 and iy < cell_num_y_;
+}
+
 uint64_t ValueIterator::actionCost(State &s, Action &a)
 {
 	uint64_t cost = 0;
@@ -427,6 +432,29 @@ Action *ValueIterator::posToActionLocal(double x, double y, double t_rad, bool &
 	return states_[index].optimal_action_;
 }
 
+void ValueIterator::setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, double x, double y, double t)
+{
+	double start_angle = msg->angle_min;
+	for(int i=0; i<msg->ranges.size(); i++){
+		double a = t + msg->angle_increment*i + start_angle;
+
+		double lx = x + msg->ranges[i]*cos(a);
+		double ly = y + msg->ranges[i]*sin(a);
+
+        	int ix = (int)floor( (lx - map_origin_x_)/xy_resolution_ );
+        	int iy = (int)floor( (ly - map_origin_y_)/xy_resolution_ );
+
+		if(not inMapArea(ix, iy))
+			continue;
+
+		for(int it=0;it<cell_num_t_;it++){
+			int index = toIndex(ix, iy, it);
+
+			states_[index].local_penalty_ = 2048 << prob_base_bit_;
+		}
+	}
+}
+
 void ValueIterator::setGoal(double goal_x, double goal_y, int goal_t)
 {
 	while(goal_t < 0)
@@ -469,7 +497,8 @@ void ValueIterator::makeValueFunctionMap(nav_msgs::OccupancyGrid &map,
 	for(int y=0; y<cell_num_y_; y++)
 		for(int x=0; x<cell_num_x_; x++){
 			int index = toIndex(x, y, it);
-			double cost = (double)states_[index].total_cost_;
+//			double cost = (double)states_[index].total_cost_;
+			double cost = (double)states_[index].total_cost_ + (double)states_[index].local_penalty_;
 
 			int c = 128 - (int)((current_cost - cost)/current_cost * 128);
 			if(c < 0)
