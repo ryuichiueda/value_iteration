@@ -175,6 +175,14 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	for(int t=0; t<vi_->thread_num_; t++)
 		ths.push_back(thread(&ValueIterator::valueIterationWorker, vi_.get(), INT_MAX, t));
 
+	static bool local_set = false;
+	thread local;
+	if(online_ and not local_set){
+		local = thread(&ValueIterator::localValueIterationWorker, vi_.get());
+		local.detach();
+		local_set = true;
+	}
+
 	value_iteration::ViFeedback vi_feedback;
 
 	ros::Rate loop_rate(10);

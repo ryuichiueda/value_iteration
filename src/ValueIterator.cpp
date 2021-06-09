@@ -182,6 +182,28 @@ uint64_t ValueIterator::valueIteration(State &s)
 	return delta > 0 ? delta : -delta;
 }
 
+uint64_t ValueIterator::valueIterationLocal(State &s)
+{
+	if((not s.free_) or s.final_state_)
+		return 0;
+
+	uint64_t min_cost = ValueIterator::max_cost_;
+	Action *min_action = NULL;
+	for(auto &a : actions_){
+		int64_t c = actionCostLocal(s, a);
+		if(c < min_cost){
+			min_cost = c;
+			min_action = &a;
+		}
+	}
+
+	int64_t delta = min_cost - s.local_total_cost_;
+	s.local_total_cost_ = min_cost;
+	s.local_optimal_action_ = min_action;
+
+	return delta > 0 ? delta : -delta;
+}
+
 void ValueIterator::valueIterationWorker(int times, int id)
 {
 	status_.insert(make_pair(id, SweepWorkerStatus()));
@@ -203,6 +225,35 @@ void ValueIterator::valueIterationWorker(int times, int id)
 	}
 
 	status_[id]._finished = true;
+}
+
+void ValueIterator::localValueIterationWorker(void)
+{
+	while(1){
+		/*
+		for(int iix=local_ix_min_-2;iix<local_ix_min_;iix++){
+			for(int iiy=local_iy_min_;iiy<=local_iy_max_;iiy++){
+				if(not inMapArea(iix, iiy))
+					continue;
+
+				for(int iit=0;iit<cell_num_t_;iit++){
+					int i = toIndex(iix, iiy, iit);
+					states_[i].local
+				}
+			}
+		}
+		*/
+
+
+		for(int iix=local_ix_min_;iix<=local_ix_max_;iix++){
+			for(int iiy=local_iy_min_;iiy<=local_iy_max_;iiy++){
+				for(int iit=0;iit<cell_num_t_;iit++){
+					int i = toIndex(iix, iiy, iit);
+					valueIterationLocal(states_[i]);
+				}
+			}
+		}
+	}
 }
 
 int ValueIterator::toIndex(int ix, int iy, int it)
@@ -239,6 +290,33 @@ uint64_t ValueIterator::actionCost(State &s, Action &a)
 			return max_cost_;
 
 		cost += ( after_s.total_cost_ + after_s.penalty_ ) * tran._prob;
+	}
+
+	return cost >> prob_base_bit_;
+}
+
+uint64_t ValueIterator::actionCostLocal(State &s, Action &a)
+{
+	uint64_t cost = 0;
+	for(auto &tran : a._state_transitions[s._it]){
+		int ix = s._ix + tran._dix;
+		if(ix < 0 or ix >= cell_num_x_)
+			return max_cost_;
+
+		int iy = s._iy + tran._diy;
+		if(iy < 0 or iy >= cell_num_y_)
+			return max_cost_;
+
+		int it = (tran._dit + cell_num_t_)%cell_num_t_;
+
+		auto &after_s = states_[toIndex(ix, iy, it)];
+		if(not after_s.free_)
+			return max_cost_;
+
+		if(inLocalArea(ix ,iy))
+			cost += ( after_s.local_total_cost_ + after_s.penalty_ + after_s.local_penalty_ ) * tran._prob;
+		else
+			cost += ( after_s.total_cost_ + after_s.penalty_ ) * tran._prob;
 	}
 
 	return cost >> prob_base_bit_;
@@ -281,8 +359,11 @@ void ValueIterator::setStateValues(void)
 			(goal_t_2 - goal_margin_theta_ <= t0 and t1 <= goal_t_2 + goal_margin_theta_);
 	}
 
-	for(auto &s : states_)
+	for(auto &s : states_){
 		s.total_cost_ = s.final_state_ ? 0 : max_cost_;
+		s.local_total_cost_ = s.total_cost_;
+		s.local_optimal_action_ = NULL;
+	}
 }
 
 bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& response)
@@ -403,10 +484,12 @@ Action *ValueIterator::posToAction(double x, double y, double t_rad, bool &goal)
 		return NULL;
 	}
 
+	/*
 	ROS_INFO("POS: (%f, %f, %f) VALUE: %f ACTION: %s",
 			x, y, t_rad/M_PI*180, 
 			(double)states_[index].total_cost_/ValueIterator::prob_base_,
 			states_[index].optimal_action_->_name.c_str());
+			*/
 
 	return states_[index].optimal_action_;
 }
@@ -423,17 +506,58 @@ Action *ValueIterator::posToActionLocal(double x, double y, double t_rad, bool &
 	local_ix_max_ = ix + local_ixy_range_ < cell_num_x_ ? ix + local_ixy_range_ : cell_num_x_-1;
 	local_iy_max_ = iy + local_ixy_range_ < cell_num_y_ ? iy + local_ixy_range_ : cell_num_y_-1;
 
-	for(int iix=local_ix_min_;iix<=local_ix_max_;iix++){
-		for(int iiy=local_iy_min_;iiy<=local_iy_max_;iiy++){
+	/*
+	for(int iix=local_ix_min_-2;iix<=local_ix_min_;iix++){
+		for(int iiy=local_iy_min_-2;iiy<=local_iy_max_+2;iiy++){
 			for(int iit=0;iit<cell_num_t_;iit++){
 				int index = toIndex(iix, iiy, iit);
-				states_[index].local_optimal_action_ = states_[index].optimal_action_;
-				if(states_[index].local_total_cost_ == 0){
-					states_[index].local_total_cost_ = states_[index].total_cost_;
-				}
+				states_[index].local_total_cost_ = states_[index].total_cost_;
 			}
 		}
 	}
+	for(int iix=local_ix_max_;iix<=local_ix_max_+2;iix++){
+		for(int iiy=local_iy_min_-2;iiy<=local_iy_max_+2;iiy++){
+			for(int iit=0;iit<cell_num_t_;iit++){
+				int index = toIndex(iix, iiy, iit);
+				states_[index].local_total_cost_ = states_[index].total_cost_;
+			}
+		}
+	}
+
+	for(int iiy=local_iy_min_-2;iiy<=local_iy_min_;iiy++){
+		for(int iix=local_ix_min_-2;iix<=local_ix_max_+2;iix++){
+			for(int iit=0;iit<cell_num_t_;iit++){
+				int index = toIndex(iix, iiy, iit);
+				states_[index].local_total_cost_ = states_[index].total_cost_;
+			}
+		}
+	}
+	for(int iiy=local_iy_max_;iiy<=local_iy_max_+2;iiy++){
+		for(int iix=local_ix_min_-2;iix<=local_ix_max_+2;iix++){
+			for(int iit=0;iit<cell_num_t_;iit++){
+				int index = toIndex(iix, iiy, iit);
+				states_[index].local_total_cost_ = states_[index].total_cost_;
+			}
+		}
+	}
+	*/
+
+	/*
+	// local plan 
+	ROS_INFO("LOCAL VI START");
+	for(int q=0;q<10;q++){
+	for(int iix=local_ix_min_;iix<=local_ix_max_;iix++){
+		for(int iiy=local_iy_min_;iiy<=local_iy_max_;iiy++){
+			for(int iit=0;iit<cell_num_t_;iit++){
+				int i = toIndex(iix, iiy, iit);
+				valueIterationLocal(states_[i]);
+			}
+		}
+	}
+}
+	ROS_INFO("LOCAL VI END");
+	// local plan end
+	 */
 
         int t = (int)(180 * t_rad / M_PI);
         int it = (int)floor( ( (t + 360*100)%360 )/t_resolution_ );
@@ -442,20 +566,30 @@ Action *ValueIterator::posToActionLocal(double x, double y, double t_rad, bool &
 	if(states_[index].final_state_){
 		goal = true;
 		return NULL;
-	}else if(states_[index].local_optimal_action_ == NULL){
-		return NULL;
-	}
-
-	// local plan 
-	
-	// local plan end
-
-	ROS_INFO("POS: (%f, %f, %f) VALUE: %f ACTION: %s",
+	}else if(states_[index].local_optimal_action_ != NULL){
+		ROS_INFO("USE LOCAL");
+		/*
+		ROS_INFO("POS: (%f, %f, %f) VALUE: %f ACTION: %s",
 			x, y, t_rad/M_PI*180, 
 			(double)states_[index].local_total_cost_/ValueIterator::prob_base_,
 			states_[index].local_optimal_action_->_name.c_str());
+			*/
 
-	return states_[index].local_optimal_action_;
+		return states_[index].local_optimal_action_;
+	}else if(states_[index].optimal_action_ != NULL){
+		ROS_INFO("USE GLOBAL");
+		/*
+		ROS_INFO("POS: (%f, %f, %f) VALUE: %f ACTION: %s",
+			x, y, t_rad/M_PI*180, 
+			(double)states_[index].total_cost_/ValueIterator::prob_base_,
+			states_[index].optimal_action_->_name.c_str());
+			*/
+
+		return states_[index].optimal_action_;
+	}
+
+	return NULL;
+
 }
 
 void ValueIterator::setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, double x, double y, double t)
@@ -470,13 +604,17 @@ void ValueIterator::setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, do
         	int ix = (int)floor( (lx - map_origin_x_)/xy_resolution_ );
         	int iy = (int)floor( (ly - map_origin_y_)/xy_resolution_ );
 
-		if(not inLocalArea(ix, iy))
-			continue;
+		for(int iix=ix-3;iix<=ix+3;iix++){
+			for(int iiy=iy-3;iiy<=iy+3;iiy++){
 
-		for(int it=0;it<cell_num_t_;it++){
-			int index = toIndex(ix, iy, it);
+				if(not inLocalArea(iix, iiy))
+					continue;
 
-			states_[index].local_penalty_ = 2048 << prob_base_bit_;
+				for(int it=0;it<cell_num_t_;it++){
+					int index = toIndex(iix, iiy, it);
+					states_[index].local_penalty_ = 2048 << prob_base_bit_;
+				}
+			}
 		}
 	}
 
@@ -532,8 +670,11 @@ void ValueIterator::makeValueFunctionMap(nav_msgs::OccupancyGrid &map,
 	for(int y=0; y<cell_num_y_; y++)
 		for(int x=0; x<cell_num_x_; x++){
 			int index = toIndex(x, y, it);
-//			double cost = (double)states_[index].total_cost_;
-			double cost = (double)states_[index].total_cost_ + (double)states_[index].local_penalty_;
+			//double cost = (double)states_[index].total_cost_ + (double)states_[index].local_penalty_;
+			
+			double cost = (double)states_[index].total_cost_;
+			if(cost < states_[index].local_total_cost_)
+				cost = (double)states_[index].local_total_cost_;
 
 			int c = 128 - (int)((current_cost - cost)/current_cost * 128);
 			if(c < 0)

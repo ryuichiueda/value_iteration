@@ -42,7 +42,9 @@ private:
 	void cellDelta(double x, double y, double t, int &ix, int &iy, int &it);
 
 	uint64_t valueIteration(State &s);
+	uint64_t valueIterationLocal(State &s);
 	uint64_t actionCost(State &s, Action &a);
+	uint64_t actionCostLocal(State &s, Action &a);
 
 	int toIndex(int ix, int iy, int it);
 	bool inMapArea(int ix, int iy);
@@ -69,6 +71,7 @@ public:
 	void setGoal(double goal_x, double goal_y, int goal_t);
 
 	void valueIterationWorker(int times, int id);
+	void localValueIterationWorker(void);
 	map<int, SweepWorkerStatus> status_; 
 
 	bool actionImageWriter(grid_map_msgs::GetGridMap::Response& response);
