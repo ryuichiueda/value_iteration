@@ -540,8 +540,8 @@ void ValueIterator::setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, do
         	int ix = (int)floor( (lx - map_origin_x_)/xy_resolution_ );
         	int iy = (int)floor( (ly - map_origin_y_)/xy_resolution_ );
 
-		for(int iix=ix-3;iix<=ix+3;iix++){
-			for(int iiy=iy-3;iiy<=iy+3;iiy++){
+		for(int iix=ix-2;iix<=ix+2;iix++){
+			for(int iiy=iy-2;iiy<=iy+2;iiy++){
 
 				if(not inLocalArea(iix, iiy))
 					continue;

@@ -68,8 +68,8 @@
     <param name="thread_num" value="8" />
     <param name="safety_radius" value="0.2" />
     <param name="safety_radius_penalty" value="100000" />
-    <param name="goal_margin_radius" value="0.2" />
-    <param name="goal_margin_theta" value="10" />
+    <param name="goal_margin_radius" value="0.3" />
+    <param name="goal_margin_theta" value="15" />
     <param name="map_type" value="occupancy" />
 <!--    <param name="map_type" value="cost" /> -->
   </node>
