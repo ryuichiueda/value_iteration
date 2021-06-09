@@ -234,7 +234,7 @@ void ValueIterator::localValueIterationWorker(void)
 			for(int iiy=local_iy_min_;iiy<=local_iy_max_;iiy++){
 				for(int iit=0;iit<cell_num_t_;iit++){
 					int i = toIndex(iix, iiy, iit);
-					if(states_[i].total_cost_ > states_[i].local_total_cost_){
+					if(states_[i].local_optimal_action_ == NULL){
 						states_[i].local_total_cost_ = states_[i].total_cost_;
 						states_[i].local_optimal_action_ = states_[i].optimal_action_;
 					}else
@@ -503,7 +503,6 @@ Action *ValueIterator::posToActionLocal(double x, double y, double t_rad, bool &
 		goal = true;
 		return NULL;
 	}else if(states_[index].local_optimal_action_ != NULL){
-		ROS_INFO("USE LOCAL");
 		/*
 		ROS_INFO("POS: (%f, %f, %f) VALUE: %f ACTION: %s",
 			x, y, t_rad/M_PI*180, 
@@ -513,7 +512,6 @@ Action *ValueIterator::posToActionLocal(double x, double y, double t_rad, bool &
 
 		return states_[index].local_optimal_action_;
 	}else if(states_[index].optimal_action_ != NULL){
-		ROS_INFO("USE GLOBAL");
 		/*
 		ROS_INFO("POS: (%f, %f, %f) VALUE: %f ACTION: %s",
 			x, y, t_rad/M_PI*180, 
