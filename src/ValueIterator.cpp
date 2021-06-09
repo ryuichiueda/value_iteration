@@ -230,26 +230,15 @@ void ValueIterator::valueIterationWorker(int times, int id)
 void ValueIterator::localValueIterationWorker(void)
 {
 	while(1){
-		/*
-		for(int iix=local_ix_min_-2;iix<local_ix_min_;iix++){
-			for(int iiy=local_iy_min_;iiy<=local_iy_max_;iiy++){
-				if(not inMapArea(iix, iiy))
-					continue;
-
-				for(int iit=0;iit<cell_num_t_;iit++){
-					int i = toIndex(iix, iiy, iit);
-					states_[i].local
-				}
-			}
-		}
-		*/
-
-
 		for(int iix=local_ix_min_;iix<=local_ix_max_;iix++){
 			for(int iiy=local_iy_min_;iiy<=local_iy_max_;iiy++){
 				for(int iit=0;iit<cell_num_t_;iit++){
 					int i = toIndex(iix, iiy, iit);
-					valueIterationLocal(states_[i]);
+					if(states_[i].total_cost_ > states_[i].local_total_cost_){
+						states_[i].local_total_cost_ = states_[i].total_cost_;
+						states_[i].local_optimal_action_ = states_[i].optimal_action_;
+					}else
+						valueIterationLocal(states_[i]);
 				}
 			}
 		}
@@ -506,59 +495,6 @@ Action *ValueIterator::posToActionLocal(double x, double y, double t_rad, bool &
 	local_ix_max_ = ix + local_ixy_range_ < cell_num_x_ ? ix + local_ixy_range_ : cell_num_x_-1;
 	local_iy_max_ = iy + local_ixy_range_ < cell_num_y_ ? iy + local_ixy_range_ : cell_num_y_-1;
 
-	/*
-	for(int iix=local_ix_min_-2;iix<=local_ix_min_;iix++){
-		for(int iiy=local_iy_min_-2;iiy<=local_iy_max_+2;iiy++){
-			for(int iit=0;iit<cell_num_t_;iit++){
-				int index = toIndex(iix, iiy, iit);
-				states_[index].local_total_cost_ = states_[index].total_cost_;
-			}
-		}
-	}
-	for(int iix=local_ix_max_;iix<=local_ix_max_+2;iix++){
-		for(int iiy=local_iy_min_-2;iiy<=local_iy_max_+2;iiy++){
-			for(int iit=0;iit<cell_num_t_;iit++){
-				int index = toIndex(iix, iiy, iit);
-				states_[index].local_total_cost_ = states_[index].total_cost_;
-			}
-		}
-	}
-
-	for(int iiy=local_iy_min_-2;iiy<=local_iy_min_;iiy++){
-		for(int iix=local_ix_min_-2;iix<=local_ix_max_+2;iix++){
-			for(int iit=0;iit<cell_num_t_;iit++){
-				int index = toIndex(iix, iiy, iit);
-				states_[index].local_total_cost_ = states_[index].total_cost_;
-			}
-		}
-	}
-	for(int iiy=local_iy_max_;iiy<=local_iy_max_+2;iiy++){
-		for(int iix=local_ix_min_-2;iix<=local_ix_max_+2;iix++){
-			for(int iit=0;iit<cell_num_t_;iit++){
-				int index = toIndex(iix, iiy, iit);
-				states_[index].local_total_cost_ = states_[index].total_cost_;
-			}
-		}
-	}
-	*/
-
-	/*
-	// local plan 
-	ROS_INFO("LOCAL VI START");
-	for(int q=0;q<10;q++){
-	for(int iix=local_ix_min_;iix<=local_ix_max_;iix++){
-		for(int iiy=local_iy_min_;iiy<=local_iy_max_;iiy++){
-			for(int iit=0;iit<cell_num_t_;iit++){
-				int i = toIndex(iix, iiy, iit);
-				valueIterationLocal(states_[i]);
-			}
-		}
-	}
-}
-	ROS_INFO("LOCAL VI END");
-	// local plan end
-	 */
-
         int t = (int)(180 * t_rad / M_PI);
         int it = (int)floor( ( (t + 360*100)%360 )/t_resolution_ );
 	int index = toIndex(ix, iy, it);
@@ -670,12 +606,8 @@ void ValueIterator::makeValueFunctionMap(nav_msgs::OccupancyGrid &map,
 	for(int y=0; y<cell_num_y_; y++)
 		for(int x=0; x<cell_num_x_; x++){
 			int index = toIndex(x, y, it);
-			//double cost = (double)states_[index].total_cost_ + (double)states_[index].local_penalty_;
+			double cost = (double)states_[index].total_cost_ + (double)states_[index].local_penalty_;
 			
-			double cost = (double)states_[index].total_cost_;
-			if(cost < states_[index].local_total_cost_)
-				cost = (double)states_[index].local_total_cost_;
-
 			int c = 128 - (int)((current_cost - cost)/current_cost * 128);
 			if(c < 0)
 				c = 0;
