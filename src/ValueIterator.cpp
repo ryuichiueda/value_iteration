@@ -183,6 +183,7 @@ uint64_t ValueIterator::valueIteration(State &s)
 	int64_t delta = min_cost - s.total_cost_;
 	s.total_cost_ = min_cost;
 	s.optimal_action_ = min_action;
+	s.renew_ = true;
 
 	return delta > 0 ? delta : -delta;
 }
@@ -239,9 +240,10 @@ void ValueIterator::localValueIterationWorker(void)
 			for(int iiy=local_iy_min_;iiy<=local_iy_max_;iiy++){
 				for(int iit=0;iit<cell_num_t_;iit++){
 					int i = toIndex(iix, iiy, iit);
-					if(states_[i].local_optimal_action_ == NULL){
+					if(states_[i].renew_){
 						states_[i].local_total_cost_ = states_[i].total_cost_;
 						states_[i].local_optimal_action_ = states_[i].optimal_action_;
+						states_[i].renew_ = false;
 					}else
 						valueIterationLocal(states_[i]);
 				}
@@ -354,6 +356,7 @@ void ValueIterator::setStateValues(void)
 	}
 
 	for(auto &s : states_){
+		s.renew_ = false;
 		s.total_cost_ = s.final_state_ ? 0 : max_cost_;
 		s.local_total_cost_ = s.total_cost_;
 		s.local_penalty_ = 0;

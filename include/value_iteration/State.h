@@ -14,6 +14,7 @@ public:
 	int _ix, _iy, _it;
 	bool free_;
 	bool final_state_;
+	bool renew_;
 
 	uint64_t local_total_cost_;
 	uint64_t local_penalty_;
