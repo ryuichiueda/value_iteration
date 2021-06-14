@@ -10,6 +10,8 @@ ViNode::ViNode() : private_nh_("~"), yaw_(0.0), x_(0.0), y_(0.0), status_("init"
 	private_nh_.param("thread_num", thread_num, 1);
 	vi_.reset(new ValueIterator(*actions_, thread_num));
 
+	private_nh_.param("cost_drawing_threshold", cost_drawing_threshold_, 60);
+
 	setCommunication();
 
 	nav_msgs::GetMap::Response res;
@@ -133,7 +135,6 @@ void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr
 
 	bool goal;
 	Action *a = vi_->posToActionLocal(x_, y_, yaw_, goal);
-	//Action *a = vi_->posToAction(x_, y_, yaw_, goal);
 	if(goal)
 		status_ = "goal";
 
@@ -221,10 +222,10 @@ void ViNode::pubValueFunction(void)
 {
 	nav_msgs::OccupancyGrid map, local_map;
 
-	vi_->makeValueFunctionMap(map, x_, y_, yaw_);
+	vi_->makeValueFunctionMap(map, cost_drawing_threshold_, x_, y_, yaw_);
 	pub_value_function_.publish(map);
 
-	vi_->makeLocalValueFunctionMap(local_map, x_, y_, yaw_);
+	vi_->makeLocalValueFunctionMap(local_map, cost_drawing_threshold_, x_, y_, yaw_);
 	pub_local_value_function_.publish(local_map);
 }
 

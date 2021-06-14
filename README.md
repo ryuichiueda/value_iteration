@@ -89,6 +89,8 @@ The value iteration procedure rises up through the action `value_iteration/ViAct
     * radius of the goal on theta-axis
 * ~map_type (string, "cost" or "occupancy", default: occupancy) 
     * choice of map for setting immediate costs and occupancy (please read the Maps section)
+* ~cost_drawing_threshold (int, default: 60[s]) 
+    * cost value related to the maximum gradation color
 
 #### Maps
 

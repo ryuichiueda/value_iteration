@@ -78,9 +78,9 @@ public:
 	bool policyWriter(grid_map_msgs::GetGridMap::Response& response);
 	bool valueFunctionWriter(grid_map_msgs::GetGridMap::Response& response);
 
-	void makeValueFunctionMap(nav_msgs::OccupancyGrid &map,
+	void makeValueFunctionMap(nav_msgs::OccupancyGrid &map, int threshold,
 			double x, double y, double yaw_rad);
-	void makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map,
+	void makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map, int threshold, 
 			double x, double y, double yaw_rad);
 
 	bool finished(std_msgs::UInt32MultiArray &sweep_times, std_msgs::Float32MultiArray &deltas);

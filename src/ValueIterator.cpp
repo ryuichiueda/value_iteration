@@ -528,7 +528,7 @@ void ValueIterator::setGoal(double goal_x, double goal_y, int goal_t)
 	setStateValues();
 }
 
-void ValueIterator::makeValueFunctionMap(nav_msgs::OccupancyGrid &map,
+void ValueIterator::makeValueFunctionMap(nav_msgs::OccupancyGrid &map, int threshold, 
 		double x, double y, double yaw_rad)
 {
 	map.header.stamp = ros::Time::now();
@@ -538,39 +538,25 @@ void ValueIterator::makeValueFunctionMap(nav_msgs::OccupancyGrid &map,
 	map.info.height = cell_num_y_;
 	map.info.origin.position.x = map_origin_x_;
 	map.info.origin.position.y = map_origin_y_;
-	
 	map.info.origin.orientation = map_origin_quat_;
+
         int it = (int)floor( ( ((int)(yaw_rad/M_PI*180) + 360*100)%360 )/t_resolution_ );
-        int ix = (int)floor( (x - map_origin_x_)/xy_resolution_ );
-        int iy = (int)floor( (y - map_origin_y_)/xy_resolution_ );
 
-	double current_cost = (double)states_[toIndex(ix, iy, it)].total_cost_;
-	if(current_cost == 0.0)
-		current_cost = 60.0;
-
-	uint64_t min = max_cost_;
-	uint64_t max = 0;
 	for(int y=0; y<cell_num_y_; y++)
 		for(int x=0; x<cell_num_x_; x++){
 			int index = toIndex(x, y, it);
-			if(states_[index].free_){
-				double cost = (double)states_[index].total_cost_;// + (double)states_[index].local_penalty_;
-				
-				int c = 128 - (int)((current_cost - cost)/current_cost * 128);
-				if(c < 0)
-					c = 0;
-				else if(c > 230)
-					c = 230;
-	
-				map.data.push_back(c);
-			}else{
+			double cost = (double)states_[index].total_cost_/prob_base_;
+			if(cost < (double)threshold)
+				map.data.push_back((int)(cost/threshold*250));
+			else if(states_[index].free_)
+				map.data.push_back(250);
+			else 
 				map.data.push_back(255);
-			}
 		}
 
 }
 
-void ValueIterator::makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map,
+void ValueIterator::makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map, int threshold,
 		double x, double y, double yaw_rad)
 {
 	map.header.stamp = ros::Time::now();
@@ -580,34 +566,20 @@ void ValueIterator::makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map,
 	map.info.height = local_ixy_range_*2 + 1;
 	map.info.origin.position.x = x - local_xy_range_;
 	map.info.origin.position.y = y - local_xy_range_;
-	
 	map.info.origin.orientation = map_origin_quat_;
+
         int it = (int)floor( ( ((int)(yaw_rad/M_PI*180) + 360*100)%360 )/t_resolution_ );
-        int ix = (int)floor( (x - map_origin_x_)/xy_resolution_ );
-        int iy = (int)floor( (y - map_origin_y_)/xy_resolution_ );
 
-	double current_cost = (double)states_[toIndex(ix, iy, it)].total_cost_;
-	if(current_cost == 0.0)
-		current_cost = 60.0;
-
-	uint64_t min = max_cost_;
-	uint64_t max = 0;
 	for(int y=local_iy_min_; y<=local_iy_max_; y++)
 		for(int x=local_ix_min_; x<=local_ix_max_; x++){
 			int index = toIndex(x, y, it);
-			if(states_[index].free_){
-				double cost = (double)states_[index].local_total_cost_;
-				
-				int c = 128 - (int)((current_cost - cost)/current_cost * 128);
-				if(c < 0)
-					c = 0;
-				else if(c > 230)
-					c = 230;
-	
-				map.data.push_back(c);
-			}else{
+			double cost = (double)states_[index].local_total_cost_/prob_base_;
+			if(cost < (double)threshold)
+				map.data.push_back((int)(cost/threshold*250));
+			else if(states_[index].free_)
+				map.data.push_back(250);
+			else 
 				map.data.push_back(255);
-			}
 		}
 }
 

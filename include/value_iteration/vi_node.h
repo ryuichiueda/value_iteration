@@ -60,6 +60,8 @@ private:
 
 	string status_;
 	bool online_;
+
+	int cost_drawing_threshold_;
 };
 
 }
