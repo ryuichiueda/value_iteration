@@ -39,6 +39,7 @@ private:
 
 	ros::Publisher pub_cmd_vel_;
 	ros::Publisher pub_value_function_;
+	ros::Publisher pub_local_value_function_;
 	ros::Subscriber sub_pose_;
 	ros::Subscriber sub_laser_scan_;
 

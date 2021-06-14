@@ -52,6 +52,7 @@ private:
 
 	int local_ix_min_, local_ix_max_, local_iy_min_, local_iy_max_;
 	int local_ixy_range_;
+	double local_xy_range_;
 public: 
 	ValueIterator(vector<Action> &actions, int thread_num);
 
@@ -74,10 +75,12 @@ public:
 	void localValueIterationWorker(void);
 	map<int, SweepWorkerStatus> status_; 
 
-	bool actionImageWriter(grid_map_msgs::GetGridMap::Response& response);
-	bool outputValuePgmMap(grid_map_msgs::GetGridMap::Response& response);
+	bool policyWriter(grid_map_msgs::GetGridMap::Response& response);
+	bool valueFunctionWriter(grid_map_msgs::GetGridMap::Response& response);
 
 	void makeValueFunctionMap(nav_msgs::OccupancyGrid &map,
+			double x, double y, double yaw_rad);
+	void makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map,
 			double x, double y, double yaw_rad);
 
 	bool finished(std_msgs::UInt32MultiArray &sweep_times, std_msgs::Float32MultiArray &deltas);

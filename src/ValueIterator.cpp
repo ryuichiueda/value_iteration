@@ -25,7 +25,12 @@ void ValueIterator::setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int th
 
 	xy_resolution_ = map.info.resolution;
 	t_resolution_ = 360/cell_num_t_;
-	local_ixy_range_ = (int)(2.0/xy_resolution_);
+	local_xy_range_ = 2.0;
+	local_ixy_range_ = (int)(local_xy_range_/xy_resolution_);
+	local_ix_min_ = 0;
+	local_iy_min_ = 0;
+	local_ix_max_ = local_ixy_range_*2;
+	local_iy_max_ = local_ixy_range_*2;
 
 	map_origin_x_ = map.info.origin.position.x;
 	map_origin_y_ = map.info.origin.position.y;
@@ -355,7 +360,7 @@ void ValueIterator::setStateValues(void)
 	}
 }
 
-bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& response)
+bool ValueIterator::valueFunctionWriter(grid_map_msgs::GetGridMap::Response& response)
 {
 	grid_map::GridMap map;
 	map.setFrameId("map");
@@ -378,29 +383,10 @@ bool ValueIterator::outputValuePgmMap(grid_map_msgs::GetGridMap::Response& respo
 	grid_map::GridMapRosConverter::toMessage(map, message);
 	response.map = message;
 
-	/*
-	for(int t=0; t<cell_num_t_; t++){
-		ofstream ofs("/tmp/value_t=" + to_string(t) + ".pgm");
-
-		ofs << "P2" << endl;
-		ofs << cell_num_x_ << " " << cell_num_y_ << " 255" << endl;
-		int i = t;
-		while(i<states_.size()){
-			uint64_t v = states_[i].total_cost_*5 >> prob_base_bit_;
-			if(states_[i].free_ and v <= 255)
-				ofs << 255 - v << '\n';
-			else
-				ofs << 0 << '\n';
-
-			i += cell_num_t_;
-		}
-		ofs << flush;
-	}
-	*/
 	return true;
 }
 
-bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& response)
+bool ValueIterator::policyWriter(grid_map_msgs::GetGridMap::Response& response)
 {
 	grid_map::GridMap map;
 	map.setFrameId("map");
@@ -426,31 +412,6 @@ bool ValueIterator::actionImageWriter(grid_map_msgs::GetGridMap::Response& respo
 	grid_map_msgs::GridMap message;
 	grid_map::GridMapRosConverter::toMessage(map, message);
 	response.map = message;
-
-	/*
-	for(int t=0; t<cell_num_t_; t++){
-		ofstream action_file("/tmp/action_t=" + to_string(t) + ".ppm");
-
-		action_file << "P3" << endl;
-		action_file << cell_num_x_ << " " << cell_num_y_ << " 255" << endl;
-		int i = t;
-		while(i<states_.size()){
-
-			if(states_[i].optimal_action_ == NULL){
-				action_file << "0 0 0" << endl;
-			}else if(states_[i].optimal_action_->_name == "forward"){
-				action_file << "0 255 0" << endl;
-			}else if(states_[i].optimal_action_->_name == "left"){
-				action_file << "0 0 255" << endl;
-			}else if(states_[i].optimal_action_->_name == "right"){
-				action_file << "255 0 0" << endl;
-			}
-			i += cell_num_t_;
-		}
-
-		action_file << flush;
-	}
-	*/
 
 	return true;
 }
@@ -503,22 +464,10 @@ Action *ValueIterator::posToActionLocal(double x, double y, double t_rad, bool &
 		goal = true;
 		return NULL;
 	}else if(states_[index].local_optimal_action_ != NULL){
-		/*
-		ROS_INFO("POS: (%f, %f, %f) VALUE: %f ACTION: %s",
-			x, y, t_rad/M_PI*180, 
-			(double)states_[index].local_total_cost_/ValueIterator::prob_base_,
-			states_[index].local_optimal_action_->_name.c_str());
-			*/
-
+		ROS_INFO("COST TO GO: %f", (double)states_[index].local_total_cost_/ValueIterator::prob_base_);
 		return states_[index].local_optimal_action_;
 	}else if(states_[index].optimal_action_ != NULL){
-		/*
-		ROS_INFO("POS: (%f, %f, %f) VALUE: %f ACTION: %s",
-			x, y, t_rad/M_PI*180, 
-			(double)states_[index].total_cost_/ValueIterator::prob_base_,
-			states_[index].optimal_action_->_name.c_str());
-			*/
-
+		ROS_INFO("COST TO GO: %f", (double)states_[index].total_cost_/ValueIterator::prob_base_);
 		return states_[index].optimal_action_;
 	}
 
@@ -604,17 +553,62 @@ void ValueIterator::makeValueFunctionMap(nav_msgs::OccupancyGrid &map,
 	for(int y=0; y<cell_num_y_; y++)
 		for(int x=0; x<cell_num_x_; x++){
 			int index = toIndex(x, y, it);
-			double cost = (double)states_[index].total_cost_ + (double)states_[index].local_penalty_;
-			
-			int c = 128 - (int)((current_cost - cost)/current_cost * 128);
-			if(c < 0)
-				c = 0;
-			else if(c > 255)
-				c = 255;
-
-			map.data.push_back(c);
+			if(states_[index].free_){
+				double cost = (double)states_[index].total_cost_;// + (double)states_[index].local_penalty_;
+				
+				int c = 128 - (int)((current_cost - cost)/current_cost * 128);
+				if(c < 0)
+					c = 0;
+				else if(c > 230)
+					c = 230;
+	
+				map.data.push_back(c);
+			}else{
+				map.data.push_back(255);
+			}
 		}
 
+}
+
+void ValueIterator::makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map,
+		double x, double y, double yaw_rad)
+{
+	map.header.stamp = ros::Time::now();
+	map.header.frame_id = "map";
+	map.info.resolution = xy_resolution_;
+	map.info.width = local_ixy_range_*2 + 1;
+	map.info.height = local_ixy_range_*2 + 1;
+	map.info.origin.position.x = x - local_xy_range_;
+	map.info.origin.position.y = y - local_xy_range_;
+	
+	map.info.origin.orientation = map_origin_quat_;
+        int it = (int)floor( ( ((int)(yaw_rad/M_PI*180) + 360*100)%360 )/t_resolution_ );
+        int ix = (int)floor( (x - map_origin_x_)/xy_resolution_ );
+        int iy = (int)floor( (y - map_origin_y_)/xy_resolution_ );
+
+	double current_cost = (double)states_[toIndex(ix, iy, it)].total_cost_;
+	if(current_cost == 0.0)
+		current_cost = 60.0;
+
+	uint64_t min = max_cost_;
+	uint64_t max = 0;
+	for(int y=local_iy_min_; y<=local_iy_max_; y++)
+		for(int x=local_ix_min_; x<=local_ix_max_; x++){
+			int index = toIndex(x, y, it);
+			if(states_[index].free_){
+				double cost = (double)states_[index].local_total_cost_;
+				
+				int c = 128 - (int)((current_cost - cost)/current_cost * 128);
+				if(c < 0)
+					c = 0;
+				else if(c > 230)
+					c = 230;
+	
+				map.data.push_back(c);
+			}else{
+				map.data.push_back(255);
+			}
+		}
 }
 
 }

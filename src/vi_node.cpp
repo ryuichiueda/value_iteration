@@ -85,6 +85,7 @@ void ViNode::setCommunication(void)
 	}
 
 	pub_value_function_ = nh_.advertise<nav_msgs::OccupancyGrid>("value_function", 2, true);
+	pub_local_value_function_ = nh_.advertise<nav_msgs::OccupancyGrid>("local_value_function", 2, true);
 
 	as_.reset(new actionlib::SimpleActionServer<value_iteration::ViAction>( nh_, "vi_controller",
 				boost::bind(&ViNode::executeVi, this, _1), false));
@@ -150,13 +151,13 @@ void ViNode::scanReceived(const sensor_msgs::LaserScan::ConstPtr &msg)
 
 bool ViNode::servePolicy(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response)
 {
-	vi_->actionImageWriter(response);
+	vi_->policyWriter(response);
 	return true;
 }
 
 bool ViNode::serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response)
 {
-	vi_->outputValuePgmMap(response);
+	vi_->valueFunctionWriter(response);
 	return true;
 }
 
@@ -218,9 +219,13 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 
 void ViNode::pubValueFunction(void)
 {
-	nav_msgs::OccupancyGrid map;
+	nav_msgs::OccupancyGrid map, local_map;
+
 	vi_->makeValueFunctionMap(map, x_, y_, yaw_);
 	pub_value_function_.publish(map);
+
+	vi_->makeLocalValueFunctionMap(local_map, x_, y_, yaw_);
+	pub_local_value_function_.publish(local_map);
 }
 
 }
