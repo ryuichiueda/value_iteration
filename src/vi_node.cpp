@@ -82,7 +82,7 @@ void ViNode::setCommunication(void)
 	if(online_){
 		ROS_INFO("SET ONLINE");
 		pub_cmd_vel_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 2, true);
-		sub_pose_ = nh_.subscribe("mcl_pose", 2, &ViNode::poseReceived, this);
+		//sub_pose_ = nh_.subscribe("mcl_pose", 2, &ViNode::poseReceived, this);
 		sub_laser_scan_ = nh_.subscribe("scan", 2, &ViNode::scanReceived, this);
 	}
 
@@ -114,19 +114,9 @@ void ViNode::setActions(void)
 	}
 }
 
+	/*
 void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg)
 {
-	/*
-	geometry_msgs::Twist cmd_vel;
-	cmd_vel.linear.x = 0.0;
-	cmd_vel.angular.z = 0.0;
-
-	if(status_ != "calculating" and status_ != "calculated"){
-		pub_cmd_vel_.publish(cmd_vel);
-		return;
-	}
-	*/
-
 	auto &ori = msg->pose.pose.orientation;	
 	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
 	double roll, pitch;
@@ -135,20 +125,12 @@ void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr
 	x_ = msg->pose.pose.position.x;
 	y_ = msg->pose.pose.position.y;
 
-	vi_->setLocalWindow(x_, y_);
-	/*
-	bool goal;
-	Action *a = vi_->posToActionLocal(x_, y_, yaw_, goal);
-	if(goal)
-		status_ = "goal";
+	ROS_INFO("MCL_POSE: %f, %f, %f", x_, y_, yaw_);
 
-	if(a != NULL){
-		cmd_vel.linear.x = a->_delta_fw;
-		cmd_vel.angular.z= a->_delta_rot/180*M_PI;
-	}
-	pub_cmd_vel_.publish(cmd_vel);
-	*/
+	vi_->setLocalWindow(x_, y_);
+
 }
+	*/
 
 void ViNode::scanReceived(const sensor_msgs::LaserScan::ConstPtr &msg)
 {
@@ -236,6 +218,19 @@ void ViNode::pubValueFunction(void)
 
 void ViNode::decision(void)
 {
+	try{
+		tf::StampedTransform trans;
+		tf_listener_.waitForTransform("map", "base_link", ros::Time(0), ros::Duration(0.1));
+		tf_listener_.lookupTransform("map", "base_link", ros::Time(0), trans);
+		x_ = trans.getOrigin().x();
+		y_ = trans.getOrigin().y();
+		yaw_ = tf::getYaw(trans.getRotation());
+	}catch(tf::TransformException &e){
+		ROS_WARN("%s", e.what());
+	}
+
+	vi_->setLocalWindow(x_, y_);
+
 	geometry_msgs::Twist cmd_vel;
 	cmd_vel.linear.x = 0.0;
 	cmd_vel.angular.z = 0.0;

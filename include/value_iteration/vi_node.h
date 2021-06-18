@@ -19,6 +19,8 @@
 #include <std_msgs/UInt32MultiArray.h>
 #include <tf/tf.h>
 
+#include <tf/transform_listener.h>
+
 namespace value_iteration{
 
 class ViNode{
@@ -41,8 +43,10 @@ private:
 	ros::Publisher pub_cmd_vel_;
 	ros::Publisher pub_value_function_;
 	ros::Publisher pub_local_value_function_;
-	ros::Subscriber sub_pose_;
+	//ros::Subscriber sub_pose_;
 	ros::Subscriber sub_laser_scan_;
+
+	tf::TransformListener tf_listener_;
 
 	shared_ptr<actionlib::SimpleActionServer<value_iteration::ViAction> > as_;
 
@@ -50,7 +54,7 @@ private:
 	bool servePolicy(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response);
 	bool serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response);
 
-	void poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg);
+	//void poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg);
 	void scanReceived(const sensor_msgs::LaserScan::ConstPtr &msg);
 
 	void setActions(void);

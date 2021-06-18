@@ -309,10 +309,7 @@ uint64_t ValueIterator::actionCostLocal(State &s, Action &a)
 		if(not after_s.free_)
 			return max_cost_;
 
-		//if(inLocalArea(ix ,iy))
-			cost += ( after_s.local_total_cost_ + after_s.penalty_ + after_s.local_penalty_ ) * tran._prob;
-		//else
-		//	cost += ( after_s.total_cost_ + after_s.penalty_ ) * tran._prob;
+		cost += ( after_s.local_total_cost_ + after_s.penalty_ + after_s.local_penalty_ ) * tran._prob;
 	}
 
 	return cost >> prob_base_bit_;
@@ -375,12 +372,9 @@ bool ValueIterator::valueFunctionWriter(grid_map_msgs::GetGridMap::Response& res
 		std::string name = to_string(t);
 
 		map.add(name);
-		//int i = t;
-		//while(i<states_.size()){
 		for(int i=t; i<states_.size(); i+=cell_num_t_){
 			auto &s = states_[i];
 			map.at(name, grid_map::Index(s._ix, s._iy)) = s.total_cost_/(ValueIterator::prob_base_);
-		//	i += cell_num_t_;
 		}
 	}
 
@@ -401,13 +395,10 @@ bool ValueIterator::policyWriter(grid_map_msgs::GetGridMap::Response& response)
 		std::string name = to_string(t);
 
 		map.add(name);
-		//int i = t;
-		//while(i<states_.size()){
 		for(int i=t; i<states_.size(); i+=cell_num_t_){
 			auto &s = states_[i];
 			map.at(name, grid_map::Index(s._ix, s._iy)) = 
 				(s.optimal_action_ == NULL) ? -1.0 : (double)s.optimal_action_->id_;
-			//i += cell_num_t_;
 		}
 	}
 
