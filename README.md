@@ -4,7 +4,7 @@ a monolithic mobile robot navigation system as a replacement for the navigation 
 
 ## How to try
 
-Please give the navigation goal and some obstacles after the command:
+Please give the navigation goal and some obstacles as shown in the movie below after the command:
 
 ```
 $ roslaunch value_iteration navigation_house.launch
