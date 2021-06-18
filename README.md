@@ -52,8 +52,10 @@ The value iteration procedure rises up through the action `value_iteration/ViAct
 
 #### Subscribed Topics
 
-* /mcl_pose ([geometry_msgs/PoseWithCovarianceStamped](http://docs.ros.org/en/melodic/api/geometry_msgs/html/msg/PoseWithCovarianceStamped.html))
-    * the poes of the robot on the map; received only when the parameter `online` is true
+* scan ([sensor_msgs/LaserScan](http://docs.ros.org/en/api/sensor_msgs/html/msg/LaserScan.html))
+    * laser scans
+* tf ([tf/tfMessage](http://docs.ros.org/en/api/tf/html/msg/tfMessage.html))
+    * transforms
 
 #### Published Topics
 
