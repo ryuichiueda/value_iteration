@@ -1,8 +1,10 @@
-# value_iteration: value iteration package for ROS
+# value_iteration: real-time value iteration planner package for ROS
 
-a global planner for mobile robots based on value iteration
+a monolithic mobile robot navigation system as a replacement for the navigation stack
 
 ## How to try
+
+Please give the navigation goal and some obstacles after the command:
 
 ```
 $ roslaunch value_iteration navigation_house.launch
