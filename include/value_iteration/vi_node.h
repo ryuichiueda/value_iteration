@@ -28,6 +28,7 @@ public:
 	~ViNode();
 
 	void pubValueFunction(void);
+	void decision(void);
 private:
 	vector<Action> *actions_;
 	shared_ptr<ValueIterator> vi_;

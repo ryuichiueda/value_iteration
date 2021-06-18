@@ -421,7 +421,7 @@ bool ValueIterator::policyWriter(grid_map_msgs::GetGridMap::Response& response)
 	return true;
 }
 
-
+/*
 Action *ValueIterator::posToAction(double x, double y, double t_rad, bool &goal)
 {
 	goal = false;
@@ -439,15 +439,14 @@ Action *ValueIterator::posToAction(double x, double y, double t_rad, bool &goal)
 		return NULL;
 	}
 
-	/*
-	ROS_INFO("POS: (%f, %f, %f) VALUE: %f ACTION: %s",
-			x, y, t_rad/M_PI*180, 
-			(double)states_[index].total_cost_/ValueIterator::prob_base_,
-			states_[index].optimal_action_->_name.c_str());
-			*/
+//	ROS_INFO("POS: (%f, %f, %f) VALUE: %f ACTION: %s",
+//			x, y, t_rad/M_PI*180, 
+//			(double)states_[index].total_cost_/ValueIterator::prob_base_,
+//			states_[index].optimal_action_->_name.c_str());
 
 	return states_[index].optimal_action_;
 }
+*/
 
 Action *ValueIterator::posToActionLocal(double x, double y, double t_rad, bool &goal)
 {
@@ -455,11 +454,13 @@ Action *ValueIterator::posToActionLocal(double x, double y, double t_rad, bool &
         int ix = (int)floor( (x - map_origin_x_)/xy_resolution_ );
         int iy = (int)floor( (y - map_origin_y_)/xy_resolution_ );
 
+	/*
 	//set for local cost map
 	local_ix_min_ = ix - local_ixy_range_ >=0 ? ix - local_ixy_range_ : 0;
 	local_iy_min_ = iy - local_ixy_range_ >=0 ? iy - local_ixy_range_ : 0;
 	local_ix_max_ = ix + local_ixy_range_ < cell_num_x_ ? ix + local_ixy_range_ : cell_num_x_-1;
 	local_iy_max_ = iy + local_ixy_range_ < cell_num_y_ ? iy + local_ixy_range_ : cell_num_y_-1;
+	*/
 
         int t = (int)(180 * t_rad / M_PI);
         int it = (int)floor( ( (t + 360*100)%360 )/t_resolution_ );
@@ -478,6 +479,17 @@ Action *ValueIterator::posToActionLocal(double x, double y, double t_rad, bool &
 
 	return NULL;
 
+}
+
+void ValueIterator::setLocalWindow(double x, double y)
+{
+        int ix = (int)floor( (x - map_origin_x_)/xy_resolution_ );
+        int iy = (int)floor( (y - map_origin_y_)/xy_resolution_ );
+
+	local_ix_min_ = ix - local_ixy_range_ >=0 ? ix - local_ixy_range_ : 0;
+	local_iy_min_ = iy - local_ixy_range_ >=0 ? iy - local_ixy_range_ : 0;
+	local_ix_max_ = ix + local_ixy_range_ < cell_num_x_ ? ix + local_ixy_range_ : cell_num_x_-1;
+	local_iy_max_ = iy + local_ixy_range_ < cell_num_y_ ? iy + local_ixy_range_ : cell_num_y_-1;
 }
 
 void ValueIterator::setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, double x, double y, double t)

@@ -42,12 +42,14 @@ private:
 	void cellDelta(double x, double y, double t, int &ix, int &iy, int &it);
 
 	uint64_t valueIteration(State &s);
-	uint64_t valueIterationLocal(State &s);
 	uint64_t actionCost(State &s, Action &a);
-	uint64_t actionCostLocal(State &s, Action &a);
 
 	int toIndex(int ix, int iy, int it);
 	bool inMapArea(int ix, int iy);
+
+	/* for local value iteration */
+	uint64_t valueIterationLocal(State &s);
+	uint64_t actionCostLocal(State &s, Action &a);
 	bool inLocalArea(int ix, int iy);
 
 	int local_ix_min_, local_ix_max_, local_iy_min_, local_iy_max_;
@@ -56,10 +58,10 @@ private:
 public: 
 	ValueIterator(vector<Action> &actions, int thread_num);
 
-	Action *posToAction(double x, double y, double t_rad, bool &goal);
+	//Action *posToAction(double x, double y, double t_rad, bool &goal);
 	Action *posToActionLocal(double x, double y, double t_rad, bool &goal);
 
-	void outputPbmMap(void);
+//	void outputPbmMap(void);
 
 	void setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int theta_cell_num,
 		double safety_radius, double safety_radius_penalty,
@@ -72,7 +74,6 @@ public:
 	void setGoal(double goal_x, double goal_y, int goal_t);
 
 	void valueIterationWorker(int times, int id);
-	void localValueIterationWorker(void);
 	map<int, SweepWorkerStatus> status_; 
 
 	bool policyWriter(grid_map_msgs::GetGridMap::Response& response);
@@ -80,12 +81,8 @@ public:
 
 	void makeValueFunctionMap(nav_msgs::OccupancyGrid &map, int threshold,
 			double x, double y, double yaw_rad);
-	void makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map, int threshold, 
-			double x, double y, double yaw_rad);
 
 	bool finished(std_msgs::UInt32MultiArray &sweep_times, std_msgs::Float32MultiArray &deltas);
-
-	void setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, double x, double y, double t);
 
 	double goal_x_, goal_y_, goal_margin_radius_;
 	int goal_t_, goal_margin_theta_;
@@ -94,6 +91,13 @@ public:
 	const static uint64_t max_cost_;
 	const static uint64_t prob_base_;
 	const static unsigned char prob_base_bit_;
+
+	/* for local value iteration */
+	void localValueIterationWorker(void);
+	void makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map, int threshold, 
+			double x, double y, double yaw_rad);
+	void setLocalWindow(double x, double y);
+	void setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, double x, double y, double t);
 };
 
 const unsigned char ValueIterator::resolution_xy_bit_ = 6;

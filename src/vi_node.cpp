@@ -116,6 +116,7 @@ void ViNode::setActions(void)
 
 void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg)
 {
+	/*
 	geometry_msgs::Twist cmd_vel;
 	cmd_vel.linear.x = 0.0;
 	cmd_vel.angular.z = 0.0;
@@ -124,6 +125,7 @@ void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr
 		pub_cmd_vel_.publish(cmd_vel);
 		return;
 	}
+	*/
 
 	auto &ori = msg->pose.pose.orientation;	
 	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
@@ -133,6 +135,8 @@ void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr
 	x_ = msg->pose.pose.position.x;
 	y_ = msg->pose.pose.position.y;
 
+	vi_->setLocalWindow(x_, y_);
+	/*
 	bool goal;
 	Action *a = vi_->posToActionLocal(x_, y_, yaw_, goal);
 	if(goal)
@@ -143,6 +147,7 @@ void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr
 		cmd_vel.angular.z= a->_delta_rot/180*M_PI;
 	}
 	pub_cmd_vel_.publish(cmd_vel);
+	*/
 }
 
 void ViNode::scanReceived(const sensor_msgs::LaserScan::ConstPtr &msg)
@@ -229,6 +234,29 @@ void ViNode::pubValueFunction(void)
 	pub_local_value_function_.publish(local_map);
 }
 
+void ViNode::decision(void)
+{
+	geometry_msgs::Twist cmd_vel;
+	cmd_vel.linear.x = 0.0;
+	cmd_vel.angular.z = 0.0;
+
+	if(status_ != "calculating" and status_ != "calculated"){
+		pub_cmd_vel_.publish(cmd_vel);
+		return;
+	}
+
+	bool goal;
+	Action *a = vi_->posToActionLocal(x_, y_, yaw_, goal);
+	if(goal)
+		status_ = "goal";
+
+	if(a != NULL){
+		cmd_vel.linear.x = a->_delta_fw;
+		cmd_vel.angular.z = a->_delta_rot/180*M_PI;
+	}
+	pub_cmd_vel_.publish(cmd_vel);
+}
+
 }
 
 int main(int argc, char **argv)
@@ -239,6 +267,8 @@ int main(int argc, char **argv)
 	int step = 0;
 	ros::Rate loop_rate(10);
 	while(ros::ok()){
+		vi_node.decision();
+		
 		if(step % 30 == 0)
 			vi_node.pubValueFunction();
 
