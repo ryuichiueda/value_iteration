@@ -4,6 +4,14 @@ a global planner for mobile robots based on value iteration
 
 [![](https://img.youtube.com/vi/AsjQZ3WDI-Q/0.jpg)](https://www.youtube.com/watch?v=AsjQZ3WDI-Q)
 
+## How to try
+
+```
+$ roslaunch value_iteration navigation_house.launch
+```
+
+[![](https://img.youtube.com/vi/vozJNzThUdM/0.jpg)](https://www.youtube.com/watch?v=vozJNzThUdM)
+
 ## Nodes
 
 ### vi_node
