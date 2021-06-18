@@ -375,12 +375,12 @@ bool ValueIterator::valueFunctionWriter(grid_map_msgs::GetGridMap::Response& res
 		std::string name = to_string(t);
 
 		map.add(name);
-		int i = t;
-		while(i<states_.size()){
+		//int i = t;
+		//while(i<states_.size()){
+		for(int i=t; i<states_.size(); i+=cell_num_t_){
 			auto &s = states_[i];
 			map.at(name, grid_map::Index(s._ix, s._iy)) = s.total_cost_/(ValueIterator::prob_base_);
-
-			i += cell_num_t_;
+		//	i += cell_num_t_;
 		}
 	}
 
@@ -401,16 +401,13 @@ bool ValueIterator::policyWriter(grid_map_msgs::GetGridMap::Response& response)
 		std::string name = to_string(t);
 
 		map.add(name);
-		int i = t;
-		while(i<states_.size()){
+		//int i = t;
+		//while(i<states_.size()){
+		for(int i=t; i<states_.size(); i+=cell_num_t_){
 			auto &s = states_[i];
-			if(s.optimal_action_ == NULL){
-				map.at(name, grid_map::Index(s._ix, s._iy)) = -1.0;
-			}else{
-				map.at(name, grid_map::Index(s._ix, s._iy)) = (double)s.optimal_action_->id_;
-			}
-
-			i += cell_num_t_;
+			map.at(name, grid_map::Index(s._ix, s._iy)) = 
+				(s.optimal_action_ == NULL) ? -1.0 : (double)s.optimal_action_->id_;
+			//i += cell_num_t_;
 		}
 	}
 
@@ -421,46 +418,11 @@ bool ValueIterator::policyWriter(grid_map_msgs::GetGridMap::Response& response)
 	return true;
 }
 
-/*
-Action *ValueIterator::posToAction(double x, double y, double t_rad, bool &goal)
-{
-	goal = false;
-        int ix = (int)floor( (x - map_origin_x_)/xy_resolution_ );
-        int iy = (int)floor( (y - map_origin_y_)/xy_resolution_ );
-
-        int t = (int)(180 * t_rad / M_PI);
-        int it = (int)floor( ( (t + 360*100)%360 )/t_resolution_ );
-	int index = toIndex(ix, iy, it);
-
-	if(states_[index].final_state_){
-		goal = true;
-		return NULL;
-	}else if(states_[index].optimal_action_ == NULL){
-		return NULL;
-	}
-
-//	ROS_INFO("POS: (%f, %f, %f) VALUE: %f ACTION: %s",
-//			x, y, t_rad/M_PI*180, 
-//			(double)states_[index].total_cost_/ValueIterator::prob_base_,
-//			states_[index].optimal_action_->_name.c_str());
-
-	return states_[index].optimal_action_;
-}
-*/
-
 Action *ValueIterator::posToActionLocal(double x, double y, double t_rad, bool &goal)
 {
 	goal = false;
         int ix = (int)floor( (x - map_origin_x_)/xy_resolution_ );
         int iy = (int)floor( (y - map_origin_y_)/xy_resolution_ );
-
-	/*
-	//set for local cost map
-	local_ix_min_ = ix - local_ixy_range_ >=0 ? ix - local_ixy_range_ : 0;
-	local_iy_min_ = iy - local_ixy_range_ >=0 ? iy - local_ixy_range_ : 0;
-	local_ix_max_ = ix + local_ixy_range_ < cell_num_x_ ? ix + local_ixy_range_ : cell_num_x_-1;
-	local_iy_max_ = iy + local_ixy_range_ < cell_num_y_ ? iy + local_ixy_range_ : cell_num_y_-1;
-	*/
 
         int t = (int)(180 * t_rad / M_PI);
         int it = (int)floor( ( (t + 360*100)%360 )/t_resolution_ );
@@ -532,17 +494,6 @@ void ValueIterator::setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, do
 		}
 
 	}
-
-	/*
-	for(int ix=local_ix_min_;ix<=local_ix_max_;ix++){
-		for(int iy=local_iy_min_;iy<=local_iy_max_;iy++){
-			for(int it=0;it<cell_num_t_;it++){
-				int index = toIndex(ix, iy, it);
-				states_[index].local_penalty_ /= 2;
-			}
-		}
-	}
-	*/
 }
 
 void ValueIterator::setGoal(double goal_x, double goal_y, int goal_t)
