@@ -132,6 +132,20 @@ void ValueIterator::noNoiseStateTransition(Action &a,
 		to_t += 360.0;
 }
 
+void ValueIterator::noisedStateTransition(Action &a, 
+	double from_x, double from_y, double from_t, double &to_x, double &to_y, double &to_t)
+{
+	double ang = from_t / 180 * M_PI;
+	double fw = (*a._fw_gen)(a._random_engine);
+	to_x = from_x + fw*cos(ang);
+	to_y = from_y + fw*sin(ang);
+	to_t = from_t + (*a._rot_gen)(a._random_engine);
+	while(to_t < 0.0)
+		to_t += 360.0;
+
+//	std::cout << a._name << " " << fw << " " << (*a._rot_gen)(a._random_engine) << std::endl;
+}
+
 void ValueIterator::setStateTransitionWorkerSub(Action &a, int it)
 {
 	double theta_origin = it*t_resolution_;
@@ -146,7 +160,7 @@ void ValueIterator::setStateTransitionWorkerSub(Action &a, int it)
 
 				//遷移後の姿勢
 				double dx, dy, dt;
-				noNoiseStateTransition(a, ox, oy, ot + theta_origin, dx, dy, dt);
+				noisedStateTransition(a, ox, oy, ot + theta_origin, dx, dy, dt);
 				int dix, diy, dit;
 				cellDelta(dx, dy, dt, dix, diy, dit); 
 

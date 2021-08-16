@@ -107,30 +107,14 @@ void ViNode::setActions(void)
 
 	for(int i=0; i<action_list.size(); i++){
 		auto &a = action_list[i];
-		actions_->push_back(Action(a["name"], a["onestep_forward_m"], a["onestep_rotation_deg"], i));
+		actions_->push_back(Action(a["name"], a["onestep_forward_m"], a["onestep_rotation_deg"], 
+					a["forward_stddev"], a["rotation_stddev"], i));
 
 		auto &b = actions_->back();
-		ROS_INFO("set an action: %s, %f, %f", b._name.c_str(), b._delta_fw, b._delta_rot);
+		ROS_INFO("set an action: %s, %f, %f, %f, %f", b._name.c_str(), 
+				b._delta_fw, b._delta_rot, b._delta_fw_stddev, b._delta_rot_stddev);
 	}
 }
-
-	/*
-void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg)
-{
-	auto &ori = msg->pose.pose.orientation;	
-	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
-	double roll, pitch;
-	tf::Matrix3x3(q).getRPY(roll, pitch, yaw_);
-
-	x_ = msg->pose.pose.position.x;
-	y_ = msg->pose.pose.position.y;
-
-	ROS_INFO("MCL_POSE: %f, %f, %f", x_, y_, yaw_);
-
-	vi_->setLocalWindow(x_, y_);
-
-}
-	*/
 
 void ViNode::scanReceived(const sensor_msgs::LaserScan::ConstPtr &msg)
 {

@@ -13,21 +13,27 @@
         - name: forward
           onestep_forward_m: 0.3
           onestep_rotation_deg: 0.0
+          forward_stddev: 0.03
         - name: back
           onestep_forward_m: -0.2
           onestep_rotation_deg: 0.0
+          forward_stddev: 0.02
         - name: right
           onestep_forward_m: 0.0
           onestep_rotation_deg: -20.0
+          rotation_stddev: 1.0
         - name: rightfw
           onestep_forward_m: 0.2
           onestep_rotation_deg: -20.0
+          rotation_stddev: 1.0
         - name: left
           onestep_forward_m: 0.0
           onestep_rotation_deg: 20.0
+          rotation_stddev: 1.0
         - name: leftfw
           onestep_forward_m: 0.2
           onestep_rotation_deg: 20.0
+          rotation_stddev: 1.0
   </rosparam>
 
   <!-- Arguments -->
@@ -50,8 +56,8 @@
 -->
 
   <!-- MCL -->
-  <!-- <include file="$(find value_iteration)/launch/emcl.launch"/> -->
-  <include file="$(find value_iteration)/launch/amcl.launch"/>
+  <include file="$(find value_iteration)/launch/emcl.launch"/>
+  <!--<include file="$(find value_iteration)/launch/amcl.launch"/>-->
 
   <!-- Launch other launch files -->
   <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_house.launch" />
