@@ -50,8 +50,8 @@
 -->
 
   <!-- MCL -->
-  <!-- <include file="$(find value_iteration)/launch/emcl.launch"/> -->
-  <include file="$(find value_iteration)/launch/amcl.launch"/>
+  <include file="$(find value_iteration)/launch/emcl.launch"/>
+  <!-- <include file="$(find value_iteration)/launch/amcl.launch"/> -->
 
   <!-- Launch other launch files -->
   <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_house.launch" />
