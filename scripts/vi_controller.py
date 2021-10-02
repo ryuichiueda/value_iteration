@@ -14,13 +14,13 @@ def vi_state_cb(feedback):
 
 def vi_client(data):
     global client 
+    global goal_data
 
     client = actionlib.SimpleActionClient('/vi_controller', ViAction)
     client.wait_for_server()
 
     goal = ViGoal()
     goal.goal = copy.copy(data)
-    data = None
     client.send_goal(goal, feedback_cb=vi_state_cb)
     client.wait_for_result()
     return client.get_result()
@@ -46,6 +46,8 @@ if __name__ == '__main__':
             continue
 
         result = vi_client(goal_data)
+        if result.finished:
+            goal_data = None
         rospy.loginfo(result)
 
         rate.sleep()
