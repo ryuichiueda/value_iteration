@@ -7,7 +7,7 @@ a monolithic mobile robot navigation system as a replacement for the navigation 
 Please give the navigation goal and some obstacles as shown in the movie below after the command:
 
 ```
-$ roslaunch value_iteration navigation_house.launch
+$ roslaunch value_iteration navigation_house_amcl.launch
 ```
 
 [![](https://img.youtube.com/vi/vozJNzThUdM/0.jpg)](https://www.youtube.com/watch?v=vozJNzThUdM)
