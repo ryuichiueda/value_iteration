@@ -54,7 +54,6 @@ private:
 	bool servePolicy(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response);
 	bool serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response);
 
-	//void poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg);
 	void scanReceived(const sensor_msgs::LaserScan::ConstPtr &msg);
 
 	void setActions(void);

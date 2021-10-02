@@ -226,7 +226,7 @@ void ValueIterator::valueIterationWorker(int times, int id)
 			max_delta = max(max_delta, valueIteration(states_[i]));
 	
 		status_[id]._delta = (double)(max_delta >> prob_base_bit_);
-		if(status_[id]._delta < 0.1)
+		if(status_[id]._delta < 0.1 or status_[id].cancel_)
 			break;
 	}
 
@@ -557,6 +557,13 @@ void ValueIterator::makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map, int 
 			else 
 				map.data.push_back(255);
 		}
+}
+
+void ValueIterator::setCancel(void)
+{
+	for(int t=0; t<thread_num_; t++){
+		status_[t].cancel_ = true;
+	}
 }
 
 }
