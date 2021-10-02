@@ -237,10 +237,16 @@ void ValueIterator::localValueIterationWorker(void)
 {
 	while(1){
 		for(int iix=local_ix_min_;iix<=local_ix_max_;iix++){
+			int margin = ( local_ix_max_ - local_ix_min_ )/10; 
+			bool renew_flag_x = ( iix - local_ix_min_ < margin ) or ( local_ix_max_ - iix < margin );
+
 			for(int iiy=local_iy_min_;iiy<=local_iy_max_;iiy++){
+				int margin = ( local_iy_max_ - local_iy_min_ )/10; 
+				bool renew_flag = renew_flag_x or ( iiy - local_iy_min_ < margin ) or ( local_iy_max_ - iiy < margin );
+
 				for(int iit=0;iit<cell_num_t_;iit++){
 					int i = toIndex(iix, iiy, iit);
-					if(states_[i].renew_){
+					if( states_[i].renew_ and renew_flag){
 						states_[i].local_total_cost_ = states_[i].total_cost_;
 						states_[i].local_optimal_action_ = states_[i].optimal_action_;
 						states_[i].renew_ = false;
