@@ -163,11 +163,8 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	for(int t=0; t<vi_->thread_num_; t++)
 		ths.push_back(thread(&ValueIterator::valueIterationWorker, vi_.get(), INT_MAX, t));
 
-	thread local;
-	if(online_){
-		local = thread(&ValueIterator::localValueIterationWorker, vi_.get());
-		local.detach();
-	}
+	if(online_)
+		thread(&ValueIterator::localValueIterationWorker, vi_.get()).detach();
 
 	value_iteration::ViFeedback vi_feedback;
 
@@ -186,6 +183,9 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 		th.join();
 
 	ROS_INFO("VALUE ITERATION END");
+	if(online_)
+		for(int t=0;t<3;t++)
+			thread(&ValueIterator::localValueIterationWorker, vi_.get()).detach();
 
 	while(online_ and not vi_->endOfTrial() )
 		if(as_->isPreemptRequested()){
@@ -194,7 +194,7 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 		loop_rate.sleep();
 	}
 
-	ROS_INFO("GOAL");
+	ROS_INFO("END OF TRIAL");
 	value_iteration::ViResult vi_result;
 	vi_result.finished = vi_->arrived() or (not online_);
 	as_->setSucceeded(vi_result);
