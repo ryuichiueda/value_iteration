@@ -152,7 +152,6 @@ bool ViNode::serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_ms
 void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 {
 	ROS_INFO("VALUE ITERATION START");
-	vi_->status_ = "calculating";
 	auto &ori = goal->goal.pose.orientation;	
 	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
 	double roll, pitch, yaw;
@@ -178,7 +177,7 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	while(not vi_->finished(vi_feedback.current_sweep_times, vi_feedback.deltas)){
 		as_->publishFeedback(vi_feedback);
 
-		if(as_->isPreemptRequested())// or vi_->status_ == "goal")
+		if(as_->isPreemptRequested())
 			vi_->status_ = "canceled";
 
 		loop_rate.sleep();
@@ -188,7 +187,6 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	for(auto &th : ths)
 		th.join();
 
-	vi_->status_ = "calculated";
 	ROS_INFO("VALUE ITERATION END");
 
 	while(online_ and vi_->status_ != "goal" and vi_->status_ != "canceled"){
@@ -201,7 +199,7 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	local_set = false;
 	ROS_INFO("GOAL");
 	value_iteration::ViResult vi_result;
-	vi_result.finished = (vi_->status_ == "goal");
+	vi_result.finished = (vi_->status_ == "goal" or (not online_));
 	as_->setSucceeded(vi_result);
 }
 
@@ -219,6 +217,9 @@ void ViNode::pubValueFunction(void)
 
 void ViNode::decision(void)
 {
+	if(not online_)
+		return; 
+
 	try{
 		tf::StampedTransform trans;
 		tf_listener_.waitForTransform("map", "base_link", ros::Time(0), ros::Duration(0.1));
@@ -235,11 +236,6 @@ void ViNode::decision(void)
 	geometry_msgs::Twist cmd_vel;
 	cmd_vel.linear.x = 0.0;
 	cmd_vel.angular.z = 0.0;
-
-	if(vi_->status_ != "calculating" and vi_->status_ != "calculated"){
-		pub_cmd_vel_.publish(cmd_vel);
-		return;
-	}
 
 	Action *a = vi_->posToActionLocal(x_, y_, yaw_);
 	if(a != NULL){

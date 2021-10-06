@@ -22,7 +22,6 @@ private:
 	std::vector<State> states_;
 	std::vector<Action> &actions_;
 	std::vector<std::vector<int> > sweep_orders_;
-	bool local_cancel_;
 
 	double xy_resolution_, t_resolution_;
 	int cell_num_x_, cell_num_y_, cell_num_t_;

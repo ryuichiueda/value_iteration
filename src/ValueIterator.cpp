@@ -422,7 +422,6 @@ Action *ValueIterator::posToActionLocal(double x, double y, double t_rad)
 	int index = toIndex(ix, iy, it);
 
 	if(states_[index].final_state_){
-		ROS_INFO("GOALGOAL");
 		status_ = "goal";
 		return NULL;
 	}else if(states_[index].local_optimal_action_ != NULL){
@@ -492,6 +491,7 @@ void ValueIterator::setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, do
 
 void ValueIterator::setGoal(double goal_x, double goal_y, int goal_t)
 {
+	status_ = "calculating";
 	while(goal_t < 0)
 		goal_t += 360;
 	while(goal_t >= 360)
@@ -500,8 +500,6 @@ void ValueIterator::setGoal(double goal_x, double goal_y, int goal_t)
 	goal_x_ = goal_x;
 	goal_y_ = goal_y;
 	goal_t_ = goal_t;
-
-	//local_cancel_ = false;
 
 	ROS_INFO("GOAL: %f, %f, %d", goal_x_, goal_y_, goal_t_);
 
