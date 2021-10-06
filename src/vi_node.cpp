@@ -178,10 +178,8 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	while(not vi_->finished(vi_feedback.current_sweep_times, vi_feedback.deltas)){
 		as_->publishFeedback(vi_feedback);
 
-		if(as_->isPreemptRequested() or vi_->status_ == "goal"){
+		if(as_->isPreemptRequested() or vi_->status_ == "goal")
 			vi_->status_ = "canceled";
-			vi_->setCancel();
-		}
 
 		loop_rate.sleep();
 	}
@@ -200,7 +198,6 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 		loop_rate.sleep();
 	}
 
-	vi_->setCancel(); //for setting local cancel flag
 	local_set = false;
 	ROS_INFO("GOAL");
 	value_iteration::ViResult vi_result;
@@ -244,10 +241,10 @@ void ViNode::decision(void)
 		return;
 	}
 
-	bool goal;
-	Action *a = vi_->posToActionLocal(x_, y_, yaw_, goal);
-	if(goal)
-		vi_->status_ = "goal";
+	//bool goal;
+	Action *a = vi_->posToActionLocal(x_, y_, yaw_);//, goal);
+	//if(goal)
+	//	vi_->status_ = "goal";
 
 	if(a != NULL){
 		cmd_vel.linear.x = a->_delta_fw;

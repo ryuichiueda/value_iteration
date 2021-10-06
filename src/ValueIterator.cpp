@@ -422,9 +422,8 @@ bool ValueIterator::policyWriter(grid_map_msgs::GetGridMap::Response& response)
 	return true;
 }
 
-Action *ValueIterator::posToActionLocal(double x, double y, double t_rad, bool &goal)
+Action *ValueIterator::posToActionLocal(double x, double y, double t_rad)
 {
-	goal = false;
         int ix = (int)floor( (x - map_origin_x_)/xy_resolution_ );
         int iy = (int)floor( (y - map_origin_y_)/xy_resolution_ );
 
@@ -433,7 +432,8 @@ Action *ValueIterator::posToActionLocal(double x, double y, double t_rad, bool &
 	int index = toIndex(ix, iy, it);
 
 	if(states_[index].final_state_){
-		goal = true;
+		ROS_INFO("GOALGOAL");
+		status_ = "goal";
 		return NULL;
 	}else if(states_[index].local_optimal_action_ != NULL){
 		ROS_INFO("COST TO GO: %f", (double)states_[index].local_total_cost_/ValueIterator::prob_base_);
@@ -574,13 +574,6 @@ void ValueIterator::makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map, int 
 			else 
 				map.data.push_back(255);
 		}
-}
-
-void ValueIterator::setCancel(void)
-{
-	//local_cancel_ = true;
-	//for(int t=0; t<thread_num_; t++)
-	//	thread_status_[t].cancel_ = true;
 }
 
 void ValueIterator::setSweepOrders(void)

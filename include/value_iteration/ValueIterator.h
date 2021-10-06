@@ -63,7 +63,7 @@ public:
 
 	ValueIterator(vector<Action> &actions, int thread_num);
 
-	Action *posToActionLocal(double x, double y, double t_rad, bool &goal);
+	Action *posToActionLocal(double x, double y, double t_rad);//, bool &goal);
 
 	void setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int theta_cell_num,
 		double safety_radius, double safety_radius_penalty,
@@ -85,7 +85,6 @@ public:
 			double x, double y, double yaw_rad);
 
 	bool finished(std_msgs::UInt32MultiArray &sweep_times, std_msgs::Float32MultiArray &deltas);
-	void setCancel(void);
 
 	double goal_x_, goal_y_, goal_margin_radius_;
 	int goal_t_, goal_margin_theta_;
