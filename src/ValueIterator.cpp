@@ -219,20 +219,11 @@ void ValueIterator::valueIterationWorker(int times, int id)
 		thread_status_[id]._sweep_step = j+1;
 
 		uint64_t max_delta = 0;
-	
-		for(auto i : sweep_orders_[id%sweep_orders_.size()]){
+		for(auto i : sweep_orders_[id%sweep_orders_.size()])
 			max_delta = max(max_delta, valueIteration(states_[i]));
-		}
-		/*
-		int start = rand()%states_.size();
-		for(int i=start; i<states_.size(); i++)
-			max_delta = max(max_delta, valueIteration(states_[i]));
-		for(int i=start-1; i>=0; i--)
-			max_delta = max(max_delta, valueIteration(states_[i]));
-		*/
 	
 		thread_status_[id]._delta = (double)(max_delta >> prob_base_bit_);
-		if(thread_status_[id]._delta < 0.1 or status_ == "canceled" or status_ == "goal" )//thread_status_[id].cancel_)
+		if(thread_status_[id]._delta < 0.1 or status_ == "canceled" or status_ == "goal" )
 			break;
 	}
 
@@ -241,7 +232,6 @@ void ValueIterator::valueIterationWorker(int times, int id)
 
 void ValueIterator::localValueIterationWorker(void)
 {
-	//while(not local_cancel_){
 	while(status_ != "canceled" and status_ != "goal"){
 		for(int iix=local_ix_min_;iix<=local_ix_max_;iix++){
 			int margin = ( local_ix_max_ - local_ix_min_ )/10; 

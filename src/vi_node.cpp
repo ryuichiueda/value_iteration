@@ -178,7 +178,7 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	while(not vi_->finished(vi_feedback.current_sweep_times, vi_feedback.deltas)){
 		as_->publishFeedback(vi_feedback);
 
-		if(as_->isPreemptRequested() or vi_->status_ == "goal")
+		if(as_->isPreemptRequested())// or vi_->status_ == "goal")
 			vi_->status_ = "canceled";
 
 		loop_rate.sleep();
@@ -241,11 +241,7 @@ void ViNode::decision(void)
 		return;
 	}
 
-	//bool goal;
-	Action *a = vi_->posToActionLocal(x_, y_, yaw_);//, goal);
-	//if(goal)
-	//	vi_->status_ = "goal";
-
+	Action *a = vi_->posToActionLocal(x_, y_, yaw_);
 	if(a != NULL){
 		cmd_vel.linear.x = a->_delta_fw;
 		cmd_vel.angular.z = a->_delta_rot/180*M_PI;
