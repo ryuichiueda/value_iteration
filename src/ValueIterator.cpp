@@ -10,7 +10,7 @@ ValueIterator::ValueIterator(std::vector<Action> &actions, int thread_num)
 	  goal_x_(0.0), goal_y_(0.0), goal_t_(0)
 {
 	local_ix_min_ = local_ix_max_ = local_iy_min_ = local_iy_max_ = 0;
-	local_cancel_ = false;
+	//local_cancel_ = false;
 }
 
 void ValueIterator::setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int theta_cell_num,
@@ -232,7 +232,7 @@ void ValueIterator::valueIterationWorker(int times, int id)
 		*/
 	
 		thread_status_[id]._delta = (double)(max_delta >> prob_base_bit_);
-		if(thread_status_[id]._delta < 0.1 or thread_status_[id].cancel_)
+		if(thread_status_[id]._delta < 0.1 or status_ == "canceled" or status_ == "goal" )//thread_status_[id].cancel_)
 			break;
 	}
 
@@ -241,7 +241,8 @@ void ValueIterator::valueIterationWorker(int times, int id)
 
 void ValueIterator::localValueIterationWorker(void)
 {
-	while(not local_cancel_){
+	//while(not local_cancel_){
+	while(status_ != "canceled" and status_ != "goal"){
 		for(int iix=local_ix_min_;iix<=local_ix_max_;iix++){
 			int margin = ( local_ix_max_ - local_ix_min_ )/10; 
 			bool renew_flag_x = ( iix - local_ix_min_ < margin ) or ( local_ix_max_ - iix < margin );
@@ -510,7 +511,7 @@ void ValueIterator::setGoal(double goal_x, double goal_y, int goal_t)
 	goal_y_ = goal_y;
 	goal_t_ = goal_t;
 
-	local_cancel_ = false;
+	//local_cancel_ = false;
 
 	ROS_INFO("GOAL: %f, %f, %d", goal_x_, goal_y_, goal_t_);
 
@@ -577,9 +578,9 @@ void ValueIterator::makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map, int 
 
 void ValueIterator::setCancel(void)
 {
-	local_cancel_ = true;
-	for(int t=0; t<thread_num_; t++)
-		thread_status_[t].cancel_ = true;
+	//local_cancel_ = true;
+	//for(int t=0; t<thread_num_; t++)
+	//	thread_status_[t].cancel_ = true;
 }
 
 void ValueIterator::setSweepOrders(void)

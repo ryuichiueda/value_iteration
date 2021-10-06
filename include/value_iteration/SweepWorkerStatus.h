@@ -8,7 +8,6 @@ public:
 	bool _finished;
 	int _sweep_step;
 	double _delta;
-	bool cancel_;
 
 	SweepWorkerStatus();
 };
