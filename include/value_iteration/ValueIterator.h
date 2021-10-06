@@ -21,6 +21,7 @@ class ValueIterator{
 private: 
 	std::vector<State> states_;
 	std::vector<Action> &actions_;
+	std::vector<std::vector<int> > sweep_orders_;
 
 	double xy_resolution_, t_resolution_;
 	int cell_num_x_, cell_num_y_, cell_num_t_;
@@ -32,6 +33,7 @@ private:
 	const static unsigned char resolution_xy_bit_, resolution_t_bit_;
 
 	void noNoiseStateTransition(Action &a, double from_x, double from_y, double from_t, double &to_x, double &to_y, double &to_t);
+	void setSweepOrders(void);
 
 	void setState(const nav_msgs::OccupancyGrid &map, double safety_radius, double safety_radius_penalty);
 	void setStateValues(void);

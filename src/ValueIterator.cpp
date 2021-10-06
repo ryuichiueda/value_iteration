@@ -219,11 +219,16 @@ void ValueIterator::valueIterationWorker(int times, int id)
 
 		uint64_t max_delta = 0;
 	
+		for(auto i : sweep_orders_[id%sweep_orders_.size()]){
+			max_delta = max(max_delta, valueIteration(states_[i]));
+		}
+		/*
 		int start = rand()%states_.size();
 		for(int i=start; i<states_.size(); i++)
 			max_delta = max(max_delta, valueIteration(states_[i]));
 		for(int i=start-1; i>=0; i--)
 			max_delta = max(max_delta, valueIteration(states_[i]));
+		*/
 	
 		status_[id]._delta = (double)(max_delta >> prob_base_bit_);
 		if(status_[id]._delta < 0.1 or status_[id].cancel_)
@@ -246,7 +251,7 @@ void ValueIterator::localValueIterationWorker(void)
 
 				for(int iit=0;iit<cell_num_t_;iit++){
 					int i = toIndex(iix, iiy, iit);
-					if( states_[i].renew_ and renew_flag){
+					if(states_[i].renew_ and renew_flag){
 						states_[i].local_total_cost_ = states_[i].total_cost_;
 						states_[i].local_optimal_action_ = states_[i].optimal_action_;
 						states_[i].renew_ = false;
@@ -462,7 +467,7 @@ void ValueIterator::setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, do
         	int ix = (int)floor( (lx - map_origin_x_)/xy_resolution_ );
         	int iy = (int)floor( (ly - map_origin_y_)/xy_resolution_ );
 
-		for(double d=0.1;d<1.0;d+=0.1){
+		for(double d=0.1;d<=0.5;d+=0.1){
 			double half_lx = x + msg->ranges[i]*cos(a)*d;
 			double half_ly = y + msg->ranges[i]*sin(a)*d;
 	        	int half_ix = (int)floor( (half_lx - map_origin_x_)/xy_resolution_ );
@@ -508,6 +513,8 @@ void ValueIterator::setGoal(double goal_x, double goal_y, int goal_t)
 
 	status_.clear();
 	setStateValues();
+
+	setSweepOrders();
 }
 
 void ValueIterator::makeValueFunctionMap(nav_msgs::OccupancyGrid &map, int threshold, 
@@ -570,6 +577,37 @@ void ValueIterator::setCancel(void)
 	for(int t=0; t<thread_num_; t++){
 		status_[t].cancel_ = true;
 	}
+}
+
+void ValueIterator::setSweepOrders(void)
+{
+	if(sweep_orders_.size())
+		return;
+
+	ROS_INFO("SET SWEEP ORDER");
+	sweep_orders_.push_back( std::vector<int>() );
+	for(int y=0; y<cell_num_y_; y++)
+		for(int x=0; x<cell_num_x_; x++)
+			for(int t=0; t<cell_num_t_; t++)
+				sweep_orders_[0].push_back(toIndex(x,y,t));
+
+	sweep_orders_.push_back( std::vector<int>() );
+	for(int x=0; x<cell_num_x_; x++)
+		for(int y=0; y<cell_num_y_; y++)
+			for(int t=0; t<cell_num_t_; t++)
+				sweep_orders_[1].push_back(toIndex(x,y,t));
+
+	sweep_orders_.push_back( std::vector<int>() );
+	for(int y=cell_num_y_-1; y>=0; y--)
+		for(int x=cell_num_x_-1; x>=0; x--)
+			for(int t=cell_num_t_-1; t>=0; t--)
+				sweep_orders_[2].push_back(toIndex(x,y,t));
+
+	sweep_orders_.push_back( std::vector<int>() );
+	for(int x=cell_num_x_-1; x>=0; x--)
+		for(int y=cell_num_y_-1; y>=0; y--)
+			for(int t=cell_num_t_-1; t>=0; t--)
+				sweep_orders_[3].push_back(toIndex(x,y,t));
 }
 
 }
