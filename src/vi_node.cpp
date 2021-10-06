@@ -2,7 +2,7 @@
 
 namespace value_iteration{
 
-ViNode::ViNode() : private_nh_("~"), yaw_(0.0), x_(0.0), y_(0.0), status_("init"), online_("false")
+ViNode::ViNode() : private_nh_("~"), yaw_(0.0), x_(0.0), y_(0.0), online_("false")
 {
 	setActions();
 
@@ -152,7 +152,7 @@ bool ViNode::serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_ms
 void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 {
 	ROS_INFO("VALUE ITERATION START");
-	status_ = "calculating";
+	vi_->status_ = "calculating";
 	auto &ori = goal->goal.pose.orientation;	
 	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
 	double roll, pitch, yaw;
@@ -178,8 +178,8 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	while(not vi_->finished(vi_feedback.current_sweep_times, vi_feedback.deltas)){
 		as_->publishFeedback(vi_feedback);
 
-		if(as_->isPreemptRequested() or status_ == "goal"){
-			status_ = "canceled";
+		if(as_->isPreemptRequested() or vi_->status_ == "goal"){
+			vi_->status_ = "canceled";
 			vi_->setCancel();
 		}
 
@@ -190,12 +190,12 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	for(auto &th : ths)
 		th.join();
 
-	status_ = "calculated";
+	vi_->status_ = "calculated";
 	ROS_INFO("VALUE ITERATION END");
 
-	while(online_ and status_ != "goal" and status_ != "canceled"){
+	while(online_ and vi_->status_ != "goal" and vi_->status_ != "canceled"){
 		if(as_->isPreemptRequested())
-			status_ = "canceled";
+			vi_->status_ = "canceled";
 
 		loop_rate.sleep();
 	}
@@ -204,7 +204,7 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	local_set = false;
 	ROS_INFO("GOAL");
 	value_iteration::ViResult vi_result;
-	vi_result.finished = (status_ == "goal");
+	vi_result.finished = (vi_->status_ == "goal");
 	as_->setSucceeded(vi_result);
 }
 
@@ -239,7 +239,7 @@ void ViNode::decision(void)
 	cmd_vel.linear.x = 0.0;
 	cmd_vel.angular.z = 0.0;
 
-	if(status_ != "calculating" and status_ != "calculated"){
+	if(vi_->status_ != "calculating" and vi_->status_ != "calculated"){
 		pub_cmd_vel_.publish(cmd_vel);
 		return;
 	}
@@ -247,7 +247,7 @@ void ViNode::decision(void)
 	bool goal;
 	Action *a = vi_->posToActionLocal(x_, y_, yaw_, goal);
 	if(goal)
-		status_ = "goal";
+		vi_->status_ = "goal";
 
 	if(a != NULL){
 		cmd_vel.linear.x = a->_delta_fw;

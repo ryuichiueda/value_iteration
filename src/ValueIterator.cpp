@@ -6,7 +6,7 @@
 namespace value_iteration{
 
 ValueIterator::ValueIterator(std::vector<Action> &actions, int thread_num)
-	: actions_(actions), thread_num_(thread_num),
+	: actions_(actions), thread_num_(thread_num), status_("init"), 
 	  goal_x_(0.0), goal_y_(0.0), goal_t_(0)
 {
 	local_ix_min_ = local_ix_max_ = local_iy_min_ = local_iy_max_ = 0;
@@ -81,9 +81,9 @@ bool ValueIterator::finished(std_msgs::UInt32MultiArray &sweep_times, std_msgs::
 
 	bool finish = true;
 	for(int t=0; t<thread_num_; t++){
-		sweep_times.data[t] = status_[t]._sweep_step;
-		deltas.data[t] = status_[t]._delta;
-		finish &= status_[t]._finished;
+		sweep_times.data[t] = thread_status_[t]._sweep_step;
+		deltas.data[t] = thread_status_[t]._delta;
+		finish &= thread_status_[t]._finished;
 	}
 	return finish;
 }
@@ -213,10 +213,10 @@ uint64_t ValueIterator::valueIterationLocal(State &s)
 
 void ValueIterator::valueIterationWorker(int times, int id)
 {
-	status_.insert(make_pair(id, SweepWorkerStatus()));
+	thread_status_.insert(make_pair(id, SweepWorkerStatus()));
 
 	for(int j=0; j<times; j++){
-		status_[id]._sweep_step = j+1;
+		thread_status_[id]._sweep_step = j+1;
 
 		uint64_t max_delta = 0;
 	
@@ -231,12 +231,12 @@ void ValueIterator::valueIterationWorker(int times, int id)
 			max_delta = max(max_delta, valueIteration(states_[i]));
 		*/
 	
-		status_[id]._delta = (double)(max_delta >> prob_base_bit_);
-		if(status_[id]._delta < 0.1 or status_[id].cancel_)
+		thread_status_[id]._delta = (double)(max_delta >> prob_base_bit_);
+		if(thread_status_[id]._delta < 0.1 or thread_status_[id].cancel_)
 			break;
 	}
 
-	status_[id]._finished = true;
+	thread_status_[id]._finished = true;
 }
 
 void ValueIterator::localValueIterationWorker(void)
@@ -514,7 +514,7 @@ void ValueIterator::setGoal(double goal_x, double goal_y, int goal_t)
 
 	ROS_INFO("GOAL: %f, %f, %d", goal_x_, goal_y_, goal_t_);
 
-	status_.clear();
+	thread_status_.clear();
 	setStateValues();
 
 	setSweepOrders();
@@ -579,7 +579,7 @@ void ValueIterator::setCancel(void)
 {
 	local_cancel_ = true;
 	for(int t=0; t<thread_num_; t++)
-		status_[t].cancel_ = true;
+		thread_status_[t].cancel_ = true;
 }
 
 void ValueIterator::setSweepOrders(void)

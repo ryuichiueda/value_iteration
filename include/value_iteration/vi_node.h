@@ -62,7 +62,7 @@ private:
 
 	double x_, y_, yaw_;
 
-	string status_;
+	//string status_;
 	bool online_;
 
 	int cost_drawing_threshold_;

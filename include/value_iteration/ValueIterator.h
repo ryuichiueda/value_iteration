@@ -59,6 +59,8 @@ private:
 	int local_ixy_range_;
 	double local_xy_range_;
 public: 
+	string status_;
+
 	ValueIterator(vector<Action> &actions, int thread_num);
 
 	Action *posToActionLocal(double x, double y, double t_rad, bool &goal);
@@ -74,7 +76,7 @@ public:
 	void setGoal(double goal_x, double goal_y, int goal_t);
 
 	void valueIterationWorker(int times, int id);
-	map<int, SweepWorkerStatus> status_; 
+	map<int, SweepWorkerStatus> thread_status_; 
 
 	bool policyWriter(grid_map_msgs::GetGridMap::Response& response);
 	bool valueFunctionWriter(grid_map_msgs::GetGridMap::Response& response);
