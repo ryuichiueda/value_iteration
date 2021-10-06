@@ -200,6 +200,8 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 		loop_rate.sleep();
 	}
 
+	vi_->setCancel(); //for setting local cancel flag
+	local_set = false;
 	ROS_INFO("GOAL");
 	value_iteration::ViResult vi_result;
 	vi_result.finished = (status_ == "goal");

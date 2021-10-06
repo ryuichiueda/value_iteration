@@ -10,6 +10,7 @@ ValueIterator::ValueIterator(std::vector<Action> &actions, int thread_num)
 	  goal_x_(0.0), goal_y_(0.0), goal_t_(0)
 {
 	local_ix_min_ = local_ix_max_ = local_iy_min_ = local_iy_max_ = 0;
+	local_cancel_ = false;
 }
 
 void ValueIterator::setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int theta_cell_num,
@@ -240,7 +241,7 @@ void ValueIterator::valueIterationWorker(int times, int id)
 
 void ValueIterator::localValueIterationWorker(void)
 {
-	while(1){
+	while(not local_cancel_){
 		for(int iix=local_ix_min_;iix<=local_ix_max_;iix++){
 			int margin = ( local_ix_max_ - local_ix_min_ )/10; 
 			bool renew_flag_x = ( iix - local_ix_min_ < margin ) or ( local_ix_max_ - iix < margin );
@@ -467,7 +468,7 @@ void ValueIterator::setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, do
         	int ix = (int)floor( (lx - map_origin_x_)/xy_resolution_ );
         	int iy = (int)floor( (ly - map_origin_y_)/xy_resolution_ );
 
-		for(double d=0.1;d<=0.5;d+=0.1){
+		for(double d=0.1;d<=0.9;d+=0.1){
 			double half_lx = x + msg->ranges[i]*cos(a)*d;
 			double half_ly = y + msg->ranges[i]*sin(a)*d;
 	        	int half_ix = (int)floor( (half_lx - map_origin_x_)/xy_resolution_ );
@@ -508,6 +509,8 @@ void ValueIterator::setGoal(double goal_x, double goal_y, int goal_t)
 	goal_x_ = goal_x;
 	goal_y_ = goal_y;
 	goal_t_ = goal_t;
+
+	local_cancel_ = false;
 
 	ROS_INFO("GOAL: %f, %f, %d", goal_x_, goal_y_, goal_t_);
 
@@ -574,9 +577,9 @@ void ValueIterator::makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map, int 
 
 void ValueIterator::setCancel(void)
 {
-	for(int t=0; t<thread_num_; t++){
+	local_cancel_ = true;
+	for(int t=0; t<thread_num_; t++)
 		status_[t].cancel_ = true;
-	}
 }
 
 void ValueIterator::setSweepOrders(void)
