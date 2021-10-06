@@ -595,4 +595,19 @@ void ValueIterator::setSweepOrders(void)
 				sweep_orders_[3].push_back(toIndex(x,y,t));
 }
 
+void ValueIterator::setCancel(void)
+{
+	status_ = "canceled";
+}
+
+bool ValueIterator::endOfTrial(void)
+{
+	return status_ == "canceled" or status_ == "goal";
+}
+
+bool ValueIterator::arrived(void)
+{
+	return status_ == "goal";
+}
+
 }

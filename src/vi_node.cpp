@@ -178,7 +178,7 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 		as_->publishFeedback(vi_feedback);
 
 		if(as_->isPreemptRequested())
-			vi_->status_ = "canceled";
+			vi_->setCancel();
 
 		loop_rate.sleep();
 	}
@@ -189,9 +189,9 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 
 	ROS_INFO("VALUE ITERATION END");
 
-	while(online_ and vi_->status_ != "goal" and vi_->status_ != "canceled"){
-		if(as_->isPreemptRequested())
-			vi_->status_ = "canceled";
+	while(online_ and not vi_->endOfTrial() )
+		if(as_->isPreemptRequested()){
+			vi_->setCancel();
 
 		loop_rate.sleep();
 	}
@@ -199,7 +199,7 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	local_set = false;
 	ROS_INFO("GOAL");
 	value_iteration::ViResult vi_result;
-	vi_result.finished = (vi_->status_ == "goal" or (not online_));
+	vi_result.finished = vi_->arrived() or (not online_);
 	as_->setSucceeded(vi_result);
 }
 
