@@ -90,9 +90,6 @@ protected:
 	const static unsigned char resolution_xy_bit_, resolution_t_bit_;
 
 /* for local value iteration */
-public: 
-	void makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map, int threshold, 
-			double x, double y, double yaw_rad);
 protected:
 
 	int local_ix_min_, local_ix_max_, local_iy_min_, local_iy_max_;
