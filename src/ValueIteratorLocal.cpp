@@ -7,6 +7,21 @@ ValueIteratorLocal::ValueIteratorLocal(std::vector<Action> &actions, int thread_
 	local_ix_min_ = local_ix_max_ = local_iy_min_ = local_iy_max_ = 0;
 }
 
+void ValueIteratorLocal::setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int theta_cell_num,
+		double safety_radius, double safety_radius_penalty,
+		double goal_margin_radius, int goal_margin_theta)
+{
+	ValueIterator::setMapWithOccupancyGrid(map, theta_cell_num, safety_radius, safety_radius_penalty,
+			goal_margin_radius, goal_margin_theta);
+
+	local_xy_range_ = 2.0;
+	local_ixy_range_ = (int)(local_xy_range_/xy_resolution_);
+	local_ix_min_ = 0;
+	local_iy_min_ = 0;
+	local_ix_max_ = local_ixy_range_*2;
+	local_iy_max_ = local_ixy_range_*2;
+}
+
 void ValueIteratorLocal::localValueIterationWorker(int id)
 {
 	while(status_ == "canceled" or status_ == "goal"){

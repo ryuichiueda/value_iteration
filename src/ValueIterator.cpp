@@ -24,12 +24,6 @@ void ValueIterator::setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int th
 
 	xy_resolution_ = map.info.resolution;
 	t_resolution_ = 360/cell_num_t_;
-	local_xy_range_ = 2.0;
-	local_ixy_range_ = (int)(local_xy_range_/xy_resolution_);
-	local_ix_min_ = 0;
-	local_iy_min_ = 0;
-	local_ix_max_ = local_ixy_range_*2;
-	local_iy_max_ = local_ixy_range_*2;
 
 	map_origin_x_ = map.info.origin.position.x;
 	map_origin_y_ = map.info.origin.position.y;

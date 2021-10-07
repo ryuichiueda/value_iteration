@@ -12,6 +12,10 @@ public:
 	uint64_t valueIterationLocal(State &s);
 	void localValueIterationWorker(int id);
 
+	void setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int theta_cell_num,
+		double safety_radius, double safety_radius_penalty,
+		double goal_margin_radius, int goal_margin_theta);
+
 	Action *posToAction(double x, double y, double t_rad);
 
 	void setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, double x, double y, double t);
@@ -24,6 +28,7 @@ private:
 
 	bool inLocalArea(int ix, int iy);
 	uint64_t actionCostLocal(State &s, Action &a);
+
 };
 
 }
