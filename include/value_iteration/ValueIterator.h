@@ -90,11 +90,6 @@ protected:
 	const static unsigned char resolution_xy_bit_, resolution_t_bit_;
 
 /* for local value iteration */
-protected:
-
-	int local_ix_min_, local_ix_max_, local_iy_min_, local_iy_max_;
-	int local_ixy_range_;
-	double local_xy_range_;
 };
 
 const unsigned char ValueIterator::resolution_xy_bit_ = 6;
