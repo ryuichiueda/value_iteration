@@ -15,6 +15,7 @@ public:
 	Action *posToAction(double x, double y, double t_rad);
 
 	void setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, double x, double y, double t);
+	void setLocalWindow(double x, double y);
 private: 
 	void localValueIterationLoop1(void);
 	void localValueIterationLoop2(void);

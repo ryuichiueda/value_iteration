@@ -93,7 +93,6 @@ protected:
 public: 
 	void makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map, int threshold, 
 			double x, double y, double yaw_rad);
-	void setLocalWindow(double x, double y);
 protected:
 
 	int local_ix_min_, local_ix_max_, local_iy_min_, local_iy_max_;
