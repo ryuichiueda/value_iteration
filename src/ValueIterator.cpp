@@ -189,28 +189,6 @@ uint64_t ValueIterator::valueIteration(State &s)
 	return delta > 0 ? delta : -delta;
 }
 
-uint64_t ValueIterator::valueIterationLocal(State &s)
-{
-	if((not s.free_) or s.final_state_)
-		return 0;
-
-	uint64_t min_cost = ValueIterator::max_cost_;
-	Action *min_action = NULL;
-	for(auto &a : actions_){
-		int64_t c = actionCostLocal(s, a);
-		if(c < min_cost){
-			min_cost = c;
-			min_action = &a;
-		}
-	}
-
-	int64_t delta = min_cost - s.local_total_cost_;
-	s.local_total_cost_ = min_cost;
-	s.local_optimal_action_ = min_action;
-
-	return delta > 0 ? delta : -delta;
-}
-
 void ValueIterator::valueIterationWorker(int times, int id)
 {
 	thread_status_.insert(make_pair(id, SweepWorkerStatus()));

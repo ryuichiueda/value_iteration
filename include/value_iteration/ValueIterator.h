@@ -97,7 +97,6 @@ public:
 	void setLocalWindow(double x, double y);
 	void setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, double x, double y, double t);
 protected:
-	uint64_t valueIterationLocal(State &s);
 	uint64_t actionCostLocal(State &s, Action &a);
 	bool inLocalArea(int ix, int iy);
 
