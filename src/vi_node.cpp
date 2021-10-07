@@ -218,7 +218,7 @@ void ViNode::decision(void)
 	cmd_vel.linear.x = 0.0;
 	cmd_vel.angular.z = 0.0;
 
-	Action *a = vi_->posToActionLocal(x_, y_, yaw_);
+	Action *a = vi_->posToAction(x_, y_, yaw_);
 	if(a != NULL){
 		cmd_vel.linear.x = a->_delta_fw;
 		cmd_vel.angular.z = a->_delta_rot/180*M_PI;

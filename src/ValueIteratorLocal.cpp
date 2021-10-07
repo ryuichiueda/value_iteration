@@ -4,6 +4,7 @@ namespace value_iteration{
 
 ValueIteratorLocal::ValueIteratorLocal(std::vector<Action> &actions, int thread_num) : ValueIterator(actions, thread_num)
 {
+	local_ix_min_ = local_ix_max_ = local_iy_min_ = local_iy_max_ = 0;
 }
 
 void ValueIteratorLocal::localValueIterationWorker(int id)
@@ -90,5 +91,75 @@ uint64_t ValueIteratorLocal::valueIterationLocal(State &s)
 	return delta > 0 ? delta : -delta;
 }
 
+Action *ValueIteratorLocal::posToAction(double x, double y, double t_rad)
+{
+        int ix = (int)floor( (x - map_origin_x_)/xy_resolution_ );
+        int iy = (int)floor( (y - map_origin_y_)/xy_resolution_ );
+
+        int t = (int)(180 * t_rad / M_PI);
+        int it = (int)floor( ( (t + 360*100)%360 )/t_resolution_ );
+	int index = toIndex(ix, iy, it);
+
+	if(states_[index].final_state_){
+		status_ = "goal";
+		return NULL;
+	}else if(states_[index].local_optimal_action_ != NULL){
+		ROS_INFO("COST TO GO: %f", (double)states_[index].local_total_cost_/ValueIterator::prob_base_);
+		return states_[index].local_optimal_action_;
+	}else if(states_[index].optimal_action_ != NULL){
+		ROS_INFO("COST TO GO: %f", (double)states_[index].total_cost_/ValueIterator::prob_base_);
+		return states_[index].optimal_action_;
+	}
+
+	return NULL;
+
+}
+
+bool ValueIteratorLocal::inLocalArea(int ix, int iy)
+{
+	return ix >= local_ix_min_ and ix <= local_ix_max_ and iy >= local_iy_min_ and iy <= local_iy_max_;
+}
+
+void ValueIteratorLocal::setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, double x, double y, double t)
+{
+	double start_angle = msg->angle_min;
+	for(int i=0; i<msg->ranges.size(); i++){
+		double a = t + msg->angle_increment*i + start_angle;
+
+		double lx = x + msg->ranges[i]*cos(a);
+		double ly = y + msg->ranges[i]*sin(a);
+        	int ix = (int)floor( (lx - map_origin_x_)/xy_resolution_ );
+        	int iy = (int)floor( (ly - map_origin_y_)/xy_resolution_ );
+
+		for(double d=0.1;d<=0.9;d+=0.1){
+			double half_lx = x + msg->ranges[i]*cos(a)*d;
+			double half_ly = y + msg->ranges[i]*sin(a)*d;
+	        	int half_ix = (int)floor( (half_lx - map_origin_x_)/xy_resolution_ );
+	        	int half_iy = (int)floor( (half_ly - map_origin_y_)/xy_resolution_ );
+	
+			if(not inLocalArea(half_ix, half_iy))
+				continue;
+			
+			for(int it=0;it<cell_num_t_;it++){
+				int index = toIndex(half_ix, half_iy, it);
+				states_[index].local_penalty_ /= 2;
+			}
+		}
+
+		for(int iix=ix-2;iix<=ix+2;iix++){
+			for(int iiy=iy-2;iiy<=iy+2;iiy++){
+
+				if(not inLocalArea(iix, iiy))
+					continue;
+
+				for(int it=0;it<cell_num_t_;it++){
+					int index = toIndex(iix, iiy, it);
+					states_[index].local_penalty_ = 2048 << prob_base_bit_;
+				}
+			}
+		}
+
+	}
+}
 
 }

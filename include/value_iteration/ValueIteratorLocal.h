@@ -11,9 +11,15 @@ public:
 
 	uint64_t valueIterationLocal(State &s);
 	void localValueIterationWorker(int id);
+
+	Action *posToAction(double x, double y, double t_rad);
+
+	void setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, double x, double y, double t);
 private: 
 	void localValueIterationLoop1(void);
 	void localValueIterationLoop2(void);
+
+	bool inLocalArea(int ix, int iy);
 	/*
 private: 
 
