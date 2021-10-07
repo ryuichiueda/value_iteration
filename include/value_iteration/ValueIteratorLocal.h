@@ -20,6 +20,7 @@ private:
 	void localValueIterationLoop2(void);
 
 	bool inLocalArea(int ix, int iy);
+	uint64_t actionCostLocal(State &s, Action &a);
 	/*
 private: 
 

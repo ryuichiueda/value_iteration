@@ -95,7 +95,6 @@ public:
 			double x, double y, double yaw_rad);
 	void setLocalWindow(double x, double y);
 protected:
-	uint64_t actionCostLocal(State &s, Action &a);
 
 	int local_ix_min_, local_ix_max_, local_iy_min_, local_iy_max_;
 	int local_ixy_range_;

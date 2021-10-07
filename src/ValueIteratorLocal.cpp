@@ -162,4 +162,29 @@ void ValueIteratorLocal::setLocalCost(const sensor_msgs::LaserScan::ConstPtr &ms
 	}
 }
 
+uint64_t ValueIteratorLocal::actionCostLocal(State &s, Action &a)
+{
+	uint64_t cost = 0;
+	for(auto &tran : a._state_transitions[s._it]){
+		int ix = s._ix + tran._dix;
+		if(ix < 0 or ix >= cell_num_x_)
+			return max_cost_;
+
+		int iy = s._iy + tran._diy;
+		if(iy < 0 or iy >= cell_num_y_)
+			return max_cost_;
+
+		int it = (tran._dit + cell_num_t_)%cell_num_t_;
+
+		auto &after_s = states_[toIndex(ix, iy, it)];
+		if(not after_s.free_)
+			return max_cost_;
+
+		cost += ( after_s.local_total_cost_ + after_s.penalty_ + after_s.local_penalty_ ) * tran._prob;
+	}
+
+	return cost >> prob_base_bit_;
+}
+
+
 }
