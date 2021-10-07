@@ -92,9 +92,6 @@ protected:
 
 /* for local value iteration */
 public: 
-	void localValueIterationWorker(int id);
-	void localValueIterationLoop1(void);
-	void localValueIterationLoop2(void);
 	void makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map, int threshold, 
 			double x, double y, double yaw_rad);
 	void setLocalWindow(double x, double y);

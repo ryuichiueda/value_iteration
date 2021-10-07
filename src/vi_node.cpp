@@ -114,24 +114,6 @@ void ViNode::setActions(void)
 	}
 }
 
-	/*
-void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg)
-{
-	auto &ori = msg->pose.pose.orientation;	
-	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
-	double roll, pitch;
-	tf::Matrix3x3(q).getRPY(roll, pitch, yaw_);
-
-	x_ = msg->pose.pose.position.x;
-	y_ = msg->pose.pose.position.y;
-
-	ROS_INFO("MCL_POSE: %f, %f, %f", x_, y_, yaw_);
-
-	vi_->setLocalWindow(x_, y_);
-
-}
-	*/
-
 void ViNode::scanReceived(const sensor_msgs::LaserScan::ConstPtr &msg)
 {
 	vi_->setLocalCost(msg, x_, y_, yaw_);
@@ -151,6 +133,7 @@ bool ViNode::serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_ms
 
 void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 {
+	static bool executing = true;
 	ROS_INFO("VALUE ITERATION START");
 	auto &ori = goal->goal.pose.orientation;	
 	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
@@ -165,7 +148,7 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 
 	if(online_)
 		for(int t=0;t<2;t++)
-			thread(&ValueIterator::localValueIterationWorker, vi_.get(), t).detach();
+			thread(&ValueIteratorLocal::localValueIterationWorker, vi_.get(), t).detach();
 
 	value_iteration::ViFeedback vi_feedback;
 
@@ -186,7 +169,7 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	ROS_INFO("VALUE ITERATION END");
 	if(online_)
 		for(int t=2;t<4;t++)
-			thread(&ValueIterator::localValueIterationWorker, vi_.get(), t).detach();
+			thread(&ValueIteratorLocal::localValueIterationWorker, vi_.get(), t).detach();
 
 	while(online_ and not vi_->endOfTrial() )
 		if(as_->isPreemptRequested()){

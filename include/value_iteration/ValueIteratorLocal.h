@@ -8,6 +8,11 @@ namespace value_iteration{
 class ValueIteratorLocal : public ValueIterator{
 public:
 	ValueIteratorLocal(vector<Action> &actions, int thread_num);
+
+	void localValueIterationWorker(int id);
+private: 
+	void localValueIterationLoop1(void);
+	void localValueIterationLoop2(void);
 	/*
 private: 
 
