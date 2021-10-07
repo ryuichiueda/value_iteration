@@ -8,7 +8,7 @@ ViNode::ViNode() : private_nh_("~"), yaw_(0.0), x_(0.0), y_(0.0), online_("false
 
 	int thread_num;
 	private_nh_.param("thread_num", thread_num, 1);
-	vi_.reset(new ValueIterator(*actions_, thread_num));
+	vi_.reset(new ValueIteratorLocal(*actions_, thread_num));
 
 	private_nh_.param("cost_drawing_threshold", cost_drawing_threshold_, 60);
 
