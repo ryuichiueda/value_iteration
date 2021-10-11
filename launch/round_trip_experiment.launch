@@ -1,4 +1,8 @@
 <launch>
+  <arg name="initial_pose_x" default="-3.0"/>
+  <arg name="initial_pose_y" default="0.0"/>
+  <arg name="initial_pose_a" default="0.0"/>
+
   <!-- Set tf -->
   <node pkg="tf" type="static_transform_publisher" name="world_to_map" args="0 0 0 0 0 0 world map 100" />
 
@@ -28,7 +32,7 @@
 
   <!-- Arguments -->
   <arg name="model" default="burger" doc="model type [burger, waffle, waffle_pi]"/>
-  <arg name="map_file" default="$(find turtlebot3_navigation)/maps/map.yaml"/>
+  <arg name="map_file" default="$(find value_iteration)/maps/house.yaml"/>
   <arg name="open_rviz" default="true"/>
 
   <!-- Turtlebot3 -->
@@ -38,16 +42,18 @@
 
   <!-- Map server -->
   <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+<!-- 
   <node pkg="map_server" name="cost_map" type="map_server" args="$(find value_iteration)/maps/cost.yaml">
     <remap from="static_map" to="cost_map" />
     <remap from="map" to="cost_map_for_vi" />
   </node>
+-->
 
   <!-- MCL -->
-  <include file="$(find emcl)/launch/emcl.launch"/> 
+  <include file="$(find value_iteration)/launch/emcl.launch"/> 
 
   <!-- Launch other launch files -->
-  <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_world.launch" />
+  <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_house.launch" />
 
   <!-- rviz -->
   <group if="$(arg open_rviz)"> 
@@ -59,13 +65,14 @@
   <node pkg="value_iteration" name="vi_node" type="vi_node" output="screen" required="true">
     <param name="online" value="true" />
     <param name="theta_cell_num" value="60" />
-    <param name="thread_num" value="4" />
+    <param name="thread_num" value="8" />
     <param name="safety_radius" value="0.2" />
-    <param name="goal_margin_radius" value="0.2" />
-    <param name="goal_margin_theta" value="10" />
+    <param name="safety_radius_penalty" value="100000" />
+    <param name="goal_margin_radius" value="0.3" />
+    <param name="goal_margin_theta" value="15" />
     <param name="map_type" value="occupancy" />
 <!--    <param name="map_type" value="cost" /> -->
   </node>
-  <node pkg="value_iteration" name="vi_controller_turtle_env" type="vi_controller.py" output="screen" required="true" />
+  <node pkg="value_iteration" name="vi_turtle_round_trip" type="vi_turtle_round_trip.py" output="screen" required="true" />
 
 </launch>
