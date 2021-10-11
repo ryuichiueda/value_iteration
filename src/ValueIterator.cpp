@@ -200,8 +200,6 @@ void ValueIterator::valueIterationWorker(int times, int id)
 	thread_status_[id]._finished = true;
 }
 
-
-
 int ValueIterator::toIndex(int ix, int iy, int it)
 {
 	return it + ix*cell_num_t_ + iy*(cell_num_t_*cell_num_x_);
