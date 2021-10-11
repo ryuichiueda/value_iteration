@@ -29,6 +29,12 @@ void ValueIteratorLocal::localValueIterationWorker(int id)
 		status_ = "executing";
 	}
 
+	if(id == 3){
+		for(auto &s : states_){
+			s.local_total_cost_ = s.total_cost_;
+		}
+	}
+
 	while(status_ != "canceled" and status_ != "goal"){
 		if(id%2){
 			localValueIterationLoop1();
@@ -64,11 +70,11 @@ void ValueIteratorLocal::localValueIterationLoop1(void)
 void ValueIteratorLocal::localValueIterationLoop2(void)
 {
 	for(int iix=local_ix_max_;iix>=local_ix_min_;iix--){
-		int margin = ( local_ix_max_ - local_ix_min_ )/10; 
+		int margin = ( local_ix_max_ - local_ix_min_ )/5; 
 		bool renew_flag_x = ( iix - local_ix_min_ < margin ) or ( local_ix_max_ - iix < margin );
 
 		for(int iiy=local_iy_max_;iiy>=local_iy_min_;iiy--){
-			int margin = ( local_iy_max_ - local_iy_min_ )/10; 
+			int margin = ( local_iy_max_ - local_iy_min_ )/5; 
 			bool renew_flag = renew_flag_x or ( iiy - local_iy_min_ < margin ) or ( local_iy_max_ - iiy < margin );
 
 			for(int iit=cell_num_t_-1;iit>=0;iit--){
