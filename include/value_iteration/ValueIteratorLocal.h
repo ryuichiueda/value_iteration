@@ -22,6 +22,8 @@ public:
 	void setLocalWindow(double x, double y);
 	void makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map, int threshold, 
 			double x, double y, double yaw_rad);
+
+	void copyFromGlobal(void);
 private: 
 	void localValueIterationLoop1(void);
 	void localValueIterationLoop2(void);

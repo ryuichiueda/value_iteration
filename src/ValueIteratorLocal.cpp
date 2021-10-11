@@ -29,11 +29,12 @@ void ValueIteratorLocal::localValueIterationWorker(int id)
 		status_ = "executing";
 	}
 
+	/*
 	if(id == 3){
 		for(auto &s : states_){
 			s.local_total_cost_ = s.total_cost_;
 		}
-	}
+	}*/
 
 	while(status_ != "canceled" and status_ != "goal"){
 		if(id%2){
@@ -243,6 +244,12 @@ void ValueIteratorLocal::makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map,
 			else 
 				map.data.push_back(255);
 		}
+}
+
+void ValueIteratorLocal::copyFromGlobal(void)
+{
+	for(auto &s : states_)
+		s.local_total_cost_ = s.total_cost_;
 }
 
 }

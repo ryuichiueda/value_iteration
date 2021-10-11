@@ -166,6 +166,8 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	for(auto &th : ths)
 		th.join();
 
+	vi_->copyFromGlobal();
+
 	ROS_INFO("VALUE ITERATION END");
 	if(online_)
 		for(int t=2;t<4;t++)
