@@ -444,4 +444,15 @@ Action *ValueIterator::posToAction(double x, double y, double t_rad)
 
 }
 
+void ValueIterator::setCalculated(void)
+{
+	if(status_ != "canceled")
+		status_ = "calculated";
+}
+
+bool ValueIterator::isCalculated(void)
+{
+	return status_ == "calculated";
+}
+
 }

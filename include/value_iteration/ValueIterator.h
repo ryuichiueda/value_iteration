@@ -42,6 +42,8 @@ public:
 	bool endOfTrial(void);
 	bool arrived(void);
 	Action *posToAction(double x, double y, double t_rad);
+	void setCalculated(void);
+	bool isCalculated(void);
 
 /* initialization */
 	ValueIterator(vector<Action> &actions, int thread_num);

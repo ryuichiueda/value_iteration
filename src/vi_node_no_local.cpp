@@ -161,6 +161,7 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	for(auto &th : ths)
 		th.join();
 
+	vi_->setCalculated();
 	ROS_INFO("VALUE ITERATION END");
 	while(online_ and not vi_->endOfTrial() )
 		if(as_->isPreemptRequested()){

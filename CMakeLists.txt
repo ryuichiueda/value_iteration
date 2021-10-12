@@ -176,11 +176,13 @@ add_dependencies(StateTransition ${TARGET_NAME} ${PROJECT_NAME}_generate_message
 ## Declare a C++ executable
 add_executable(vi_node src/vi_node.cpp)
 add_executable(vi_node_no_local src/vi_node_no_local.cpp)
+add_executable(vi_node_after_planning src/vi_node_after_planning.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 add_dependencies(vi_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(vi_node_no_local ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(vi_node_after_planning ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(vi_node ${catkin_LIBRARIES} )
@@ -190,6 +192,15 @@ target_link_libraries(vi_node SweepWorkerStatus ${catkin_LIBRARIES} )
 target_link_libraries(vi_node State ${catkin_LIBRARIES} )
 target_link_libraries(vi_node Action ${catkin_LIBRARIES} )
 target_link_libraries(vi_node StateTransition ${catkin_LIBRARIES} )
+
+## Specify libraries to link a library or executable target against
+target_link_libraries(vi_node_after_planning ${catkin_LIBRARIES} )
+target_link_libraries(vi_node_after_planning ValueIterator ${catkin_LIBRARIES} )
+target_link_libraries(vi_node_after_planning ValueIteratorLocal ${catkin_LIBRARIES} )
+target_link_libraries(vi_node_after_planning SweepWorkerStatus ${catkin_LIBRARIES} )
+target_link_libraries(vi_node_after_planning State ${catkin_LIBRARIES} )
+target_link_libraries(vi_node_after_planning Action ${catkin_LIBRARIES} )
+target_link_libraries(vi_node_after_planning StateTransition ${catkin_LIBRARIES} )
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(vi_node_no_local ${catkin_LIBRARIES} )

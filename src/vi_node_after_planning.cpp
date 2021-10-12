@@ -133,7 +133,6 @@ bool ViNode::serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_ms
 
 void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 {
-	static bool executing = true;
 	ROS_INFO("VALUE ITERATION START");
 	auto &ori = goal->goal.pose.orientation;	
 	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
@@ -145,10 +144,6 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	vector<thread> ths;
 	for(int t=0; t<vi_->thread_num_; t++)
 		ths.push_back(thread(&ValueIterator::valueIterationWorker, vi_.get(), INT_MAX, t));
-
-	if(online_)
-		for(int t=0;t<2;t++)
-			thread(&ValueIteratorLocal::localValueIterationWorker, vi_.get(), t).detach();
 
 	value_iteration::ViFeedback vi_feedback;
 
@@ -166,14 +161,14 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	for(auto &th : ths)
 		th.join();
 
-	vi_->setCalculated();
 	vi_->copyFromGlobal();
+	vi_->setCalculated();
 
 	ROS_INFO("VALUE ITERATION END");
-	for(int t=2;t<4;t++)
+	for(int t=0;t<4;t++)
 		thread(&ValueIteratorLocal::localValueIterationWorker, vi_.get(), t).detach();
 
-	while(not vi_->endOfTrial() )
+	while(online_ and not vi_->endOfTrial() )
 		if(as_->isPreemptRequested()){
 			vi_->setCancel();
 
@@ -182,7 +177,7 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 
 	ROS_INFO("END OF TRIAL");
 	value_iteration::ViResult vi_result;
-	vi_result.finished = vi_->arrived();
+	vi_result.finished = vi_->arrived() or (not online_);
 	as_->setSucceeded(vi_result);
 }
 
@@ -200,7 +195,7 @@ void ViNode::pubValueFunction(void)
 
 void ViNode::decision(void)
 {
-	if(not online_)
+	if(not vi_->isCalculated())
 		return; 
 
 	try{
