@@ -1,5 +1,5 @@
-#ifndef _VI_NODE_NO_LOCAL_H__
-#define _VI_NODE_NO_LOCAL_H__
+#ifndef _VI_NODE_NL_H__
+#define _VI_NODE_NL_H__
 
 #include <ros/ros.h>
 #include <actionlib/server/simple_action_server.h>

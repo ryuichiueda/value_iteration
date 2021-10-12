@@ -423,4 +423,25 @@ bool ValueIterator::arrived(void)
 	return status_ == "goal";
 }
 
+Action *ValueIterator::posToAction(double x, double y, double t_rad)
+{
+        int ix = (int)floor( (x - map_origin_x_)/xy_resolution_ );
+        int iy = (int)floor( (y - map_origin_y_)/xy_resolution_ );
+
+        int t = (int)(180 * t_rad / M_PI);
+        int it = (int)floor( ( (t + 360*100)%360 )/t_resolution_ );
+	int index = toIndex(ix, iy, it);
+
+	if(states_[index].final_state_){
+		status_ = "goal";
+		return NULL;
+	}else if(states_[index].optimal_action_ != NULL){
+		ROS_INFO("COST TO GO: %f", (double)states_[index].total_cost_/ValueIterator::prob_base_);
+		return states_[index].optimal_action_;
+	}
+
+	return NULL;
+
+}
+
 }

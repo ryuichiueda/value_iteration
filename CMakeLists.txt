@@ -183,8 +183,21 @@ add_dependencies(vi_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_T
 add_dependencies(vi_node_no_local ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(vi_node ValueIterator SweepWorkerStatus State Action StateTransition ${catkin_LIBRARIES} )
-target_link_libraries(vi_node_no_local ValueIterator SweepWorkerStatus State Action StateTransition ${catkin_LIBRARIES} )
+target_link_libraries(vi_node ${catkin_LIBRARIES} )
+target_link_libraries(vi_node ValueIterator ${catkin_LIBRARIES} )
+target_link_libraries(vi_node ValueIteratorLocal ${catkin_LIBRARIES} )
+target_link_libraries(vi_node SweepWorkerStatus ${catkin_LIBRARIES} )
+target_link_libraries(vi_node State ${catkin_LIBRARIES} )
+target_link_libraries(vi_node Action ${catkin_LIBRARIES} )
+target_link_libraries(vi_node StateTransition ${catkin_LIBRARIES} )
+
+## Specify libraries to link a library or executable target against
+target_link_libraries(vi_node_no_local ${catkin_LIBRARIES} )
+target_link_libraries(vi_node_no_local ValueIterator ${catkin_LIBRARIES} )
+target_link_libraries(vi_node_no_local SweepWorkerStatus ${catkin_LIBRARIES} )
+target_link_libraries(vi_node_no_local State ${catkin_LIBRARIES} )
+target_link_libraries(vi_node_no_local Action ${catkin_LIBRARIES} )
+target_link_libraries(vi_node_no_local StateTransition ${catkin_LIBRARIES} )
 
 #############
 ## Install ##

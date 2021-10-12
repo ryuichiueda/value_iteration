@@ -116,7 +116,7 @@ void ViNode::setActions(void)
 
 void ViNode::scanReceived(const sensor_msgs::LaserScan::ConstPtr &msg)
 {
-	vi_->setLocalCost(msg, x_, y_, yaw_);
+	//vi_->setLocalCost(msg, x_, y_, yaw_);
 }
 
 bool ViNode::servePolicy(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response)
@@ -145,10 +145,6 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	for(int t=0; t<vi_->thread_num_; t++)
 		ths.push_back(thread(&ValueIterator::valueIterationWorker, vi_.get(), INT_MAX, t));
 
-	if(online_)
-		for(int t=0;t<2;t++)
-			thread(&ValueIterator::localValueIterationWorker, vi_.get(), t).detach();
-
 	value_iteration::ViFeedback vi_feedback;
 
 	ros::Rate loop_rate(10);
@@ -166,10 +162,6 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 		th.join();
 
 	ROS_INFO("VALUE ITERATION END");
-	if(online_)
-		for(int t=2;t<4;t++)
-			thread(&ValueIterator::localValueIterationWorker, vi_.get(), t).detach();
-
 	while(online_ and not vi_->endOfTrial() )
 		if(as_->isPreemptRequested()){
 			vi_->setCancel();
@@ -186,15 +178,9 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 
 void ViNode::pubValueFunction(void)
 {
-	nav_msgs::OccupancyGrid map, local_map;
-
+	nav_msgs::OccupancyGrid map;//, local_map;
 	vi_->makeValueFunctionMap(map, cost_drawing_threshold_, x_, y_, yaw_);
 	pub_value_function_.publish(map);
-
-	/*
-	vi_->makeLocalValueFunctionMap(local_map, cost_drawing_threshold_, x_, y_, yaw_);
-	pub_local_value_function_.publish(local_map);
-	*/
 }
 
 void ViNode::decision(void)
