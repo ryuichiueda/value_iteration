@@ -8,7 +8,7 @@ ViNode::ViNode() : private_nh_("~"), yaw_(0.0), x_(0.0), y_(0.0), online_("false
 
 	int thread_num;
 	private_nh_.param("thread_num", thread_num, 1);
-	vi_.reset(new ValueIterator(*actions_, thread_num));
+	vi_.reset(new ValueIteratorLocal(*actions_, thread_num));
 
 	private_nh_.param("cost_drawing_threshold", cost_drawing_threshold_, 60);
 
@@ -114,24 +114,6 @@ void ViNode::setActions(void)
 	}
 }
 
-	/*
-void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg)
-{
-	auto &ori = msg->pose.pose.orientation;	
-	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
-	double roll, pitch;
-	tf::Matrix3x3(q).getRPY(roll, pitch, yaw_);
-
-	x_ = msg->pose.pose.position.x;
-	y_ = msg->pose.pose.position.y;
-
-	ROS_INFO("MCL_POSE: %f, %f, %f", x_, y_, yaw_);
-
-	vi_->setLocalWindow(x_, y_);
-
-}
-	*/
-
 void ViNode::scanReceived(const sensor_msgs::LaserScan::ConstPtr &msg)
 {
 	vi_->setLocalCost(msg, x_, y_, yaw_);
@@ -151,6 +133,7 @@ bool ViNode::serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_ms
 
 void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 {
+	static bool executing = true;
 	ROS_INFO("VALUE ITERATION START");
 	auto &ori = goal->goal.pose.orientation;	
 	tf::Quaternion q(ori.x, ori.y, ori.z, ori.w);
@@ -165,7 +148,7 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 
 	if(online_)
 		for(int t=0;t<2;t++)
-			thread(&ValueIterator::localValueIterationWorker, vi_.get(), t).detach();
+			thread(&ValueIteratorLocal::localValueIterationWorker, vi_.get(), t).detach();
 
 	value_iteration::ViFeedback vi_feedback;
 
@@ -183,10 +166,12 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	for(auto &th : ths)
 		th.join();
 
+	vi_->copyFromGlobal();
+
 	ROS_INFO("VALUE ITERATION END");
 	if(online_)
 		for(int t=2;t<4;t++)
-			thread(&ValueIterator::localValueIterationWorker, vi_.get(), t).detach();
+			thread(&ValueIteratorLocal::localValueIterationWorker, vi_.get(), t).detach();
 
 	while(online_ and not vi_->endOfTrial() )
 		if(as_->isPreemptRequested()){
@@ -235,7 +220,7 @@ void ViNode::decision(void)
 	cmd_vel.linear.x = 0.0;
 	cmd_vel.angular.z = 0.0;
 
-	Action *a = vi_->posToActionLocal(x_, y_, yaw_);
+	Action *a = vi_->posToAction(x_, y_, yaw_);
 	if(a != NULL){
 		cmd_vel.linear.x = a->_delta_fw;
 		cmd_vel.angular.z = a->_delta_rot/180*M_PI;

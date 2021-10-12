@@ -18,7 +18,7 @@
 namespace value_iteration{
 
 class ValueIterator{
-private: 
+protected: 
 /* value iteration */
 	std::vector<State> states_;
 	std::vector<Action> &actions_;
@@ -31,7 +31,7 @@ public:
 	void valueIterationWorker(int times, int id);
 
 /* calculation */
-private: 
+protected: 
 	int toIndex(int ix, int iy, int it);
 	bool inMapArea(int ix, int iy);
 	void cellDelta(double x, double y, double t, int &ix, int &iy, int &it);
@@ -39,7 +39,6 @@ private:
 
 /* robot control */
 public: 
-	Action *posToActionLocal(double x, double y, double t_rad);
 	bool endOfTrial(void);
 	bool arrived(void);
 
@@ -52,7 +51,7 @@ public:
 	void setMapWithCostGrid(nav_msgs::OccupancyGrid &map, int theta_cell_num,
 		double safety_radius, double safety_radius_penalty,
 		double goal_margin_radius, int goal_margin_theta);
-private:
+protected:
 	void setState(const nav_msgs::OccupancyGrid &map, double safety_radius, double safety_radius_penalty);
 	void setStateValues(void);
 	void setStateTransition(void);
@@ -71,7 +70,7 @@ public:
 	map<int, SweepWorkerStatus> thread_status_; 
 	bool finished(std_msgs::UInt32MultiArray &sweep_times, std_msgs::Float32MultiArray &deltas);
 	void setCancel(void);
-private:
+protected:
 	string status_;
 
 /* parameters */
@@ -82,7 +81,7 @@ public:
 	const static uint64_t max_cost_;
 	const static uint64_t prob_base_;
 	const static unsigned char prob_base_bit_;
-private:
+protected:
 	double xy_resolution_, t_resolution_;
 	int cell_num_x_, cell_num_y_, cell_num_t_;
 	double map_origin_x_;
@@ -91,22 +90,6 @@ private:
 	const static unsigned char resolution_xy_bit_, resolution_t_bit_;
 
 /* for local value iteration */
-public: 
-	void localValueIterationWorker(int id);
-	void localValueIterationLoop1(void);
-	void localValueIterationLoop2(void);
-	void makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map, int threshold, 
-			double x, double y, double yaw_rad);
-	void setLocalWindow(double x, double y);
-	void setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, double x, double y, double t);
-private:
-	uint64_t valueIterationLocal(State &s);
-	uint64_t actionCostLocal(State &s, Action &a);
-	bool inLocalArea(int ix, int iy);
-
-	int local_ix_min_, local_ix_max_, local_iy_min_, local_iy_max_;
-	int local_ixy_range_;
-	double local_xy_range_;
 };
 
 const unsigned char ValueIterator::resolution_xy_bit_ = 6;

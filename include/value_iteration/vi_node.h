@@ -10,7 +10,7 @@
 
 #include "nav_msgs/GetMap.h"
 #include "nav_msgs/OccupancyGrid.h"
-#include "value_iteration/ValueIterator.h"
+#include "value_iteration/ValueIteratorLocal.h"
 #include <iostream>
 #include <vector>
 #include <thread>
@@ -33,7 +33,7 @@ public:
 	void decision(void);
 private:
 	vector<Action> *actions_;
-	shared_ptr<ValueIterator> vi_;
+	shared_ptr<ValueIteratorLocal> vi_;
 	ros::NodeHandle nh_;
 	ros::NodeHandle private_nh_;
 

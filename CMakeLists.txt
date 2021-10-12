@@ -153,6 +153,7 @@ include_directories(
 
 ## Declare a C++ library
 add_library(ValueIterator src/ValueIterator.cpp)
+add_library(ValueIteratorLocal src/ValueIteratorLocal.cpp)
 add_library(SweepWorkerStatus src/SweepWorkerStatus.cpp)
 add_library(State src/State.cpp)
 add_library(Action src/Action.cpp)
@@ -160,6 +161,7 @@ add_library(StateTransition src/StateTransition.cpp)
 
 # この2行を追加
 add_dependencies(ValueIterator ${TARGET_NAME} ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(ValueIteratorLocal ${TARGET_NAME} ${PROJECT_NAME}_generate_messages_cpp)
 add_dependencies(SweepWorkerStatus ${TARGET_NAME} ${PROJECT_NAME}_generate_messages_cpp)
 add_dependencies(State ${TARGET_NAME} ${PROJECT_NAME}_generate_messages_cpp)
 add_dependencies(Action ${TARGET_NAME} ${PROJECT_NAME}_generate_messages_cpp)
