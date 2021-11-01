@@ -1,6 +1,6 @@
 <launch>
   <arg name="initial_pose_x" default="-3.0"/>
-  <arg name="initial_pose_y" default="1.0"/>
+  <arg name="initial_pose_y" default="0.0"/>
   <arg name="initial_pose_a" default="0.0"/>
 
   <!-- Set tf -->
@@ -50,8 +50,7 @@
 -->
 
   <!-- MCL -->
-  <include file="$(find value_iteration)/launch/emcl.launch"/>
-  <!-- <include file="$(find value_iteration)/launch/amcl.launch"/> -->
+  <include file="$(find value_iteration)/launch/emcl.launch"/> 
 
   <!-- Launch other launch files -->
   <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_house.launch" />
@@ -63,7 +62,7 @@
   </group>
 
   <!-- Launch the value_iteration node -->
-  <node pkg="value_iteration" name="vi_node" type="vi_node" output="screen" required="true">
+  <node pkg="value_iteration" name="vi_node_no_local" type="vi_node_no_local" output="screen" required="true">
     <param name="online" value="true" />
     <param name="theta_cell_num" value="60" />
     <param name="thread_num" value="8" />
@@ -73,8 +72,7 @@
     <param name="goal_margin_theta" value="15" />
     <param name="map_type" value="occupancy" />
 <!--    <param name="map_type" value="cost" /> -->
-
   </node>
-  <node pkg="value_iteration" name="vi_controller_turtle_env" type="vi_controller.py" output="screen" required="true" />
+  <node pkg="value_iteration" name="vi_turtle_round_trip" type="vi_turtle_round_trip.py" output="screen" required="true" />
 
 </launch>
