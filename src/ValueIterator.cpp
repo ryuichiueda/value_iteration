@@ -32,6 +32,7 @@ void ValueIterator::setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int th
 	ROS_INFO("SET STATES START");
 	setState(map, safety_radius, safety_radius_penalty);
 	setStateTransition();
+	setSweepOrders();
 	ROS_INFO("SET STATES END");
 }
 
@@ -64,6 +65,7 @@ void ValueIterator::setMapWithCostGrid(nav_msgs::OccupancyGrid &map, int theta_c
 		}
 
 	setStateTransition();
+	setSweepOrders();
 }
 
 bool ValueIterator::finished(std_msgs::UInt32MultiArray &sweep_times, std_msgs::Float32MultiArray &deltas)
@@ -344,7 +346,6 @@ void ValueIterator::setGoal(double goal_x, double goal_y, int goal_t)
 
 	thread_status_.clear();
 	setStateValues();
-	setSweepOrders();
 	status_ = "calculating";
 }
 
@@ -395,17 +396,16 @@ void ValueIterator::setSweepOrders(void)
 			for(int t=0; t<cell_num_t_; t++)
 				sweep_orders_[1].push_back(toIndex(x,y,t));
 
-	sweep_orders_.push_back( std::vector<int>() );
-	for(int y=cell_num_y_-1; y>=0; y--)
-		for(int x=cell_num_x_-1; x>=0; x--)
-			for(int t=cell_num_t_-1; t>=0; t--)
-				sweep_orders_[2].push_back(toIndex(x,y,t));
+	sweep_orders_.push_back( {sweep_orders_[0].rbegin(), sweep_orders_[0].rend()} );//2
+	sweep_orders_.push_back( {sweep_orders_[1].rbegin(), sweep_orders_[1].rend()} );//3
 
-	sweep_orders_.push_back( std::vector<int>() );
-	for(int x=cell_num_x_-1; x>=0; x--)
-		for(int y=cell_num_y_-1; y>=0; y--)
-			for(int t=cell_num_t_-1; t>=0; t--)
-				sweep_orders_[3].push_back(toIndex(x,y,t));
+	/* 4,5 */
+	int half = sweep_orders_[0].size()/2;
+	for(int i=0;i<2;i++){
+		sweep_orders_.push_back( {sweep_orders_[i].begin(), sweep_orders_[i].begin()+half} );
+		sweep_orders_[4].insert(sweep_orders_[4].end(),
+			sweep_orders_[i].begin()+half, sweep_orders_[i].end() );
+	}
 }
 
 void ValueIterator::setCancel(void)
