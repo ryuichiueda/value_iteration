@@ -14,10 +14,10 @@ State::State(int x, int y, int theta, const nav_msgs::OccupancyGrid &map,
 	total_cost_ = ValueIterator::max_cost_;
 	penalty_ = ValueIterator::prob_base_;
 	local_penalty_ = 0;
-	local_total_cost_ = 0;
+	//local_total_cost_ = 0;
 	final_state_ = false;
 	optimal_action_ = NULL;
-	local_optimal_action_ = NULL;
+	//local_optimal_action_ = NULL;
 
 	free_ = (map.data[y*x_num + x] == 0);
 	if(not free_)

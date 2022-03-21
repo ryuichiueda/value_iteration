@@ -29,63 +29,18 @@ void ValueIteratorLocal::localValueIterationWorker(int id)
 		status_ = "executing";
 	}
 
-	/*
-	if(id == 3){
-		for(auto &s : states_){
-			s.local_total_cost_ = s.total_cost_;
-		}
-	}*/
-
 	while(status_ != "canceled" and status_ != "goal"){
-		if(id%2){
-			localValueIterationLoop1();
-		}else{
-			localValueIterationLoop2();
-		}
+		localValueIterationLoop();
 	}
 }
 
-void ValueIteratorLocal::localValueIterationLoop1(void)
+void ValueIteratorLocal::localValueIterationLoop(void)
 {
 	for(int iix=local_ix_min_;iix<=local_ix_max_;iix++){
-		int margin = ( local_ix_max_ - local_ix_min_ )/10; 
-		bool renew_flag_x = ( iix - local_ix_min_ < margin ) or ( local_ix_max_ - iix < margin );
-
 		for(int iiy=local_iy_min_;iiy<=local_iy_max_;iiy++){
-			int margin = ( local_iy_max_ - local_iy_min_ )/10; 
-			bool renew_flag = renew_flag_x or ( iiy - local_iy_min_ < margin ) or ( local_iy_max_ - iiy < margin );
-
 			for(int iit=0;iit<cell_num_t_;iit++){
 				int i = toIndex(iix, iiy, iit);
-				if(states_[i].renew_ and renew_flag){
-					states_[i].local_total_cost_ = states_[i].total_cost_;
-					states_[i].local_optimal_action_ = states_[i].optimal_action_;
-					states_[i].renew_ = false;
-				}else
-					valueIterationLocal(states_[i]);
-			}
-		}
-	}
-}
-
-void ValueIteratorLocal::localValueIterationLoop2(void)
-{
-	for(int iix=local_ix_max_;iix>=local_ix_min_;iix--){
-		int margin = ( local_ix_max_ - local_ix_min_ )/5; 
-		bool renew_flag_x = ( iix - local_ix_min_ < margin ) or ( local_ix_max_ - iix < margin );
-
-		for(int iiy=local_iy_max_;iiy>=local_iy_min_;iiy--){
-			int margin = ( local_iy_max_ - local_iy_min_ )/5; 
-			bool renew_flag = renew_flag_x or ( iiy - local_iy_min_ < margin ) or ( local_iy_max_ - iiy < margin );
-
-			for(int iit=cell_num_t_-1;iit>=0;iit--){
-				int i = toIndex(iix, iiy, iit);
-				if(states_[i].renew_ and renew_flag){
-					states_[i].local_total_cost_ = states_[i].total_cost_;
-					states_[i].local_optimal_action_ = states_[i].optimal_action_;
-					states_[i].renew_ = false;
-				}else
-					valueIterationLocal(states_[i]);
+				valueIterationLocal(states_[i]);
 			}
 		}
 	}
@@ -106,9 +61,9 @@ uint64_t ValueIteratorLocal::valueIterationLocal(State &s)
 		}
 	}
 
-	int64_t delta = min_cost - s.local_total_cost_;
-	s.local_total_cost_ = min_cost;
-	s.local_optimal_action_ = min_action;
+	int64_t delta = min_cost - s.total_cost_;
+	s.total_cost_ = min_cost;
+	s.optimal_action_ = min_action;
 
 	return delta > 0 ? delta : -delta;
 }
@@ -125,9 +80,11 @@ Action *ValueIteratorLocal::posToAction(double x, double y, double t_rad)
 	if(states_[index].final_state_){
 		status_ = "goal";
 		return NULL;
+		/*
 	}else if(states_[index].local_optimal_action_ != NULL){
 		ROS_INFO("COST TO GO: %f", (double)states_[index].local_total_cost_/ValueIterator::prob_base_);
 		return states_[index].local_optimal_action_;
+		*/
 	}else if(states_[index].optimal_action_ != NULL){
 		ROS_INFO("COST TO GO: %f", (double)states_[index].total_cost_/ValueIterator::prob_base_);
 		return states_[index].optimal_action_;
@@ -202,7 +159,7 @@ uint64_t ValueIteratorLocal::actionCostLocal(State &s, Action &a)
 		if(not after_s.free_)
 			return max_cost_;
 
-		cost += ( after_s.local_total_cost_ + after_s.penalty_ + after_s.local_penalty_ ) * tran._prob;
+		cost += ( after_s.total_cost_ + after_s.penalty_ + after_s.local_penalty_ ) * tran._prob;
 	}
 
 	return cost >> prob_base_bit_;
@@ -236,7 +193,7 @@ void ValueIteratorLocal::makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map,
 	for(int y=local_iy_min_; y<=local_iy_max_; y++)
 		for(int x=local_ix_min_; x<=local_ix_max_; x++){
 			int index = toIndex(x, y, it);
-			double cost = (double)states_[index].local_total_cost_/prob_base_;
+			double cost = (double)states_[index].total_cost_/prob_base_;
 			if(cost < (double)threshold)
 				map.data.push_back((int)(cost/threshold*250));
 			else if(states_[index].free_)
@@ -244,12 +201,6 @@ void ValueIteratorLocal::makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map,
 			else 
 				map.data.push_back(255);
 		}
-}
-
-void ValueIteratorLocal::copyFromGlobal(void)
-{
-	for(auto &s : states_)
-		s.local_total_cost_ = s.total_cost_;
 }
 
 }

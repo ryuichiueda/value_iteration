@@ -23,10 +23,8 @@ public:
 	void makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map, int threshold, 
 			double x, double y, double yaw_rad);
 
-	void copyFromGlobal(void);
 private: 
-	void localValueIterationLoop1(void);
-	void localValueIterationLoop2(void);
+	void localValueIterationLoop(void);
 
 	bool inLocalArea(int ix, int iy);
 	uint64_t actionCostLocal(State &s, Action &a);

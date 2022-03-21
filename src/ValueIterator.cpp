@@ -178,7 +178,7 @@ uint64_t ValueIterator::valueIteration(State &s)
 	int64_t delta = min_cost - s.total_cost_;
 	s.total_cost_ = min_cost;
 	s.optimal_action_ = min_action;
-	s.renew_ = true;
+	//s.renew_ = true;
 
 	return delta > 0 ? delta : -delta;
 }
@@ -274,12 +274,12 @@ void ValueIterator::setStateValues(void)
 	}
 
 	for(auto &s : states_){
-		s.renew_ = false;
+		//s.renew_ = false;
 		s.total_cost_ = s.final_state_ ? 0 : max_cost_;
-		s.local_total_cost_ = s.total_cost_;
+		//s.local_total_cost_ = s.total_cost_;
 		s.local_penalty_ = 0;
 		s.optimal_action_ = NULL;
-		s.local_optimal_action_ = NULL;
+		//s.local_optimal_action_ = NULL;
 	}
 }
 

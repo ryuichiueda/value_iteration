@@ -82,12 +82,11 @@ void ViNode::setCommunication(void)
 	if(online_){
 		ROS_INFO("SET ONLINE");
 		pub_cmd_vel_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 2, true);
-		//sub_pose_ = nh_.subscribe("mcl_pose", 2, &ViNode::poseReceived, this);
 		sub_laser_scan_ = nh_.subscribe("scan", 2, &ViNode::scanReceived, this);
 	}
 
 	pub_value_function_ = nh_.advertise<nav_msgs::OccupancyGrid>("value_function", 2, true);
-	pub_local_value_function_ = nh_.advertise<nav_msgs::OccupancyGrid>("local_value_function", 2, true);
+	//pub_local_value_function_ = nh_.advertise<nav_msgs::OccupancyGrid>("local_value_function", 2, true);
 
 	as_.reset(new actionlib::SimpleActionServer<value_iteration::ViAction>( nh_, "vi_controller",
 				boost::bind(&ViNode::executeVi, this, _1), false));
@@ -167,7 +166,6 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 		th.join();
 
 	vi_->setCalculated();
-	vi_->copyFromGlobal();
 
 	ROS_INFO("VALUE ITERATION END");
 	for(int t=2;t<4;t++)
@@ -194,8 +192,10 @@ void ViNode::pubValueFunction(void)
 	vi_->makeValueFunctionMap(map, cost_drawing_threshold_, x_, y_, yaw_);
 	pub_value_function_.publish(map);
 
+	/*
 	vi_->makeLocalValueFunctionMap(local_map, cost_drawing_threshold_, x_, y_, yaw_);
 	pub_local_value_function_.publish(local_map);
+	*/
 }
 
 void ViNode::decision(void)
