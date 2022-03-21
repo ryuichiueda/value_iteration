@@ -178,7 +178,6 @@ uint64_t ValueIterator::valueIteration(State &s)
 	int64_t delta = min_cost - s.total_cost_;
 	s.total_cost_ = min_cost;
 	s.optimal_action_ = min_action;
-	//s.renew_ = true;
 
 	return delta > 0 ? delta : -delta;
 }
@@ -195,7 +194,7 @@ void ValueIterator::valueIterationWorker(int times, int id)
 			max_delta = max(max_delta, valueIteration(states_[i]));
 	
 		thread_status_[id]._delta = (double)(max_delta >> prob_base_bit_);
-		if(thread_status_[id]._delta < 0.1 or status_ == "canceled" or status_ == "goal" )
+		if(/*thread_status_[id]._delta < 0.1 or */status_ == "canceled" or status_ == "goal" )
 			break;
 	}
 
