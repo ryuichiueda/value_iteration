@@ -215,12 +215,12 @@ bool ValueIterator::inMapArea(int ix, int iy)
 uint64_t ValueIterator::actionCost(State &s, Action &a)
 {
 	uint64_t cost = 0;
-	for(auto &tran : a._state_transitions[s._it]){
-		int ix = s._ix + tran._dix;
+	for(auto &tran : a._state_transitions[s.it_]){
+		int ix = s.ix_ + tran._dix;
 		if(ix < 0 or ix >= cell_num_x_)
 			return max_cost_;
 
-		int iy = s._iy + tran._diy;
+		int iy = s.iy_ + tran._diy;
 		if(iy < 0 or iy >= cell_num_y_)
 			return max_cost_;
 
@@ -251,8 +251,8 @@ void ValueIterator::setStateValues(void)
 {
 	for(auto &s : states_){
 		/* goal distance check */
-		double x0 = s._ix*xy_resolution_ + map_origin_x_;
-		double y0 = s._iy*xy_resolution_ + map_origin_y_;
+		double x0 = s.ix_*xy_resolution_ + map_origin_x_;
+		double y0 = s.iy_*xy_resolution_ + map_origin_y_;
 		double r0 = (x0 - goal_x_)*(x0 - goal_x_) + (y0 - goal_y_)*(y0 - goal_y_);
 
 		double x1 = x0 + xy_resolution_;
@@ -264,8 +264,8 @@ void ValueIterator::setStateValues(void)
 			       && s.free_;
 
 		/* orientation check */
-		int t0 = s._it*t_resolution_;
-		int t1 = (s._it+1)*t_resolution_;
+		int t0 = s.it_*t_resolution_;
+		int t1 = (s.it_+1)*t_resolution_;
 		int goal_t_2 = goal_t_ > 180 ? goal_t_ - 360 : goal_t_ + 360;
 
 		s.final_state_ &= 
@@ -295,7 +295,7 @@ bool ValueIterator::valueFunctionWriter(grid_map_msgs::GetGridMap::Response& res
 		map.add(name);
 		for(int i=t; i<states_.size(); i+=cell_num_t_){
 			auto &s = states_[i];
-			map.at(name, grid_map::Index(s._ix, s._iy)) = s.total_cost_/(ValueIterator::prob_base_);
+			map.at(name, grid_map::Index(s.ix_, s.iy_)) = s.total_cost_/(ValueIterator::prob_base_);
 		}
 	}
 
@@ -318,7 +318,7 @@ bool ValueIterator::policyWriter(grid_map_msgs::GetGridMap::Response& response)
 		map.add(name);
 		for(int i=t; i<states_.size(); i+=cell_num_t_){
 			auto &s = states_[i];
-			map.at(name, grid_map::Index(s._ix, s._iy)) = 
+			map.at(name, grid_map::Index(s.ix_, s.iy_)) = 
 				(s.optimal_action_ == NULL) ? -1.0 : (double)s.optimal_action_->id_;
 		}
 	}

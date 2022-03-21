@@ -11,7 +11,7 @@ class State{
 public: 
 	uint64_t total_cost_;
 	uint64_t penalty_;
-	int _ix, _iy, _it;
+	int ix_, iy_, it_;
 	bool free_;
 	bool final_state_;
 
