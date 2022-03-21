@@ -10,7 +10,7 @@ Please give the navigation goal and some obstacles as shown in the movie below a
 $ roslaunch value_iteration navigation_house_amcl.launch
 ```
 
-[![](https://img.youtube.com/vi/vozJNzThUdM/0.jpg)](https://www.youtube.com/watch?v=vozJNzThUdM)
+[![](https://img.youtube.com/vi/O1NJnF0sIdA/0.jpg)](https://www.youtube.com/watch?v=O1NJnF0sIdA)
 
 ## Nodes
 
