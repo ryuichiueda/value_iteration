@@ -144,8 +144,9 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	for(int t=0; t<vi_->thread_num_; t++)
 		ths.push_back(thread(&ValueIterator::valueIterationWorker, vi_.get(), INT_MAX, t));
 
-	if(online_)
+//	if(online_)
 		thread(&ValueIteratorLocal::localValueIterationWorker, vi_.get(), 1).detach();
+		thread(&ValueIteratorLocal::localValueIterationWorker, vi_.get(), 2).detach();
 //		for(int t=0;t<1;t++)
 //			thread(&ValueIteratorLocal::localValueIterationWorker, vi_.get(), t).detach();
 
