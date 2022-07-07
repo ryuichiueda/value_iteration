@@ -17,15 +17,18 @@ State::State(int x, int y, int theta, const nav_msgs::OccupancyGrid &map,
 	final_state_ = false;
 	optimal_action_ = NULL;
 
+	/*
 	free_ = (map.data[y*x_num + x] == 0);
 	if(not free_)
 		return;
+		*/
 
 	for(int ix=-margin+x; ix<=margin+x; ix++){
 		for(int iy=-margin+y; iy<=margin+y; iy++){
 			int pos = iy*x_num + ix;
 			if(0 <= pos and pos < map.data.size() and map.data[iy*x_num + ix] != 0)
-				penalty_ = (uint64_t)(margin_penalty * ValueIterator::prob_base_) + ValueIterator::prob_base_;
+				penalty_ = ValueIterator::prob_base_;
+				//penalty_ = (uint64_t)(margin_penalty * ValueIterator::prob_base_) + ValueIterator::prob_base_;
 		}
 	}
 }

@@ -59,7 +59,7 @@ void ValueIterator::setMapWithCostGrid(nav_msgs::OccupancyGrid &map, int theta_c
 
 	for(int y=0; y<cell_num_y_; y++)
 		for(int x=0; x<cell_num_x_; x++){
-			unsigned int cost = (unsigned int)(map.data[x + cell_num_x_*y] & 0xFF);
+			unsigned int cost = 0;//(unsigned int)(map.data[x + cell_num_x_*y] & 0xFF);
 			for(int t=0; t<cell_num_t_; t++)
 				states_.push_back(State(x, y, t, cost));
 		}
