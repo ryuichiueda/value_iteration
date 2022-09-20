@@ -61,8 +61,8 @@ uint64_t ValueIteratorLocal::valueIterationLocal(State &s)
 		}
 	}
 
-	int64_t delta = min_cost - s.total_cost_;
-	s.total_cost_ = min_cost;
+	int64_t delta = min_cost - s.total_cost_[0];
+	s.total_cost_[0] = min_cost;
 	s.optimal_action_ = min_action;
 
 	return delta > 0 ? delta : -delta;
@@ -82,11 +82,11 @@ Action *ValueIteratorLocal::posToAction(double x, double y, double t_rad)
 		return NULL;
 		/*
 	}else if(states_[index].local_optimal_action_ != NULL){
-		ROS_INFO("COST TO GO: %f", (double)states_[index].local_total_cost_/ValueIterator::prob_base_);
+		ROS_INFO("COST TO GO: %f", (double)states_[index].local_total_cost_[0]/ValueIterator::prob_base_);
 		return states_[index].local_optimal_action_;
 		*/
 	}else if(states_[index].optimal_action_ != NULL){
-		ROS_INFO("COST TO GO: %f", (double)states_[index].total_cost_/ValueIterator::prob_base_);
+		ROS_INFO("COST TO GO: %f", (double)states_[index].total_cost_[0]/ValueIterator::prob_base_);
 		return states_[index].optimal_action_;
 	}
 
@@ -159,7 +159,7 @@ uint64_t ValueIteratorLocal::actionCostLocal(State &s, Action &a)
 		if(not after_s.free_)
 			return max_cost_;
 
-		cost += ( after_s.total_cost_ + after_s.penalty_ + after_s.local_penalty_ ) * tran._prob;
+		cost += ( after_s.total_cost_[0] + after_s.penalty_ + after_s.local_penalty_ ) * tran._prob;
 	}
 
 	return cost >> prob_base_bit_;
@@ -193,7 +193,7 @@ void ValueIteratorLocal::makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map,
 	for(int y=local_iy_min_; y<=local_iy_max_; y++)
 		for(int x=local_ix_min_; x<=local_ix_max_; x++){
 			int index = toIndex(x, y, it);
-			double cost = (double)states_[index].total_cost_/prob_base_;
+			double cost = (double)states_[index].total_cost_[0]/prob_base_;
 			if(cost < (double)threshold)
 				map.data.push_back((int)(cost/threshold*250));
 			else if(states_[index].free_)

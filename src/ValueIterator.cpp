@@ -175,8 +175,8 @@ uint64_t ValueIterator::valueIteration(State &s)
 		}
 	}
 
-	int64_t delta = min_cost - s.total_cost_;
-	s.total_cost_ = min_cost;
+	int64_t delta = min_cost - s.total_cost_[0];
+	s.total_cost_[0] = min_cost;
 	s.optimal_action_ = min_action;
 
 	return delta > 0 ? delta : -delta;
@@ -229,7 +229,7 @@ uint64_t ValueIterator::actionCost(State &s, Action &a)
 		if(not after_s.free_)
 			return max_cost_;
 
-		cost += ( after_s.total_cost_ + after_s.penalty_ + after_s.local_penalty_ ) * tran._prob;
+		cost += ( after_s.total_cost_[0] + after_s.penalty_ + after_s.local_penalty_ ) * tran._prob;
 	}
 
 	return cost >> prob_base_bit_;
@@ -274,7 +274,7 @@ void ValueIterator::setStateValues(void)
 
 	for(auto &s : states_){
 		//s.renew_ = false;
-		s.total_cost_ = s.final_state_ ? 0 : max_cost_;
+		s.total_cost_[0] = s.final_state_ ? 0 : max_cost_;
 		//s.local_total_cost_ = s.total_cost_;
 		s.local_penalty_ = 0;
 		s.optimal_action_ = NULL;
@@ -294,7 +294,7 @@ bool ValueIterator::valueFunctionWriter(grid_map_msgs::GetGridMap::Response& res
 		map.add(name);
 		for(int i=t; i<states_.size(); i+=cell_num_t_){
 			auto &s = states_[i];
-			map.at(name, grid_map::Index(s.ix_, s.iy_)) = s.total_cost_/(ValueIterator::prob_base_);
+			map.at(name, grid_map::Index(s.ix_, s.iy_)) = s.total_cost_[0]/(ValueIterator::prob_base_);
 		}
 	}
 
@@ -365,7 +365,7 @@ void ValueIterator::makeValueFunctionMap(nav_msgs::OccupancyGrid &map, int thres
 	for(int y=0; y<cell_num_y_; y++)
 		for(int x=0; x<cell_num_x_; x++){
 			int index = toIndex(x, y, it);
-			double cost = (double)states_[index].total_cost_/prob_base_;
+			double cost = (double)states_[index].total_cost_[0]/prob_base_;
 			if(cost < (double)threshold)
 				map.data.push_back((int)(cost/threshold*250));
 			else if(states_[index].free_)
@@ -435,7 +435,7 @@ Action *ValueIterator::posToAction(double x, double y, double t_rad)
 		status_ = "goal";
 		return NULL;
 	}else if(states_[index].optimal_action_ != NULL){
-		ROS_INFO("COST TO GO: %f", (double)states_[index].total_cost_/ValueIterator::prob_base_);
+		ROS_INFO("COST TO GO: %f", (double)states_[index].total_cost_[0]/ValueIterator::prob_base_);
 		return states_[index].optimal_action_;
 	}
 

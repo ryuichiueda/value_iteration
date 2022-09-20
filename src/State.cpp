@@ -11,7 +11,7 @@ State::State(int x, int y, int theta, const nav_msgs::OccupancyGrid &map,
 	ix_ = x;
 	iy_ = y;
 	it_ = theta;
-	total_cost_ = ValueIterator::max_cost_;
+	total_cost_.push_back(ValueIterator::max_cost_);
 	penalty_ = ValueIterator::prob_base_;
 	local_penalty_ = 0;
 	final_state_ = false;
@@ -35,7 +35,7 @@ State::State(int x, int y, int theta, unsigned int cost)
 	ix_ = x;
 	iy_ = y;
 	it_ = theta;
-	total_cost_ = ValueIterator::max_cost_;
+	total_cost_.push_back(ValueIterator::max_cost_);
 	final_state_ = false;
 	optimal_action_ = NULL;
 	free_ = (cost != 255);
