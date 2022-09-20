@@ -30,7 +30,12 @@ void ValueIteratorLocal::localValueIterationWorker(int id)
 	}
 
 	while(status_ != "canceled" and status_ != "goal"){
+		chrono::system_clock::time_point start, end;
+		start = chrono::system_clock::now();
 		localValueIterationLoop();
+		end = chrono::system_clock::now();
+		double time = static_cast<double>(chrono::duration_cast<chrono::microseconds>(end - start).count() / 1000.0);
+		printf("time %lf[ms]\n", time);
 	}
 }
 
