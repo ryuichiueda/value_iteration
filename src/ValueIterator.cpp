@@ -84,10 +84,13 @@ bool ValueIterator::finished(std_msgs::UInt32MultiArray &sweep_times, std_msgs::
 
 void ValueIterator::setStateTransition(void)
 {
+	std::vector< std::vector<StateTransition> > tmp;
 	std::vector<StateTransition> theta_state_transitions;
-	for(auto &a : actions_)
+	for(auto &a : actions_){
+		a._state_transitions.push_back(tmp);
 		for(int t=0; t<cell_num_t_; t++)
-			a._state_transitions.push_back(theta_state_transitions);
+			a._state_transitions[0].push_back(theta_state_transitions);
+	}
 
 	std::vector<thread> ths;
 	for(int t=0; t<cell_num_t_; t++)
@@ -146,7 +149,7 @@ void ValueIterator::setStateTransitionWorkerSub(Action &a, int it)
 				cellDelta(dx, dy, dt, dix, diy, dit); 
 
 				bool exist = false;
-				for(auto &s : a._state_transitions[it]){
+				for(auto &s : a._state_transitions[0][it]){
 					if(s._dix == dix and s._diy == diy and s._dit == dit){
 						s._prob++;
 						exist = true;
@@ -154,7 +157,7 @@ void ValueIterator::setStateTransitionWorkerSub(Action &a, int it)
 					}
 				}
 				if(not exist)
-					a._state_transitions[it].push_back(StateTransition(dix, diy, dit, 1));
+					a._state_transitions[0][it].push_back(StateTransition(dix, diy, dit, 1));
 			}
 		}
 	}
@@ -214,7 +217,7 @@ bool ValueIterator::inMapArea(int ix, int iy)
 uint64_t ValueIterator::actionCost(State &s, Action &a)
 {
 	uint64_t cost = 0;
-	for(auto &tran : a._state_transitions[s.it_]){
+	for(auto &tran : a._state_transitions[0][s.it_]){
 		int ix = s.ix_ + tran._dix;
 		if(ix < 0 or ix >= cell_num_x_)
 			return max_cost_;

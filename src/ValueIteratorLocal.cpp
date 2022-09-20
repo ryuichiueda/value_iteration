@@ -144,7 +144,7 @@ void ValueIteratorLocal::setLocalCost(const sensor_msgs::LaserScan::ConstPtr &ms
 uint64_t ValueIteratorLocal::actionCostLocal(State &s, Action &a)
 {
 	uint64_t cost = 0;
-	for(auto &tran : a._state_transitions[s.it_]){
+	for(auto &tran : a._state_transitions[0][s.it_]){
 		int ix = s.ix_ + tran._dix;
 		if(ix < 0 or ix >= cell_num_x_)
 			return max_cost_;
