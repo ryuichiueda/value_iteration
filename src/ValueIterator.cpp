@@ -87,9 +87,11 @@ void ValueIterator::setStateTransition(void)
 	std::vector< std::vector<StateTransition> > tmp;
 	std::vector<StateTransition> theta_state_transitions;
 	for(auto &a : actions_){
-		a._state_transitions.push_back(tmp);
+		for(int s=0; s<State::sigma_num_; s++)
+			a._state_transitions.push_back(tmp);
 		for(int t=0; t<cell_num_t_; t++)
-			a._state_transitions[0].push_back(theta_state_transitions);
+			for(int s=0; s<State::sigma_num_; s++)
+				a._state_transitions[s].push_back(theta_state_transitions);
 	}
 
 	std::vector<thread> ths;
@@ -157,7 +159,7 @@ void ValueIterator::setStateTransitionWorkerSub(Action &a, int it)
 					}
 				}
 				if(not exist)
-					a._state_transitions[0][it].push_back(StateTransition(dix, diy, dit, 1));
+					a._state_transitions[0][it].push_back(StateTransition(dix, diy, dit, 0, 1));
 			}
 		}
 	}

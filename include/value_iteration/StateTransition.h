@@ -7,10 +7,10 @@ namespace value_iteration{
 
 class StateTransition{
 public:
-	int _dix, _diy, _dit;
+	int _dix, _diy, _dit, _dsigma;
 	int _prob;
 
-	StateTransition(int dix, int diy, int dit, int prob);
+	StateTransition(int dix, int diy, int dit, int dsigma, int prob);
 	std::string to_string(void);
 };
 

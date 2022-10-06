@@ -2,11 +2,12 @@
 
 namespace value_iteration{
 
-StateTransition::StateTransition(int dix, int diy, int dit, int prob)
+StateTransition::StateTransition(int dix, int diy, int dit, int dsigma, int prob)
 {
 	_dix = dix;
 	_diy = diy;
 	_dit = dit;
+	_dsigma = dsigma;
 	_prob = prob;
 }
 
