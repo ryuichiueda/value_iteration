@@ -16,7 +16,7 @@ public:
 		double safety_radius, double safety_radius_penalty,
 		double goal_margin_radius, int goal_margin_theta);
 
-	Action *posToAction(double x, double y, double t_rad);
+	Action *posToAction(double x, double y, double t_rad, double sx, double sy, double st_rad);
 
 	void setLocalCost(const sensor_msgs::LaserScan::ConstPtr &msg, double x, double y, double t);
 	void setLocalWindow(double x, double y);

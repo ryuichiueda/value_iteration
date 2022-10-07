@@ -24,9 +24,10 @@ public:
 	State(int x, int y, int theta, unsigned int cost);
 
 	const static unsigned char sigma_num_;
+	vector<double> sigma_thresholds_;
 };
 
-const unsigned char State::sigma_num_ = 4;
+const unsigned char State::sigma_num_ = 5;
 
 }
 

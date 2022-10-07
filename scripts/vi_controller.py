@@ -9,8 +9,9 @@ goal_data = None
 client = None
 
 def vi_state_cb(feedback):
-    rospy.loginfo("SWEEPS: " + ", ".join(str(e) for e in feedback.current_sweep_times.data))
-    rospy.loginfo("DELTAS: " + ", ".join(str(e) for e in feedback.deltas.data))
+    pass
+    #rospy.loginfo("SWEEPS: " + ", ".join(str(e) for e in feedback.current_sweep_times.data))
+    #rospy.loginfo("DELTAS: " + ", ".join(str(e) for e in feedback.deltas.data))
 
 def vi_client(data):
     global client 

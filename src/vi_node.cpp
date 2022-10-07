@@ -83,6 +83,7 @@ void ViNode::setCommunication(void)
 		ROS_INFO("SET ONLINE");
 		pub_cmd_vel_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 2, true);
 		sub_laser_scan_ = nh_.subscribe("scan", 2, &ViNode::scanReceived, this);
+		sub_mcl_pose_ = nh_.subscribe("mcl_pose", 2, &ViNode::covReceived, this);
 	}
 
 	pub_value_function_ = nh_.advertise<nav_msgs::OccupancyGrid>("value_function", 2, true);
@@ -115,6 +116,14 @@ void ViNode::setActions(void)
 void ViNode::scanReceived(const sensor_msgs::LaserScan::ConstPtr &msg)
 {
 	vi_->setLocalCost(msg, x_, y_, yaw_);
+}
+
+void ViNode::covReceived(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg)
+{
+	double x_dev = msg->pose.covariance[6*0 + 0];
+	double y_dev = msg->pose.covariance[6*1 + 1];
+	double t_dev = msg->pose.covariance[6*2 + 2];
+	ROS_INFO("cov: %f, %f, %f", sqrt(x_dev), sqrt(y_dev), sqrt(t_dev));
 }
 
 bool ViNode::servePolicy(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response)
@@ -166,14 +175,6 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	for(auto &th : ths)
 		th.join();
 
-	/*
-	vi_->setCalculated();
-
-	ROS_INFO("VALUE ITERATION END");
-	for(int t=2;t<4;t++)
-		thread(&ValueIteratorLocal::localValueIterationWorker, vi_.get(), t).detach();
-		*/
-
 	while(not vi_->endOfTrial() )
 		if(as_->isPreemptRequested()){
 			vi_->setCancel();
@@ -212,13 +213,14 @@ void ViNode::decision(void)
 		ROS_WARN("%s", e.what());
 	}
 
+
 	vi_->setLocalWindow(x_, y_);
 
 	geometry_msgs::Twist cmd_vel;
 	cmd_vel.linear.x = 0.0;
 	cmd_vel.angular.z = 0.0;
 
-	Action *a = vi_->posToAction(x_, y_, yaw_);
+	Action *a = vi_->posToAction(x_, y_, yaw_, 0.0, 0.0, 0.0);
 	if(a != NULL){
 		cmd_vel.linear.x = a->_delta_fw;
 		cmd_vel.angular.z = a->_delta_rot/180*M_PI;

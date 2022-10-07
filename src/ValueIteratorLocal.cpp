@@ -68,7 +68,7 @@ uint64_t ValueIteratorLocal::valueIterationLocal(State &s)
 	return delta > 0 ? delta : -delta;
 }
 
-Action *ValueIteratorLocal::posToAction(double x, double y, double t_rad)
+Action *ValueIteratorLocal::posToAction(double x, double y, double t_rad, double sx, double sy, double st_rad)
 {
         int ix = (int)floor( (x - map_origin_x_)/xy_resolution_ );
         int iy = (int)floor( (y - map_origin_y_)/xy_resolution_ );
@@ -80,11 +80,6 @@ Action *ValueIteratorLocal::posToAction(double x, double y, double t_rad)
 	if(states_[index].final_state_){
 		status_ = "goal";
 		return NULL;
-		/*
-	}else if(states_[index].local_optimal_action_ != NULL){
-		ROS_INFO("COST TO GO: %f", (double)states_[index].local_total_cost_[0]/ValueIterator::prob_base_);
-		return states_[index].local_optimal_action_;
-		*/
 	}else if(states_[index].optimal_action_ != NULL){
 		ROS_INFO("COST TO GO: %f", (double)states_[index].total_cost_[0]/ValueIterator::prob_base_);
 		return states_[index].optimal_action_;

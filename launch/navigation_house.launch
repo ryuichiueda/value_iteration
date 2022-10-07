@@ -50,7 +50,7 @@
 -->
 
   <!-- MCL -->
-  <include file="$(find value_iteration)/launch/emcl.launch"/>
+  <include file="$(find value_iteration)/launch/emcl_silent.launch"/>
   <!-- <include file="$(find value_iteration)/launch/amcl.launch"/> -->
 
   <!-- Launch other launch files -->

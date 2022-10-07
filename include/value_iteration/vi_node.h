@@ -7,6 +7,7 @@
 
 #include "geometry_msgs/Twist.h"
 #include "geometry_msgs/PoseWithCovarianceStamped.h"
+#include "geometry_msgs/PoseWithCovariance.h"
 
 #include "nav_msgs/GetMap.h"
 #include "nav_msgs/OccupancyGrid.h"
@@ -43,6 +44,7 @@ private:
 	ros::Publisher pub_cmd_vel_;
 	ros::Publisher pub_value_function_;
 	ros::Subscriber sub_laser_scan_;
+	ros::Subscriber sub_mcl_pose_; //共分散行列の取得のため
 
 	tf::TransformListener tf_listener_;
 
@@ -53,6 +55,7 @@ private:
 	bool serveValue(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response);
 
 	void scanReceived(const sensor_msgs::LaserScan::ConstPtr &msg);
+	void covReceived(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg);
 
 	void setActions(void);
 	void setMap(nav_msgs::GetMap::Response &res);
