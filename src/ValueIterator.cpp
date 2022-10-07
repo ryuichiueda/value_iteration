@@ -148,17 +148,17 @@ void ValueIterator::setStateTransitionWorkerSub(Action &a, int it)
 				double dx, dy, dt;
 				noNoiseStateTransition(a, ox, oy, ot + theta_origin, dx, dy, dt);
 				int dix, diy, dit;
-				cellDelta(dx, dy, dt, dix, diy, dit); 
+				cellDelta(dx, dy, dt, dix, diy, dit);  //離散状態における移動量
 
 				bool exist = false;
-				for(auto &s : a._state_transitions[0][it]){
+				for(auto &s : a._state_transitions[0][it]){ //既に登録済みの遷移状態なら遷移確率を増やす
 					if(s._dix == dix and s._diy == diy and s._dit == dit){
 						s._prob++;
 						exist = true;
 						break;
 					}
 				}
-				if(not exist)
+				if(not exist) //新規登録
 					a._state_transitions[0][it].push_back(StateTransition(dix, diy, dit, 0, 1));
 			}
 		}
@@ -234,7 +234,7 @@ uint64_t ValueIterator::actionCost(State &s, Action &a)
 		if(not after_s.free_)
 			return max_cost_;
 
-		cost += ( after_s.total_cost_[0] + after_s.penalty_ + after_s.local_penalty_ ) * tran._prob;
+		cost += ( after_s.total_cost_[0] + after_s.penalty_[0] + after_s.local_penalty_ ) * tran._prob;
 	}
 
 	return cost >> prob_base_bit_;
