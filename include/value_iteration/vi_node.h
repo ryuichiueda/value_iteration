@@ -43,6 +43,7 @@ private:
 
 	ros::Publisher pub_cmd_vel_;
 	ros::Publisher pub_value_function_;
+	ros::Publisher pub_local_value_function_;
 	ros::Subscriber sub_laser_scan_;
 	ros::Subscriber sub_mcl_pose_; //共分散行列の取得のため
 

@@ -87,6 +87,7 @@ void ViNode::setCommunication(void)
 	}
 
 	pub_value_function_ = nh_.advertise<nav_msgs::OccupancyGrid>("value_function", 2, true);
+	pub_local_value_function_ = nh_.advertise<nav_msgs::OccupancyGrid>("local_value_function", 2, true);
 
 	as_.reset(new actionlib::SimpleActionServer<value_iteration::ViAction>( nh_, "vi_controller",
 				boost::bind(&ViNode::executeVi, this, _1), false));
@@ -195,6 +196,9 @@ void ViNode::pubValueFunction(void)
 
 	vi_->makeValueFunctionMap(map, cost_drawing_threshold_, x_, y_, yaw_);
 	pub_value_function_.publish(map);
+
+	vi_->makeLocalValueFunctionMap(local_map, cost_drawing_threshold_, x_, y_, yaw_);
+	pub_local_value_function_.publish(local_map);
 }
 
 void ViNode::decision(void)
