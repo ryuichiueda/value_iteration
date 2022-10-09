@@ -2,7 +2,7 @@
 
 namespace value_iteration{
 
-ViNode::ViNode() : private_nh_("~"), yaw_(0.0), x_(0.0), y_(0.0), online_("false")
+ViNode::ViNode() : private_nh_("~"), yaw_(0.0), x_(0.0), y_(0.0), x_dev_(10.0), y_dev_(1.0), yaw_dev_(0.0), online_("false")
 {
 	setActions();
 
@@ -121,10 +121,10 @@ void ViNode::scanReceived(const sensor_msgs::LaserScan::ConstPtr &msg)
 
 void ViNode::covReceived(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg)
 {
-	double x_dev = msg->pose.covariance[6*0 + 0];
-	double y_dev = msg->pose.covariance[6*1 + 1];
-	double t_dev = msg->pose.covariance[6*2 + 2];
-	ROS_INFO("cov: %f, %f, %f", sqrt(x_dev), sqrt(y_dev), sqrt(t_dev));
+	x_dev_ = sqrt(msg->pose.covariance[6*0 + 0]);
+	y_dev_ = sqrt(msg->pose.covariance[6*1 + 1]);
+	yaw_dev_ = sqrt(msg->pose.covariance[6*2 + 2]);
+	//ROS_INFO("cov: %f, %f, %f", sqrt(x_dev), sqrt(y_dev), sqrt(t_dev));
 }
 
 bool ViNode::servePolicy(grid_map_msgs::GetGridMap::Request& request, grid_map_msgs::GetGridMap::Response& response)
@@ -224,7 +224,7 @@ void ViNode::decision(void)
 	cmd_vel.linear.x = 0.0;
 	cmd_vel.angular.z = 0.0;
 
-	Action *a = vi_->posToAction(x_, y_, yaw_, 0.0, 0.0, 0.0);
+	Action *a = vi_->posToAction(x_, y_, yaw_, x_dev_, y_dev_, yaw_dev_);
 	if(a != NULL){
 		cmd_vel.linear.x = a->_delta_fw;
 		cmd_vel.angular.z = a->_delta_rot/180*M_PI;

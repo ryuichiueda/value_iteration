@@ -20,6 +20,10 @@ void ValueIteratorLocal::setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, i
 	local_iy_min_ = 0;
 	local_ix_max_ = local_ixy_range_*2;
 	local_iy_max_ = local_ixy_range_*2;
+
+	sigma_thresholds_.push_back(0.1);
+	for(int s=1;s<State::sigma_num_-1;s++)
+		sigma_thresholds_.push_back( sigma_thresholds_[s-1]*2 );
 }
 
 void ValueIteratorLocal::localValueIterationWorker(int id)
@@ -79,12 +83,23 @@ Action *ValueIteratorLocal::posToAction(double x, double y, double t_rad, double
         int it = (int)floor( ( (t + 360*100)%360 )/t_resolution_ );
 	int index = toIndex(ix, iy, it);
 
+	double d = pow(sx*sy*st_rad, 1.0/3);
+	int sigma_index = 0;
+	for(int sig=0;sig<State::sigma_num_-1;sig++){
+		if(sigma_thresholds_[sig] < d)
+			sigma_index++;
+		else
+			break;
+	}
+
+	ROS_INFO("UNCERTAINTY: %f, LEVEL: %d", d, sigma_index);
+
 	if(states_[index].final_state_){
 		status_ = "goal";
 		return NULL;
-	}else if(states_[index].optimal_action_[0] != NULL){
-		ROS_INFO("COST TO GO: %f", (double)states_[index].total_cost_[0]/ValueIterator::prob_base_);
-		return states_[index].optimal_action_[0];
+	}else if(states_[index].optimal_action_[sigma_index] != NULL){
+		ROS_INFO("COST TO GO: %f", (double)states_[index].total_cost_[sigma_index]/ValueIterator::prob_base_);
+		return states_[index].optimal_action_[sigma_index];
 	}
 
 	return NULL;

@@ -63,6 +63,7 @@ private:
 	void setCommunication(void);
 
 	double x_, y_, yaw_;
+	double x_dev_, y_dev_, yaw_dev_;
 
 	//string status_;
 	bool online_;

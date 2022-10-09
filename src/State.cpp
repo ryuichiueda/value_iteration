@@ -8,10 +8,12 @@ State::State(int x, int y, int theta, const nav_msgs::OccupancyGrid &map,
 	if(margin_penalty > 1.0e+10)
 		ROS_ERROR("TOO LARGE PENALTY TO VIOLATION OF SAFETY RADIUS");
 
+	/*
 	sigma_thresholds_.push_back(0.1);
 	sigma_thresholds_.push_back(0.2);
 	sigma_thresholds_.push_back(0.4);
 	sigma_thresholds_.push_back(0.8);
+	*/
 
 	ix_ = x;
 	iy_ = y;

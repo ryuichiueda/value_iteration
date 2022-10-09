@@ -23,6 +23,7 @@ public:
 	void makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map, int threshold, 
 			double x, double y, double yaw_rad);
 
+	vector<double> sigma_thresholds_;
 private: 
 	void localValueIterationLoop(void);
 
