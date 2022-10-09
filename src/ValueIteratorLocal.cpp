@@ -156,7 +156,7 @@ uint64_t ValueIteratorLocal::actionCostLocal(State &s, Action &a, int uncertaint
 		if(not after_s.free_)
 			return max_cost_;
 
-		cost += ( after_s.total_cost_[0] + after_s.penalty_[0] + after_s.local_penalty_ ) * tran._prob;
+		cost += ( after_s.total_cost_[uncertainty_level] + after_s.penalty_[uncertainty_level] + after_s.local_penalty_ ) * tran._prob;
 	}
 
 	return cost >> prob_base_bit_;

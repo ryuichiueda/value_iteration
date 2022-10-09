@@ -16,8 +16,8 @@ State::State(int x, int y, int theta, const nav_msgs::OccupancyGrid &map,
 	ix_ = x;
 	iy_ = y;
 	it_ = theta;
-	total_cost_.push_back(ValueIterator::max_cost_);
 	for(int s=0; s<State::sigma_num_;s++){
+		total_cost_.push_back(ValueIterator::max_cost_);
 		penalty_.push_back( ValueIterator::prob_base_ );
 		optimal_action_.push_back(NULL);
 	}
