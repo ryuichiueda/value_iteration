@@ -279,11 +279,11 @@ void ValueIterator::setStateValues(void)
 
 	for(auto &s : states_){
 		//s.renew_ = false;
-		s.total_cost_[0] = s.final_state_ ? 0 : max_cost_;
-		//s.local_total_cost_ = s.total_cost_;
-		s.local_penalty_ = 0;
-		s.optimal_action_[0] = NULL;
-		//s.local_optimal_action_ = NULL;
+		//for(int sig=0;sig<State::sigma_num_;sig++){
+			s.total_cost_[0] = s.final_state_ ? 0 : max_cost_;
+			s.local_penalty_ = 0;
+			s.optimal_action_[0] = NULL;
+	//	}
 	}
 }
 

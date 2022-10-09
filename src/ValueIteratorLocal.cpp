@@ -51,19 +51,21 @@ uint64_t ValueIteratorLocal::valueIterationLocal(State &s)
 	if((not s.free_) or s.final_state_)
 		return 0;
 
-	uint64_t min_cost = ValueIterator::max_cost_;
-	Action *min_action = NULL;
-	for(auto &a : actions_){
-		int64_t c = actionCostLocal(s, a, 0);
-		if(c < min_cost){
-			min_cost = c;
-			min_action = &a;
+	int64_t delta;
+	for(int sigma=0;sigma<State::sigma_num_;sigma++){
+		uint64_t min_cost = ValueIterator::max_cost_;
+		Action *min_action = NULL;
+		for(auto &a : actions_){
+			int64_t c = actionCostLocal(s, a, sigma);
+			if(c < min_cost){
+				min_cost = c;
+				min_action = &a;
+			}
 		}
+		delta = min_cost - s.total_cost_[sigma];
+		s.total_cost_[sigma] = min_cost;
+		s.optimal_action_[sigma] = min_action;
 	}
-
-	int64_t delta = min_cost - s.total_cost_[0];
-	s.total_cost_[0] = min_cost;
-	s.optimal_action_[0] = min_action;
 
 	return delta > 0 ? delta : -delta;
 }
