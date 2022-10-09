@@ -188,7 +188,7 @@ void ValueIteratorLocal::makeLocalValueFunctionMap(nav_msgs::OccupancyGrid &map,
 	for(int y=local_iy_min_; y<=local_iy_max_; y++)
 		for(int x=local_ix_min_; x<=local_ix_max_; x++){
 			int index = toIndex(x, y, it);
-			double cost = (double)states_[index].total_cost_[0]/prob_base_;
+			double cost = (double)states_[index].total_cost_[1]/prob_base_;
 			if(cost < (double)threshold)
 				map.data.push_back((int)(cost/threshold*250));
 			else if(states_[index].free_)
