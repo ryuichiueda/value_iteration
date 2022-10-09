@@ -27,7 +27,7 @@ private:
 	void localValueIterationLoop(void);
 
 	bool inLocalArea(int ix, int iy);
-	uint64_t actionCostLocal(State &s, Action &a);
+	uint64_t actionCostLocal(State &s, Action &a, int uncertainty_level);
 
 	int local_ix_min_, local_ix_max_, local_iy_min_, local_iy_max_;
 	int local_ixy_range_;

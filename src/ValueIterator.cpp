@@ -182,7 +182,7 @@ uint64_t ValueIterator::valueIteration(State &s)
 
 	int64_t delta = min_cost - s.total_cost_[0];
 	s.total_cost_[0] = min_cost;
-	s.optimal_action_ = min_action;
+	s.optimal_action_[0] = min_action;
 
 	return delta > 0 ? delta : -delta;
 }
@@ -282,7 +282,7 @@ void ValueIterator::setStateValues(void)
 		s.total_cost_[0] = s.final_state_ ? 0 : max_cost_;
 		//s.local_total_cost_ = s.total_cost_;
 		s.local_penalty_ = 0;
-		s.optimal_action_ = NULL;
+		s.optimal_action_[0] = NULL;
 		//s.local_optimal_action_ = NULL;
 	}
 }
@@ -323,7 +323,7 @@ bool ValueIterator::policyWriter(grid_map_msgs::GetGridMap::Response& response)
 		for(int i=t; i<states_.size(); i+=cell_num_t_){
 			auto &s = states_[i];
 			map.at(name, grid_map::Index(s.ix_, s.iy_)) = 
-				(s.optimal_action_ == NULL) ? -1.0 : (double)s.optimal_action_->id_;
+				(s.optimal_action_[0] == NULL) ? -1.0 : (double)s.optimal_action_[0]->id_;
 		}
 	}
 
@@ -439,9 +439,9 @@ Action *ValueIterator::posToAction(double x, double y, double t_rad)
 	if(states_[index].final_state_){
 		status_ = "goal";
 		return NULL;
-	}else if(states_[index].optimal_action_ != NULL){
+	}else if(states_[index].optimal_action_[0] != NULL){
 		ROS_INFO("COST TO GO: %f", (double)states_[index].total_cost_[0]/ValueIterator::prob_base_);
-		return states_[index].optimal_action_;
+		return states_[index].optimal_action_[0];
 	}
 
 	return NULL;

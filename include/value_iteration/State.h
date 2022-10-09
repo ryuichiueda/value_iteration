@@ -17,7 +17,7 @@ public:
 
 	uint64_t local_penalty_;
 
-	Action *optimal_action_;
+	vector<Action *> optimal_action_;
 
 	State(int x, int y, int theta, const nav_msgs::OccupancyGrid &map,
 		int margin, double margin_penalty, int x_num);

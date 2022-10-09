@@ -54,7 +54,7 @@ uint64_t ValueIteratorLocal::valueIterationLocal(State &s)
 	uint64_t min_cost = ValueIterator::max_cost_;
 	Action *min_action = NULL;
 	for(auto &a : actions_){
-		int64_t c = actionCostLocal(s, a);
+		int64_t c = actionCostLocal(s, a, 0);
 		if(c < min_cost){
 			min_cost = c;
 			min_action = &a;
@@ -63,7 +63,7 @@ uint64_t ValueIteratorLocal::valueIterationLocal(State &s)
 
 	int64_t delta = min_cost - s.total_cost_[0];
 	s.total_cost_[0] = min_cost;
-	s.optimal_action_ = min_action;
+	s.optimal_action_[0] = min_action;
 
 	return delta > 0 ? delta : -delta;
 }
@@ -80,9 +80,9 @@ Action *ValueIteratorLocal::posToAction(double x, double y, double t_rad, double
 	if(states_[index].final_state_){
 		status_ = "goal";
 		return NULL;
-	}else if(states_[index].optimal_action_ != NULL){
+	}else if(states_[index].optimal_action_[0] != NULL){
 		ROS_INFO("COST TO GO: %f", (double)states_[index].total_cost_[0]/ValueIterator::prob_base_);
-		return states_[index].optimal_action_;
+		return states_[index].optimal_action_[0];
 	}
 
 	return NULL;
@@ -136,7 +136,7 @@ void ValueIteratorLocal::setLocalCost(const sensor_msgs::LaserScan::ConstPtr &ms
 	}
 }
 
-uint64_t ValueIteratorLocal::actionCostLocal(State &s, Action &a)
+uint64_t ValueIteratorLocal::actionCostLocal(State &s, Action &a, int uncertainty_level)
 {
 	uint64_t cost = 0;
 	for(auto &tran : a._state_transitions[0][s.it_]){
