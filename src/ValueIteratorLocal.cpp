@@ -58,7 +58,7 @@ uint64_t ValueIteratorLocal::valueIterationLocal(State &s)
 		return 0;
 
 	int64_t delta;
-	for(int sigma=0;sigma<State::sigma_num_;sigma++){
+	for(int sigma=1;sigma<State::sigma_num_;sigma++){
 		uint64_t min_cost = ValueIterator::max_cost_;
 		Action *min_action = NULL;
 		for(auto &a : actions_){
