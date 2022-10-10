@@ -31,11 +31,20 @@ State::State(int x, int y, int theta, const nav_msgs::OccupancyGrid &map,
 	if(not free_)
 		return;
 
-	for(int ix=-margin+x; ix<=margin+x; ix++){
-		for(int iy=-margin+y; iy<=margin+y; iy++){
-			int pos = iy*x_num + ix;
-			if(0 <= pos and pos < map.data.size() and map.data[iy*x_num + ix] != 0)
-				penalty_[0] = (uint64_t)(margin_penalty * ValueIterator::prob_base_) + ValueIterator::prob_base_;
+	int margins[State::sigma_num_];
+	margins[0] = margin;
+	margins[1] = margin+2;
+	margins[2] = margin+4;
+	margins[3] = margin+8;
+	margins[4] = margin+16;
+
+	for(int sig=0; sig<State::sigma_num_;sig++){
+		for(int ix=-margins[sig]+x; ix<=margins[sig]+x; ix++){
+			for(int iy=-margins[sig]+y; iy<=margins[sig]+y; iy++){
+				int pos = iy*x_num + ix;
+				if(0 <= pos and pos < map.data.size() and map.data[iy*x_num + ix] != 0)
+					penalty_[sig] = (uint64_t)(margin_penalty * ValueIterator::prob_base_) + ValueIterator::prob_base_;
+			}
 		}
 	}
 }

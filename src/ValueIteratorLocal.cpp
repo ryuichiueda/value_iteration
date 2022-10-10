@@ -21,9 +21,11 @@ void ValueIteratorLocal::setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, i
 	local_ix_max_ = local_ixy_range_*2;
 	local_iy_max_ = local_ixy_range_*2;
 
+	/*
 	sigma_thresholds_.push_back(0.1);
 	for(int s=1;s<State::sigma_num_-1;s++)
 		sigma_thresholds_.push_back( sigma_thresholds_[s-1]*2 );
+		*/
 }
 
 void ValueIteratorLocal::localValueIterationWorker(int id)
@@ -156,6 +158,10 @@ void ValueIteratorLocal::setLocalCost(const sensor_msgs::LaserScan::ConstPtr &ms
 uint64_t ValueIteratorLocal::actionCostLocal(State &s, Action &a, int uncertainty_level)
 {
 	uint64_t cost = 0;
+	int aug_uncertainty_level = uncertainty_level + 1;
+	if(aug_uncertainty_level == State::sigma_num_-1)
+		aug_uncertainty_level--;
+	
 	for(auto &tran : a._state_transitions[0][s.it_]){
 		int ix = s.ix_ + tran._dix;
 		if(ix < 0 or ix >= cell_num_x_)
@@ -171,13 +177,14 @@ uint64_t ValueIteratorLocal::actionCostLocal(State &s, Action &a, int uncertaint
 		if(not after_s.free_)
 			return max_cost_;
 
-		if(inLocalArea(ix, iy))
-			cost += ( after_s.total_cost_[uncertainty_level] + after_s.penalty_[uncertainty_level] + after_s.local_penalty_ ) * tran._prob;
-		else
-			cost += ( after_s.total_cost_[0] + after_s.penalty_[0] + after_s.local_penalty_ ) * tran._prob;
+		if(inLocalArea(ix, iy)){
+			cost += ( after_s.total_cost_[uncertainty_level] + after_s.penalty_[uncertainty_level] + after_s.local_penalty_ ) * tran._prob * 15;
+			cost += ( after_s.total_cost_[aug_uncertainty_level] + after_s.penalty_[aug_uncertainty_level] + after_s.local_penalty_ ) * tran._prob * 1;
+		}else
+			cost += ( after_s.total_cost_[0] + after_s.penalty_[0] + after_s.local_penalty_ ) * tran._prob * 16;
 	}
 
-	return cost >> prob_base_bit_;
+	return cost >> (prob_base_bit_ + 4);
 }
 
 void ValueIteratorLocal::setLocalWindow(double x, double y)

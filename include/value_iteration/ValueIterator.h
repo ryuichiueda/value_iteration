@@ -23,6 +23,7 @@ protected:
 	std::vector<State> states_;
 	std::vector<Action> &actions_;
 	std::vector<std::vector<int> > sweep_orders_;
+	vector<double> sigma_thresholds_;
 
 	uint64_t valueIteration(State &s);
 	uint64_t actionCost(State &s, Action &a);

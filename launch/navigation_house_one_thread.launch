@@ -32,7 +32,7 @@
 
   <!-- Arguments -->
   <arg name="model" default="burger" doc="model type [burger, waffle, waffle_pi]"/>
-  <arg name="map_file" default="$(find value_iteration)/maps/house.yaml"/>
+  <arg name="map_file" default="$(find value_iteration)/maps/house_amdp.yaml"/>
   <arg name="open_rviz" default="true"/>
 
   <!-- Turtlebot3 -->
@@ -50,7 +50,7 @@
 -->
 
   <!-- MCL -->
-  <include file="$(find value_iteration)/launch/emcl.launch"/>
+  <include file="$(find value_iteration)/launch/emcl_silent.launch"/>
   <!-- <include file="$(find value_iteration)/launch/amcl.launch"/> -->
 
   <!-- Launch other launch files -->
