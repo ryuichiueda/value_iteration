@@ -154,5 +154,5 @@ It is the sum of costs from a pose (position + orientation) to a point of goal. 
 ## acknowledgement
 
 - This software is developped on the support of JSPS KAKENHI JP20K04382.
-- A custom simulation environment in this repository is derived from (ROBOTIS-GIT/turtlebot3_simulations)[https://github.com/ROBOTIS-GIT/turtlebot3_simulations], which is licensed with Apache License 2.0. 
+- A custom simulation environment in this repository is derived from [ROBOTIS-GIT/turtlebot3_simulations](https://github.com/ROBOTIS-GIT/turtlebot3_simulations), which is licensed with Apache License 2.0. 
 
