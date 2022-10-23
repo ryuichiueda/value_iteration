@@ -6414,7 +6414,7 @@
       </link>
       <static>1</static>
       <allow_auto_disable>1</allow_auto_disable>
-      <pose>1.0 -3.5 0 0 -0 0</pose>
+      <pose>1.0 -2.5 0 0 -0 0</pose>
     </model>
     <model name='brick_box_3x1x3_0_0'>
       <link name='chassis'>
@@ -6518,7 +6518,7 @@
       </link>
       <static>1</static>
       <allow_auto_disable>1</allow_auto_disable>
-      <pose>-0.5 -3.5 0 0 -0 0</pose>
+      <pose>-0.5 -2.5 0 0 -0 0</pose>
     </model>
     <model name='brick_box_3x1x3_0_1'>
       <link name='chassis'>
@@ -6622,7 +6622,7 @@
       </link>
       <static>1</static>
       <allow_auto_disable>1</allow_auto_disable>
-      <pose>-2.5 -3.5 0 0 -0 0</pose>
+      <pose>-2.5 -2.5 0 0 -0 0</pose>
     </model>
     <state world_name='default'>
       <sim_time>129 93000000</sim_time>
@@ -6630,30 +6630,30 @@
       <wall_time>1665728642 999551516</wall_time>
       <iterations>129093</iterations>
       <model name='brick_box_3x1x3_0'>
-        <pose>1.0 -3.5 0 0 -0 0</pose>
+        <pose>1.0 -2.5 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='chassis'>
-          <pose>1.0 -3.5 0.02 0 -0 0</pose>
+          <pose>1.0 -2.5 0.02 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='brick_box_3x1x3_0_0'>
-        <pose>-0.5 -3.5 0 0 -0 0</pose>
+        <pose>-0.5 -2.5 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='chassis'>
-          <pose>-0.5 -3.5 0.02 0 -0 0</pose>
+          <pose>-0.5 -2.5 0.02 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='brick_box_3x1x3_0_1'>
-        <pose>-2.5 -3.5 0 0 -0 0</pose>
+        <pose>-2.5 -2.5 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='chassis'>
-          <pose>-2.5 -3.5 0.02 0 -0 0</pose>
+          <pose>-2.5 -2.5 0.02 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
