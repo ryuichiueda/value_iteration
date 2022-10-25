@@ -26,10 +26,10 @@ State::State(int x, int y, int theta, const nav_msgs::OccupancyGrid &map,
 
 	int margins[State::sigma_num_];
 	margins[0] = margin;
-	margins[1] = margin+2;
-	margins[2] = margin+4;
-	margins[3] = margin+8;
-	margins[4] = margin+16;
+	margins[1] = margin+4;
+	margins[2] = margin+8;
+	margins[3] = margin+16;
+	//margins[4] = margin+16;
 
 	for(int sig=0; sig<State::sigma_num_;sig++){
 		for(int ix=-margins[sig]+x; ix<=margins[sig]+x; ix++){

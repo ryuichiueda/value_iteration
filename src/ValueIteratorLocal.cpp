@@ -20,12 +20,6 @@ void ValueIteratorLocal::setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, i
 	local_iy_min_ = 0;
 	local_ix_max_ = local_ixy_range_*2;
 	local_iy_max_ = local_ixy_range_*2;
-
-	/*
-	sigma_thresholds_.push_back(0.1);
-	for(int s=1;s<State::sigma_num_-1;s++)
-		sigma_thresholds_.push_back( sigma_thresholds_[s-1]*2 );
-		*/
 }
 
 void ValueIteratorLocal::localValueIterationWorker(int id)

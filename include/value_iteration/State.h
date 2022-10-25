@@ -26,7 +26,7 @@ public:
 	const static unsigned char sigma_num_;
 };
 
-const unsigned char State::sigma_num_ = 5;
+const unsigned char State::sigma_num_ = 4;
 
 }
 

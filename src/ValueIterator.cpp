@@ -29,7 +29,7 @@ void ValueIterator::setMapWithOccupancyGrid(nav_msgs::OccupancyGrid &map, int th
 	map_origin_y_ = map.info.origin.position.y;
 	map_origin_quat_ = map.info.origin.orientation;
 
-	sigma_thresholds_.push_back(0.1);
+	sigma_thresholds_.push_back(0.2);
 	for(int s=1;s<State::sigma_num_-1;s++)
 		sigma_thresholds_.push_back( sigma_thresholds_[s-1]*2 );
 
