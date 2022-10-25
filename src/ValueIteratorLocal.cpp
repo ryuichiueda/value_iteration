@@ -161,6 +161,9 @@ uint64_t ValueIteratorLocal::actionCostLocal(State &s, Action &a, int uncertaint
 	int aug_uncertainty_level = uncertainty_level + 1;
 	if(aug_uncertainty_level == State::sigma_num_-1)
 		aug_uncertainty_level--;
+
+	if(uncertainty_level == 0)
+		aug_uncertainty_level = 0;
 	
 	for(auto &tran : a._state_transitions[0][s.it_]){
 		int ix = s.ix_ + tran._dix;
