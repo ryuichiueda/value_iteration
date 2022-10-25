@@ -54,7 +54,7 @@
   <!-- <include file="$(find value_iteration)/launch/amcl.launch"/> -->
 
   <!-- Launch other launch files -->
-  <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_house.launch" />
+  <include file="$(find value_iteration)/launch/turtlebot3_house.launch" />
 
   <!-- rviz -->
   <group if="$(arg open_rviz)"> 
