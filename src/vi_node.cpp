@@ -112,7 +112,7 @@ void ViNode::setActions(void)
 
 void ViNode::poseReceived(const geometry_msgs::PoseWithCovarianceStampedConstPtr& msg)
 {
-	if(status_ != "calculating" and status_ != "calculated")
+	if(/*status_ != "calculating" and*/ status_ != "calculated")
 		return;
 
 	auto &ori = msg->pose.pose.orientation;	
