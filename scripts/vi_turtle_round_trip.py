@@ -46,4 +46,6 @@ if __name__ == '__main__':
 
         vi_client(goal)
 
+    time.sleep(15)
+
     #rospy.spin()

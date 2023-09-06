@@ -204,11 +204,14 @@ void ValueIterator::valueIterationWorker(int times, int id)
 	
 		status_[id]._delta = (double)(max_delta >> prob_base_bit_);
 
-		for(int i=0;i<thread_num_;i++)
+		bool finish = true;
+		for(int i=0;i<thread_num_;i++){
 			if(status_[i]._delta >= 0.1)
-				continue;
+				finish = false;
+		}
 
-		break;
+		if(finish)
+			break;
 	}
 
 	status_[id]._finished = true;
