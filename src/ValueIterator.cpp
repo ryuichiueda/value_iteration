@@ -179,6 +179,14 @@ uint64_t ValueIterator::valueIteration(State &s)
 	return delta > 0 ? delta : -delta;
 }
 
+int ValueIterator::sweepNum(void){
+	int ans = 0;
+	for(int i=0;i<thread_num_;i++)
+		ans += status_[i]._sweep_step;
+
+	return ans;
+}
+
 void ValueIterator::valueIterationWorker(int times, int id)
 {
 	status_.insert(make_pair(id, SweepWorkerStatus()));
@@ -195,8 +203,12 @@ void ValueIterator::valueIterationWorker(int times, int id)
 			max_delta = max(max_delta, valueIteration(states_[i]));
 	
 		status_[id]._delta = (double)(max_delta >> prob_base_bit_);
-		if(status_[id]._delta < 0.1)
-			break;
+
+		for(int i=0;i<thread_num_;i++)
+			if(status_[i]._delta >= 0.1)
+				continue;
+
+		break;
 	}
 
 	status_[id]._finished = true;

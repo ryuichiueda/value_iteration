@@ -174,11 +174,13 @@ void ViNode::executeVi(const value_iteration::ViGoalConstPtr &goal)
 	}
 	as_->publishFeedback(vi_feedback);
 
-	for(auto &th : ths)
+	for(auto &th : ths){
 		th.join();
+	}
 
 	status_ = "calculated";
 	ROS_INFO("VALUE ITERATION END");
+	ROS_INFO("SWEEP NUM: %d", vi_->sweepNum());
 
 	while(online_ and status_ != "goal"){
 		loop_rate.sleep();

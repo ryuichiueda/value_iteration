@@ -70,6 +70,8 @@ public:
 	void makeValueFunctionMap(nav_msgs::OccupancyGrid &map,
 			double x, double y, double yaw_rad);
 
+	int sweepNum(void);
+
 	double goal_x_, goal_y_, goal_margin_radius_;
 	int goal_t_, goal_margin_theta_;
 	int thread_num_;
