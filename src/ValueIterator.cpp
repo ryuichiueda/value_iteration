@@ -187,11 +187,11 @@ void ValueIterator::valueIterationWorker(int times, int id)
 		status_[id]._sweep_step = j+1;
 
 		uint64_t max_delta = 0;
-	
-		int start = rand()%states_.size();
-		for(int i=start; i<states_.size(); i++)
+
+		int start = toIndex(rand()%cell_num_x_, rand()%cell_num_y_, id);//rand()%states_.size();
+		for(int i=start; i<states_.size(); i += thread_num_)
 			max_delta = max(max_delta, valueIteration(states_[i]));
-		for(int i=start-1; i>=0; i--)
+		for(int i=start-thread_num_; i>=0; i -= thread_num_)
 			max_delta = max(max_delta, valueIteration(states_[i]));
 	
 		status_[id]._delta = (double)(max_delta >> prob_base_bit_);
